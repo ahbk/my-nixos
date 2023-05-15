@@ -1,6 +1,5 @@
 # This is configuration.nix for friday
 { config, pkgs, lib, ... }: {
-  imports = [ ./hardware-configuration.nix ];
 
   nix = {
     package = pkgs.nixFlakes;
