@@ -2,14 +2,14 @@
   description = "This is my system";
 
   inputs = {
-    nixpkgs = "git+file:/nixpkgs/nixos-22.11";
+    nixpkgs.url = "git+file:/etc/nixos/nixpkgs";
   };
 
   outputs = { self, nixpkgs }: {
     nixosConfigurations = {
       "friday" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        module = [ ./configuration.nix ];
+        modules = [ ./configuration.nix ];
       };
     };
   };
