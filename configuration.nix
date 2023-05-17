@@ -31,6 +31,13 @@
     hashedPassword = "$6$PPO4I0Dw$H9COoSeK6FOMqucscb7fzq7lArI7d2hK1/I4Yh7RpzN8oX2LKg741ESqrKPdiglg1zCoUnJqJiU5E2HFrb7vO1";
   };
 
+  systemd.services.pipefix = {
+    wantedBy = [ "multi-user.target" ];
+    after = [ "nix-daemon.socket" ];
+    before = [ "systemd-user-sessions.service" ];
+    script = ''/run/current-system/sw/bin/setkeycodes 56 43'';
+  };
+
   environment.systemPackages = with pkgs; [
     pavucontrol
     qutebrowser firefox chromium
@@ -72,6 +79,16 @@
 
   programs.sway = {
     enable = true;
+  };
+
+  environment.etc = {
+    "rc.local" = {
+      text = ''
+        setkeycodes 56 43
+	exit 0
+      '';
+      mode = "0750";
+    };
   };
 
   #programs.adb.enable = true;
@@ -124,13 +141,13 @@
   #  libinput.enable = true;
   #};
 
-  services.udev = {
-    # https://tracker.pureos.net/T683
-    extraHwdb = ''
-      evdev:atkbd:dmi:bvn*:bvr*:bd*:svnPurism*:pn*Librem13v3*:pvr*
-      KEYBOARD_KEY_56=backslash
-    '';
-  };
+  #services.udev = {
+  #  # https://tracker.pureos.net/T683
+  #  extraHwdb = ''
+  #    evdev:atkbd:dmi:bvn*:bvr*:bd*:svnPurism*:pn*Librem13v2*:pvr*
+  #    KEYBOARD_KEY_56=backslash
+  #  '';
+  #};
 
   # the release version of the first install of this system (don't change)
   system.stateVersion = "20.03";
