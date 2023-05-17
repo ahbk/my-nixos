@@ -22,13 +22,11 @@
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "Europe/Stockholm";
 
-  users.mutableUsers = false;
-
   users.users.frans = {
     isNormalUser = true;
     home = "/home/frans";
     extraGroups = [ "wheel" "networkmanager" "transmission" "audio" "adbusers" "video" "docker" "lxd" ];
-    hashedPassword = "$6$PPO4I0Dw$H9COoSeK6FOMqucscb7fzq7lArI7d2hK1/I4Yh7RpzN8oX2LKg741ESqrKPdiglg1zCoUnJqJiU5E2HFrb7vO1";
+    initialPassword = "a";
   };
 
   systemd.services.pipefix = {
