@@ -1,4 +1,3 @@
-# This is configuration.nix for friday
 { config, pkgs, lib, ... }: {
   imports = [ ./hardware-configurations/friday.nix ];
 
@@ -29,6 +28,7 @@
     initialPassword = "a";
   };
 
+  # fix that keyboard on friday can't write | properly
   systemd.services.pipefix = {
     wantedBy = [ "multi-user.target" ];
     after = [ "nix-daemon.socket" ];
