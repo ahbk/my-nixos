@@ -13,6 +13,8 @@
     enable = true;
     device = "/dev/sda";
   };
+  
+  security.polkit.enable = true;
 
   networking.hostName = "friday";
   networking.networkmanager.enable = true;
@@ -30,9 +32,14 @@
   };
 
   environment.systemPackages = with pkgs; [
-    #dmenu
     pavucontrol
-    surf qutebrowser firefox chromium
+    qutebrowser firefox chromium
+    hyprland bemenu swaybg
+
+    xclip
+    silver-searcher
+
+    bitwarden-cli
 
     #wget
     #mpv
@@ -43,12 +50,9 @@
     #pwgen
     #gtypist
     #xawtv
-    xclip
     #scrot
-    silver-searcher
     # tor-browser-bundle-bin
     #signal-desktop
-    bitwarden-cli
     #mupdf
     #pciutils hwinfo lshw dmidecode
     #zip unzip
@@ -64,6 +68,10 @@
     terminal = "screen-256color";
     keyMode = "vi";
     escapeTime = 10;
+  };
+
+  programs.sway = {
+    enable = true;
   };
 
   #programs.adb.enable = true;
@@ -116,13 +124,13 @@
   #  libinput.enable = true;
   #};
 
-  #services.udev = {
-  #  # https://tracker.pureos.net/T683
-  #  extraHwdb = ''
-  #    evdev:atkbd:dmi:bvn*:bvr*:bd*:svnPurism*:pn*Librem13v2*:pvr*
-  #    KEYBOARD_KEY_56=backslash
-  #  '';
-  #};
+  services.udev = {
+    # https://tracker.pureos.net/T683
+    extraHwdb = ''
+      evdev:atkbd:dmi:bvn*:bvr*:bd*:svnPurism*:pn*Librem13v3*:pvr*
+      KEYBOARD_KEY_56=backslash
+    '';
+  };
 
   # the release version of the first install of this system (don't change)
   system.stateVersion = "20.03";

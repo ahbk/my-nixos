@@ -5,12 +5,12 @@
   home.homeDirectory = "/home/frans";
   home.enableNixpkgsReleaseCheck = true;
 
-  wayland.windowManager.sway = {
+  programs.neovim = {
     enable = true;
-    config = rec {
-      modifier = "Mod4";
-      terminal = "kitty"; 
-    };
+  };
+
+  programs.zsh = {
+    enable = true;
   };
 
   programs.git = {
@@ -22,9 +22,12 @@
   home.packages = [ 
   ];
 
-  programs.kitty = {
-    enable = true;
-  };
+  #programs.foot = {
+  #  enable = true;
+  #  #server.enable = true;
+  #  settings = {
+  #  };
+  #};
 
   home.stateVersion = "22.11";
 
