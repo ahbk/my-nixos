@@ -7,10 +7,26 @@
 
   programs.neovim = {
     enable = true;
+    vimAlias = true;
+    plugins = with pkgs.vimPlugins; [
+        nvim-tree-lua
+	nvim-web-devicons
+    ];
+    extraLuaConfig = (builtins.readFile ./nvim-init.lua);
   };
 
   programs.zsh = {
     enable = true;
+  };
+
+  programs.foot = {
+    enable = true;
+    settings = {
+      main.term = "xterm-256color";
+      main.font = "Source Code Pro";
+      main.dpi-aware = "yes";
+      mouse.hide-when-typing = "yes";
+    };
   };
 
   programs.git = {
@@ -19,15 +35,8 @@
     userEmail = "alexander.holmback@gmail.com";
   };
 
-  home.packages = [ 
+  home.packages = with pkgs; [ 
   ];
-
-  #programs.foot = {
-  #  enable = true;
-  #  #server.enable = true;
-  #  settings = {
-  #  };
-  #};
 
   home.stateVersion = "22.11";
 
