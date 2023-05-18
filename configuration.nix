@@ -28,7 +28,7 @@
     initialPassword = "a";
   };
 
-  # fix that keyboard on friday can't write | properly
+  # fix hw quirk: wrong keycode for pipe |
   systemd.services.pipefix = {
     wantedBy = [ "multi-user.target" ];
     after = [ "nix-daemon.socket" ];
@@ -42,8 +42,9 @@
   ];
 
   environment.systemPackages = with pkgs; [
-    pavucontrol
+
     qutebrowser firefox chromium
+
     bemenu swaybg
 
     xclip
@@ -51,26 +52,19 @@
 
     bitwarden-cli
 
-    #wget
+    nil
+    lua-language-server
+
+    gcc
+
+    pavucontrol
+
     #mpv
-    #git
-    #mkpasswd
-    #gcc
-    #debootstrap
-    #pwgen
-    #gtypist
-    #xawtv
-    #scrot
-    # tor-browser-bundle-bin
-    #signal-desktop
     #mupdf
-    #pciutils hwinfo lshw dmidecode
-    #zip unzip
-    #(st.override { conf = builtins.readFile ./st-0.8.5/config.def.h; })
-    #python310
-    #vimHugeX
-    #musescore
     #feh
+
+    #xawtv
+    #signal-desktop
   ];
 
   programs.tmux = {
@@ -90,26 +84,15 @@
     enable = true;
   };
 
-  #programs.adb.enable = true;
+  # sound with pipewire
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    #jack.enable = true;
+  };
 
-  #virtualisation.docker.enable = true;
-
-  #programs.light.enable = true; # Needed for the /run/wrappers/bin/light SUID wrapper.
-  #services.actkbd = {
-  #  enable = true;
-  #  bindings = [
-  #    { keys = [ 224 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -U 10"; }
-  #    { keys = [ 225 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -A 10"; }
-  #  ];
-  #};
-  #sound.enable = true;
-  #sound.mediaKeys.volumeStep = "1000";
-  #hardware.pulseaudio.enable = true;
-  #hardware.bluetooth.enable = true;
-
-  #services.openssh.enable = true;
-  #services.transmission.enable = true;
-
-  # the release version of the first install of this system (don't change)
   system.stateVersion = "20.03";
 }

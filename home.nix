@@ -15,8 +15,9 @@
     enable = true;
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [
-        nvim-tree-lua
-	nvim-web-devicons
+      (nvim-treesitter.withPlugins (p: [ p.nix ]))
+      nvim-tree-lua nvim-web-devicons
+      vim-sleuth
     ];
     extraLuaConfig = (builtins.readFile ./nvim-init.lua);
   };

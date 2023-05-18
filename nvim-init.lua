@@ -1,2 +1,6 @@
-require("nvim-tree").setup()
-vim.keymap.set('n', '<F2>', require("nvim-tree.api").tree.open)
+local ok, mymod = pcall(require, 'init')
+if ok then
+	print(mymod)
+else
+	print(ok)
+end
