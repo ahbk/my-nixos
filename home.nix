@@ -6,9 +6,6 @@
   home.enableNixpkgsReleaseCheck = true;
   home.shellAliases = {
     battery=''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
-    brightness=''xrandr --output eDP-1 --brightness $1'';
-    ll=''ls -lha'';
-    hdmi=''xrandr --output HDMI-1 --auto --right-of eDP-1'';
   };
 
   programs.neovim = {
@@ -18,6 +15,7 @@
       (nvim-treesitter.withPlugins (p: [ p.nix ]))
       nvim-tree-lua nvim-web-devicons
       vim-sleuth
+      nvim-lspconfig fidget-nvim
     ];
     extraLuaConfig = (builtins.readFile ./nvim-init.lua);
   };
