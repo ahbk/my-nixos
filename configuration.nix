@@ -47,15 +47,15 @@
 
     bemenu swaybg
 
-    xclip
+    wl-clipboard
     silver-searcher
 
     bitwarden-cli
 
-    nil
-    lua-language-server
+    nil lua-language-server
 
     gcc
+    xdg-utils
 
     pavucontrol
 
@@ -92,6 +92,14 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     #jack.enable = true;
+  };
+
+  xdg.mime.defaultApplications = {
+    "text/html" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/about" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/unknown" = "org.qutebrowser.qutebrowser.desktop";
   };
 
   system.stateVersion = "20.03";
