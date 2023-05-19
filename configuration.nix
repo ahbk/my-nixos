@@ -44,27 +44,25 @@
   environment.systemPackages = with pkgs; [
 
     qutebrowser firefox chromium
+    mpv mupdf feh
 
+    # for hyprland
     bemenu swaybg
 
     wl-clipboard
-    silver-searcher
+    silver-searcher ripgrep fd
 
     bitwarden-cli
 
     nil lua-language-server
 
-    gcc
     xdg-utils
 
     pavucontrol
 
-    #mpv
-    #mupdf
-    #feh
+    signal-desktop
 
     #xawtv
-    #signal-desktop
   ];
 
   programs.tmux = {
@@ -84,6 +82,9 @@
     enable = true;
   };
 
+  # for xbacklight
+  hardware.acpilight.enable = true;
+
   # sound with pipewire
   security.rtkit.enable = true;
   services.pipewire = {
@@ -95,6 +96,8 @@
   };
 
   xdg.mime.defaultApplications = {
+    "image/jpeg" = "feh.desktop";
+    "image/png" = "feh.desktop";
     "text/html" = "org.qutebrowser.qutebrowser.desktop";
     "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
     "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";

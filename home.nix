@@ -16,8 +16,21 @@
       nvim-tree-lua nvim-web-devicons
       vim-sleuth
       nvim-lspconfig fidget-nvim
+      telescope-nvim leap-nvim
     ];
-    extraLuaConfig = (builtins.readFile ./nvim-init.lua);
+    extraLuaConfig = (builtins.readFile ./nvim/built-nvim.lua);
+  };
+
+  programs.tmux = with pkgs.tmuxPlugins; {
+    enable = true;
+    terminal = "screen-256color";
+    keyMode = "vi";
+    escapeTime = 10;
+    plugins = [
+      gruvbox
+      battery
+    ];
+    extraConfig = (builtins.readFile ./tmux/buildpatch.conf);
   };
 
   programs.bash = {
