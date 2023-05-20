@@ -51,9 +51,12 @@
     enable = true;
     settings = {
       main.term = "xterm-256color";
-      main.font = "Source Code Pro";
+      main.font = "Source Code Pro:size=8";
+      main.include = "~/Desktop/nixos/foot/theme.ini";
       main.dpi-aware = "yes";
       mouse.hide-when-typing = "yes";
+      colors.alpha = .8;
+      
     };
   };
 
