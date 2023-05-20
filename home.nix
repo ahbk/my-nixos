@@ -26,9 +26,9 @@
     terminal = "screen-256color";
     keyMode = "vi";
     escapeTime = 10;
+    mouse = true;
     plugins = [
       gruvbox
-      battery
     ];
     extraConfig = (builtins.readFile ./tmux/buildpatch.conf);
   };
