@@ -5,7 +5,8 @@
   home.homeDirectory = "/home/frans";
   home.enableNixpkgsReleaseCheck = true;
   home.shellAliases = {
-    battery=''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
+    battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
+    nix-store-size = ''ls /nix/store | wc -l'';
   };
 
   programs.neovim = {
@@ -27,9 +28,6 @@
     keyMode = "vi";
     escapeTime = 10;
     mouse = true;
-    plugins = [
-      gruvbox
-    ];
     extraConfig = (builtins.readFile ./tmux/buildpatch.conf);
   };
 
