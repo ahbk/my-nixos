@@ -2,8 +2,7 @@
   description = "my system";
 
   inputs = {
-    nixpkgs.url = "git+file:/etc/nixos/nixpkgs";
-
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
