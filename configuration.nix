@@ -50,7 +50,7 @@
     fuzzel swaybg
 
     wl-clipboard
-    silver-searcher ripgrep fd
+    silver-searcher ripgrep fd fzf
 
     bitwarden-cli
 

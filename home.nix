@@ -7,6 +7,7 @@
   home.shellAliases = {
     battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
     nix-store-size = ''ls /nix/store | wc -l'';
+    f = ''fzf --print0 | xargs -0 -o xdg-open'';
   };
 
   programs.neovim = {
