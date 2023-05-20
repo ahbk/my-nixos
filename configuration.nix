@@ -47,7 +47,7 @@
     mpv mupdf feh
 
     # for hyprland
-    bemenu swaybg
+    fuzzel swaybg
 
     wl-clipboard
     silver-searcher ripgrep fd

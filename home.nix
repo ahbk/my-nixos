@@ -56,7 +56,6 @@
       main.dpi-aware = "yes";
       mouse.hide-when-typing = "yes";
       colors.alpha = .8;
-      
     };
   };
 
@@ -67,6 +66,7 @@
   };
 
   home.packages = with pkgs; [ 
+    ranger
   ];
 
   home.stateVersion = "22.11";
