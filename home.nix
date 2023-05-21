@@ -14,7 +14,10 @@
     enable = true;
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [
-      (nvim-treesitter.withPlugins (p: [ p.nix ]))
+      (nvim-treesitter.withPlugins (p: [
+                                    p.nix
+                                    p.python
+      ]))
       nvim-tree-lua nvim-web-devicons
       vim-sleuth
       nvim-lspconfig fidget-nvim
@@ -23,7 +26,7 @@
     extraLuaConfig = (builtins.readFile ./nvim/built-nvim.lua);
   };
 
-  programs.tmux = with pkgs.tmuxPlugins; {
+  programs.tmux = {
     enable = true;
     terminal = "screen-256color";
     keyMode = "vi";

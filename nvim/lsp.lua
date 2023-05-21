@@ -6,6 +6,7 @@
 local lspconfig = require('lspconfig')
 
 lspconfig.nil_ls.setup {}
+lspconfig.pyright.setup {}
 
 lspconfig.lua_ls.setup {
   settings = {

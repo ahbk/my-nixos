@@ -28,14 +28,6 @@
     initialPassword = "a";
   };
 
-  # fix hw quirk: wrong keycode for pipe |
-  systemd.services.pipefix = {
-    wantedBy = [ "multi-user.target" ];
-    after = [ "nix-daemon.socket" ];
-    before = [ "systemd-user-sessions.service" ];
-    script = ''/run/current-system/sw/bin/setkeycodes 56 43'';
-  };
-
   fonts.fonts = with pkgs; [
     source-code-pro
     hackgen-nf-font
@@ -57,7 +49,7 @@
     busybox pavucontrol
 
     # LSPs
-    nil lua-language-server
+    nil lua-language-server pyright
 
     # misx
     xdg-utils
@@ -83,6 +75,10 @@
     vimAlias = true;
   };
 
+  virtualisation.docker = {
+    enable = true;
+  };
+
   programs.light.enable = true;
   services.actkbd = {
     enable = true;
@@ -100,6 +96,14 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     #jack.enable = true;
+  };
+
+  # fix hw quirk: wrong keycode for pipe |
+  systemd.services.pipefix = {
+    wantedBy = [ "multi-user.target" ];
+    after = [ "nix-daemon.socket" ];
+    before = [ "systemd-user-sessions.service" ];
+    script = ''/run/current-system/sw/bin/setkeycodes 56 43'';
   };
 
   # add as we go
