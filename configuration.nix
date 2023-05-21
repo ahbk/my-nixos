@@ -43,23 +43,25 @@
 
   environment.systemPackages = with pkgs; [
 
+    # browsing and media
     qutebrowser firefox chromium
     mpv mupdf feh
 
     # for hyprland
-    fuzzel swaybg
+    fuzzel swaybg wl-clipboard
 
-    wl-clipboard
+    # search
     silver-searcher ripgrep fd fzf
 
-    bitwarden-cli
+    # hardware
+    busybox pavucontrol
 
+    # LSPs
     nil lua-language-server
 
+    # misx
     xdg-utils
-
-    pavucontrol
-
+    bitwarden-cli
     signal-desktop
 
   ];
