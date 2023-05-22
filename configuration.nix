@@ -45,9 +45,6 @@
     # search
     silver-searcher ripgrep fd fzf
 
-    # hardware
-    busybox pavucontrol
-
     # LSPs
     nil lua-language-server pyright
 
@@ -55,6 +52,7 @@
     xdg-utils
     bitwarden-cli
     signal-desktop
+    pavucontrol
 
   ];
 
