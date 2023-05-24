@@ -15,6 +15,7 @@ This system is specified by flake.nix, configuration.nix and home.nix.
 ## todo
 - solve nvim-tree's lack of ctrl-o/ctrl-i and incompatibility with netrw
 - figure out telescope/ripgrep's deal with ignores
-- implement swaylock with lid switch
+- implement [swaylock with lid switch](https://wiki.hyprland.org/Configuring/Binds/#bind-flags)
 - fix [sound media keys](https://github.com/NixOS/nixpkgs/blob/nixos-22.11/nixos/modules/services/audio/alsa.nix)
 - optimize nix based on [this template](https://github.com/Misterio77/nix-starter-configs)
+- evaluate these neovim plugins: Neotree, bufferline, navic(with barbecue) or lsp saga, which-key, lualine or lightline, gitsigns , indent-blankline and the theme is either monakai or monakai-pro
