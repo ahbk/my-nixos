@@ -24,7 +24,7 @@
   users.users.frans = {
     isNormalUser = true;
     home = "/home/frans";
-    extraGroups = [ "wheel" "networkmanager" "transmission" "audio" "adbusers" "video" "docker" "lxd" ];
+    extraGroups = [ "wheel" "networkmanager" "transmission" "audio" "adbusers" "video" "lxd" ];
     initialPassword = "a";
   };
 
@@ -46,13 +46,14 @@
     silver-searcher ripgrep fd fzf
 
     # LSPs
-    nil lua-language-server pyright
+    nil lua-language-server
 
     # misx
     xdg-utils
     bitwarden-cli
     signal-desktop
     pavucontrol
+    debootstrap
 
   ];
 
@@ -71,10 +72,6 @@
     enable = true;
     defaultEditor = true;
     vimAlias = true;
-  };
-
-  virtualisation.docker = {
-    enable = true;
   };
 
   programs.light.enable = true;
