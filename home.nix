@@ -1,6 +1,15 @@
 { config, pkgs, ... }:
-
-{
+let
+  nvim-window-picker = pkgs.vimUtils.buildVimPlugin {
+    name = "nvim-window-picker";
+    src = pkgs.fetchFromGitHub {
+      owner = "s1n7ax";
+      repo = "nvim-window-picker";
+      rev = "5902827";
+      sha256 = "sha256-1UbT/W1ngDnxX03aOk2V8VTOlXWyq/LjCfOl5MUOfsI=";
+    };
+  };
+in {
   home.username = "frans";
   home.homeDirectory = "/home/frans";
   home.enableNixpkgsReleaseCheck = true;
@@ -17,11 +26,16 @@
       (nvim-treesitter.withPlugins (p: [
                                     p.nix
                                     p.python
+                                    p.svelte
+                                    p.typescript
+                                    p.html
+                                    p.css p.scss
       ]))
-      nvim-tree-lua nvim-web-devicons
-      vim-sleuth
+      neo-tree-nvim nvim-web-devicons nvim-window-picker
+      vim-sleuth vim-fugitive
       nvim-lspconfig fidget-nvim
-      telescope-nvim leap-nvim
+      telescope-nvim leap-nvim mini-nvim
+      vim-svelte
     ];
     extraLuaConfig = (builtins.readFile ./nvim/built-nvim.lua);
   };
@@ -68,7 +82,7 @@
   };
 
   home.packages = with pkgs; [ 
-    ranger
+    ranger lazygit
   ];
 
   home.stateVersion = "22.11";
