@@ -14,8 +14,12 @@
   };
   
   security.polkit.enable = true;
+  security.pki.certificateFiles = [ ./minica/minica.pem ];
 
   networking.hostName = "friday";
+  networking.extraHosts = ''
+      127.0.0.2 weblog.local
+    '';
   networking.networkmanager.enable = true;
 
   i18n.defaultLocale = "en_US.UTF-8";
@@ -54,6 +58,7 @@
     signal-desktop
     pavucontrol
     debootstrap
+    minica
 
   ];
 
