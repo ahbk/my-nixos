@@ -59,6 +59,7 @@
     pavucontrol
     debootstrap
     minica
+    transmission-qt
 
   ];
 
