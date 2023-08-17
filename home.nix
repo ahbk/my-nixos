@@ -16,7 +16,9 @@ in {
   home.shellAliases = {
     battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
     nix-store-size = ''ls /nix/store | wc -l'';
-    f = ''fzf --print0 | xargs -0 -o xdg-open'';
+    f = ''find | fzf --print0 | xargs -0 -o vim'';
+    l = ''ls -la'';
+    ll = ''ls'';
   };
 
   programs.neovim = {
@@ -32,10 +34,24 @@ in {
                                     p.css p.scss
       ]))
       neo-tree-nvim nvim-web-devicons nvim-window-picker
-      vim-sleuth vim-fugitive
-      nvim-lspconfig fidget-nvim
-      telescope-nvim leap-nvim mini-nvim
+      vim-sleuth
+      vim-fugitive
+      nvim-lspconfig
+      telescope-nvim
+      telescope-fzf-native-nvim
+      leap-nvim
+      mini-nvim
       vim-svelte
+      vim-nix
+      luasnip
+      nvim-cmp
+      cmp_luasnip
+      cmp-nvim-lsp
+      nvim-lspconfig
+      toggleterm-nvim
+      everforest
+      gruvbox
+      kanagawa-nvim
     ];
     extraLuaConfig = (builtins.readFile ./nvim/built-nvim.lua);
   };
@@ -45,8 +61,7 @@ in {
     terminal = "screen-256color";
     keyMode = "vi";
     escapeTime = 10;
-    mouse = true;
-    extraConfig = (builtins.readFile ./tmux/buildpatch.conf);
+    extraConfig = (builtins.readFile ./tmux/tmux.conf);
   };
 
   programs.bash = {
@@ -81,8 +96,27 @@ in {
     userEmail = "alexander.holmback@gmail.com";
   };
 
+  programs.ssh = {
+    enable = true;
+  };
+
   home.packages = with pkgs; [ 
-    ranger lazygit
+    ranger
+    lazygit
+    nil
+    lua-language-server
+    silver-searcher
+    ripgrep
+    fd
+    fzf
+    pyright
+    black
+    nodejs
+    nodePackages.typescript-language-server
+    nodePackages.typescript
+    nodePackages.svelte-language-server
+    hugo
+    xh
   ];
 
   home.stateVersion = "22.11";

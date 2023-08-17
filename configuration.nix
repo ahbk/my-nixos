@@ -13,13 +13,27 @@
     device = "/dev/sda";
   };
   
+  # As an end user who doesn't tinker with privileges or delve
+  # into system administration, the benefits of having Polkit
+  # in a system like NixOS might not be immediately apparent.
+  # However, Polkit still offers advantages that contribute
+  # to your overall experience and security:
+  # [ long list redacted ]
+  #
+  # /ChatGTP
   security.polkit.enable = true;
+
+  # makes certificates for https
   security.pki.certificateFiles = [ ./minica/minica.pem ];
 
   networking.hostName = "friday";
+
+  # pet projects
   networking.extraHosts = ''
       127.0.0.2 weblog.local
     '';
+
+  # nmtui
   networking.networkmanager.enable = true;
 
   i18n.defaultLocale = "en_US.UTF-8";
@@ -43,7 +57,7 @@
     qutebrowser firefox chromium
     mpv mupdf feh
 
-    # for hyprland
+    # wayland
     fuzzel swaybg wl-clipboard
 
     # search
@@ -60,6 +74,7 @@
     debootstrap
     minica
     transmission-qt
+    unzip
 
   ];
 
@@ -80,6 +95,7 @@
     vimAlias = true;
   };
 
+  # brightness keys
   programs.light.enable = true;
   services.actkbd = {
     enable = true;
@@ -96,10 +112,9 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    #jack.enable = true;
   };
 
-  # fix hw quirk: wrong keycode for pipe |
+  # hw quirk: wrong keycode for pipe |
   systemd.services.pipefix = {
     wantedBy = [ "multi-user.target" ];
     after = [ "nix-daemon.socket" ];
@@ -109,8 +124,7 @@
 
   # add as we go
   xdg.mime.defaultApplications = {
-    "image/jpeg" = "feh.desktop";
-    "image/png" = "feh.desktop";
+    "image/*" = "feh.desktop";
     "text/html" = "org.qutebrowser.qutebrowser.desktop";
     "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
     "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
