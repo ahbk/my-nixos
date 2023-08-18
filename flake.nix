@@ -7,32 +7,36 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager }: {
+  outputs = { self, nixpkgs, home-manager }:
+  let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+  in {
+    homeConfigurations."frans@seagull" = home-manager.lib.homeManagerConfiguration {
+      inherit pkgs;
+      modules = [ ./seagull-home.nix ];
+    };
+
     nixosConfigurations = {
       "friday" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./friday.nix
-
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.frans = import ./friday-home.nix;
-          }
-
+            home-manager.users.frans = import ./friday-home.nix; }
         ];
       };
+
       "jarvis" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./jarvis.nix
-
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.frans = import ./jarvis-home.nix;
-          }
-
+            home-manager.users.frans = import ./jarvis-home.nix; }
         ];
       };
     };
