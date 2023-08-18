@@ -3,5 +3,5 @@
     ./common-home.nix
   ];
 
-  home.file.".config/hypr/hyprland.conf".source = ./hypr/hyperland-friday.conf;
+  home.file.".config/hypr/hyprland.conf".source = ./hypr/hyprland-friday.conf;
 }

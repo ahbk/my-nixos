@@ -69,6 +69,7 @@
     minica
     transmission-qt
     unzip
+    pciutils
 
   ];
 
