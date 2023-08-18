@@ -21,6 +21,9 @@ in {
     ll = ''ls'';
   };
 
+  home.file.".config/nvim/lua/".source = ./nvim;
+  home.file.".config/hypr/".source = ./hypr;
+
   programs.neovim = {
     enable = true;
     vimAlias = true;

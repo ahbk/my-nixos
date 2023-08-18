@@ -22,6 +22,19 @@
 
         ];
       };
+      "jarvis" = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./jarvis.nix
+
+          home-manager.nixosModules.home-manager {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.frans = import ./home.nix;
+          }
+
+        ];
+      };
     };
   };
 }
