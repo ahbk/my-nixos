@@ -36,7 +36,9 @@ in {
                                     p.html
                                     p.css p.scss
       ]))
-      neo-tree-nvim nvim-web-devicons nvim-window-picker
+      neo-tree-nvim
+      nvim-web-devicons
+      nvim-window-picker
       vim-sleuth
       vim-fugitive
       nvim-lspconfig

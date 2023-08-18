@@ -60,7 +60,7 @@
     # LSPs
     nil lua-language-server
 
-    # misx
+    # misc
     xdg-utils
     bitwarden-cli
     signal-desktop
@@ -70,6 +70,7 @@
     transmission-qt
     unzip
     pciutils
+    lsof
 
   ];
 
