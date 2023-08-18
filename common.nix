@@ -1,5 +1,4 @@
 { config, pkgs, lib, ... }: {
-  imports = [ ./hardware-configurations/friday.nix ];
 
   nix = {
     package = pkgs.nixFlakes;
