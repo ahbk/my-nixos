@@ -22,7 +22,7 @@ in {
   };
 
   home.file.".config/nvim/lua/".source = ./nvim;
-  home.file."hypr/wallpaper.jpg".source = ./hypr/wallpaper.jpg;
+  home.file.".config/hypr/wallpaper.jpg".source = ./hypr/wallpaper.jpg;
 
   programs.neovim = {
     enable = true;
