@@ -13,6 +13,9 @@ in {
   home.username = "frans";
   home.homeDirectory = "/home/frans";
   home.enableNixpkgsReleaseCheck = true;
+  home.sessionPath = [
+    "$HOME/.local/bin"
+  ];
   home.shellAliases = {
     battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
     nix-store-size = ''ls /nix/store | wc -l'';
