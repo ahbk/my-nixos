@@ -34,7 +34,7 @@
   users.users.frans = {
     isNormalUser = true;
     home = "/home/frans";
-    extraGroups = [ "wheel" "networkmanager" "transmission" "audio" "adbusers" "video" "lxd" ];
+    extraGroups = [ "wheel" "networkmanager" "transmission" "audio" "docker" "video" "lxd" ];
     initialPassword = "a";
     openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETPlH6kPI0KOv0jeOey+iwf8p/hhlIXHd9gIFAt6zMG alexander.holmback@gmail.com" ];
   };
@@ -72,7 +72,9 @@
     pciutils
     lsof
     (sqlite.override { interactive = true; })
-
+    python3
+    poetry
+    wget
   ];
 
   programs.hyprland = {
@@ -110,6 +112,8 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+
+  virtualisation.docker.enable = true;
 
   # add as we go
   xdg.mime.defaultApplications = {

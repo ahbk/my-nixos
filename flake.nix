@@ -24,7 +24,7 @@
 
     nixosConfigurations = {
       "friday" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
         modules = [
           ./friday.nix
           home-manager.nixosModules.home-manager {
@@ -35,7 +35,7 @@
       };
 
       "jarvis" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
         modules = [
           ./jarvis.nix
           home-manager.nixosModules.home-manager {
