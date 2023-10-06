@@ -21,6 +21,7 @@ in {
     ls = ''ls --color=auto'';
     l = ''ls -la'';
     ll = ''ls'';
+    grep = ''grep --color=auto'';
   };
 
   home.file.".config/nvim/lua/".source = ./nvim;
