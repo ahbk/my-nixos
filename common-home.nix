@@ -19,6 +19,8 @@ in {
     f = ''find | fzf --print0 | xargs -0 -o vim'';
     l = ''ls -la'';
     ll = ''ls'';
+    seagull = ''sudo systemd-nspawn -b -D /home/Desktop/seagull'';
+    blackbird = ''sudo systemd-nspawn -b -D /home/Desktop/blackbird'';
   };
 
   home.file.".config/nvim/lua/".source = ./nvim;
