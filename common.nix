@@ -71,6 +71,7 @@
     unzip
     pciutils
     lsof
+    (sqlite.override { interactive = true; })
 
   ];
 

@@ -13,10 +13,12 @@ in {
   home.username = "frans";
   home.homeDirectory = "/home/frans";
   home.enableNixpkgsReleaseCheck = true;
+  programs.bash.bashrcExtra = ''export PATH="$PATH:$HOME/.local/bin"'';
   home.shellAliases = {
     battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
     nix-store-size = ''ls /nix/store | wc -l'';
     f = ''find | fzf --print0 | xargs -0 -o vim'';
+    ls = ''ls --color=auto'';
     l = ''ls -la'';
     ll = ''ls'';
     seagull = ''sudo systemd-nspawn -b -D /home/Desktop/seagull'';

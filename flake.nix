@@ -17,6 +17,11 @@
       modules = [ ./seagull-home.nix ];
     };
 
+    homeConfigurations."frans@blackbird" = home-manager.lib.homeManagerConfiguration {
+      inherit pkgs;
+      modules = [ ./blackbird-home.nix ];
+    };
+
     nixosConfigurations = {
       "friday" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
