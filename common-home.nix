@@ -21,8 +21,8 @@ in {
     ls = ''ls --color=auto'';
     l = ''ls -la'';
     ll = ''ls'';
-    seagull = ''sudo systemd-nspawn -b -D /home/Desktop/seagull'';
-    blackbird = ''sudo systemd-nspawn -b -D /home/Desktop/blackbird'';
+    seagull = ''sudo systemd-nspawn -b -D /home/frans/Desktop/seagull'';
+    blackbird = ''sudo systemd-nspawn -b -D /home/frans/Desktop/blackbird'';
   };
 
   home.file.".config/nvim/lua/".source = ./nvim;
