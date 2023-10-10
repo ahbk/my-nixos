@@ -34,25 +34,18 @@
   users.users.frans = {
     isNormalUser = true;
     home = "/home/frans";
-    extraGroups = [ "wheel" "networkmanager" "transmission" "audio" "video" "lxd" ];
+    extraGroups = [ "wheel" "networkmanager" "transmission" "audio" "video" ];
     initialPassword = "a";
     openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETPlH6kPI0KOv0jeOey+iwf8p/hhlIXHd9gIFAt6zMG alexander.holmback@gmail.com" ];
   };
 
 
-  fonts.fonts = with pkgs; [
+  fonts.packages = with pkgs; [
     source-code-pro
     hackgen-nf-font
   ];
 
   environment.systemPackages = with pkgs; [
-
-    # browsing and media
-    qutebrowser firefox chromium
-    mpv mupdf feh
-
-    # wayland
-    fuzzel swaybg wl-clipboard
 
     # search
     silver-searcher ripgrep fd fzf
@@ -61,13 +54,8 @@
     nil lua-language-server
 
     # misc
-    xdg-utils
-    bitwarden-cli
-    signal-desktop
-    pavucontrol
     debootstrap
     minica
-    transmission-qt
     unzip
     pciutils
     lsof
@@ -88,35 +76,6 @@
     enable = true;
     defaultEditor = true;
     vimAlias = true;
-  };
-
-  # brightness keys
-  programs.light.enable = true;
-  services.actkbd = {
-    enable = true;
-    bindings = [
-    { keys = [ 224 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -U 10"; }
-    { keys = [ 225 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -A 10"; }
-    ];
-  };
-
-  # sound with pipewire
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
-  # add as we go
-  xdg.mime.defaultApplications = {
-    "image/*" = "feh.desktop";
-    "text/html" = "org.qutebrowser.qutebrowser.desktop";
-    "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
-    "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
-    "x-scheme-handler/about" = "org.qutebrowser.qutebrowser.desktop";
-    "x-scheme-handler/unknown" = "org.qutebrowser.qutebrowser.desktop";
   };
 
   # birthday

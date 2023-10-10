@@ -5,7 +5,7 @@
 
  wayland.windowManager.hyprland = {
    enable = true;
-   extraConfig = builtins.readFile ./hypr/hyprland-friday.conf;
+   extraConfig = builtins.readFile ./hypr/hyprland.conf;
  };
 
  programs.foot = {

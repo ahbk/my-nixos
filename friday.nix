@@ -29,5 +29,50 @@
     script = ''/run/current-system/sw/bin/setkeycodes 56 43'';
   };
 
+  # brightness keys
+  programs.light.enable = true;
+  services.actkbd = {
+    enable = true;
+    bindings = [
+    { keys = [ 224 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -U 10"; }
+    { keys = [ 225 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -A 10"; }
+    ];
+  };
+
+  # sound with pipewire
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  # add as we go
+  xdg.mime.defaultApplications = {
+    "image/*" = "feh.desktop";
+    "text/html" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/about" = "org.qutebrowser.qutebrowser.desktop";
+    "x-scheme-handler/unknown" = "org.qutebrowser.qutebrowser.desktop";
+  };
+
+  environment.systemPackages = with pkgs; [
+    bitwarden-cli
+    signal-desktop
+    pavucontrol
+    transmission-qt
+
+    # browsing and media
+    qutebrowser firefox chromium
+    mpv mupdf feh
+
+    # wayland
+    fuzzel swaybg wl-clipboard
+
+    # misc
+    xdg-utils
+  ];
 
 }
