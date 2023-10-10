@@ -3,18 +3,21 @@
     ./common-home.nix
   ];
 
-  home.file.".config/hypr/hyprland.conf".source = ./hypr/hyprland-friday.conf;
+ wayland.windowManager.hyprland = {
+   enable = true;
+   extraConfig = builtins.readFile ./hypr/hyprland-friday.conf;
+ };
 
-  programs.foot = {
-    enable = true;
-    settings = {
-      main.term = "xterm-256color";
-      main.font = "Source Code Pro:size=10";
-      main.include = "~/Desktop/nixos/foot/theme.ini";
-      main.dpi-aware = "yes";
-      mouse.hide-when-typing = "yes";
-      colors.alpha = .8;
-    };
-  };
+ programs.foot = {
+   enable = true;
+   settings = {
+     main.term = "xterm-256color";
+     main.font = "Source Code Pro:size=10";
+     main.include = "~/Desktop/nixos/foot/theme.ini";
+     main.dpi-aware = "yes";
+     mouse.hide-when-typing = "yes";
+     colors.alpha = .8;
+   };
+ };
 
 }
