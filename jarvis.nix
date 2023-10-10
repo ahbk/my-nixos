@@ -2,6 +2,7 @@
   imports = [
     ./hardware/jarvis.nix
     ./common.nix
+    ./inadyn/default.nix
   ];
 
   networking.hostName = "jarvis";
@@ -9,6 +10,11 @@
     enable = true;
     allowedTCPPorts = [ 8000 80 443 ];
   };
+  services.networking.inadyn = {
+    enable = true;
+    configFile = /home/frans/inadyn.conf;
+  };
+
   services.openssh.enable = true;
   services.nginx = {
     enable = true;
@@ -25,20 +31,5 @@
   environment.systemPackages = with pkgs; [
     iotop
     hdparm
-    inadyn
   ];
-
-  systemd.services.inadyn = {
-    enable = true;
-    description = "manage inadyn";
-    unitConfig = {
-      Type = "simple";
-      After = [ "network-online.target" ];
-      Requires = [ "network-online.target" ];
-    };
-    serviceConfig = {
-      ExecStart = "${pkgs.inadyn}/bin/inadyn --foreground";
-    };
-    wantedBy = [ "multi-user.target" ];
-  };
 }

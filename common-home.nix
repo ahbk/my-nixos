@@ -22,7 +22,7 @@ in {
     ll = ''ls'';
     grep = ''grep --color=auto'';
     seagull = ''sudo systemd-nspawn -b -D /home/frans/Desktop/seagull'';
-    blackbird = ''sudo systemd-nspawn -b -D /home/frans/Desktop/blackbird'';
+    blackbird = ''sudo systemd-nspawn -b -D /var/lib/machines/blackbird'';
   };
 
   home.file.".config/nvim/lua/".source = ./nvim;
