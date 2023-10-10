@@ -4,6 +4,10 @@
     ./common.nix
   ];
 
+  home.shellAliases = {
+    battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
+  };
+
   networking.hostName = "friday";
 
   programs.hyprland = {

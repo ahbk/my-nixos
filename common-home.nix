@@ -15,7 +15,6 @@ in {
   home.enableNixpkgsReleaseCheck = true;
   programs.bash.bashrcExtra = ''export PATH="$PATH:$HOME/.local/bin"'';
   home.shellAliases = {
-    battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
     nix-store-size = ''ls /nix/store | wc -l'';
     f = ''find | fzf --print0 | xargs -0 -o vim'';
     ls = ''ls --color=auto'';
