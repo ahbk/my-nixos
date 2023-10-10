@@ -11,7 +11,7 @@
     enable = true;
     device = "/dev/sda";
   };
-  
+
   # As an end user who doesn't tinker with privileges or delve
   # into system administration, the benefits of having Polkit
   # in a system like NixOS might not be immediately apparent.

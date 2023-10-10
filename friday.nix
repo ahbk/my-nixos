@@ -4,10 +4,6 @@
     ./common.nix
   ];
 
-  home.shellAliases = {
-    battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
-  };
-
   networking.hostName = "friday";
 
   programs.hyprland = {
@@ -23,7 +19,7 @@
   # pet projects
   networking.extraHosts = ''
       127.0.0.2 weblog.local
-    '';
+  '';
 
   # hw quirk: wrong keycode for pipe |
   systemd.services.pipefix = {
@@ -38,8 +34,8 @@
   services.actkbd = {
     enable = true;
     bindings = [
-    { keys = [ 224 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -U 10"; }
-    { keys = [ 225 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -A 10"; }
+      { keys = [ 224 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -U 10"; }
+      { keys = [ 225 ]; events = [ "key" ]; command = "/run/current-system/sw/bin/light -A 10"; }
     ];
   };
 

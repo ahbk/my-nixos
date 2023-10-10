@@ -33,12 +33,12 @@ in {
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [
       (nvim-treesitter.withPlugins (p: [
-                                    p.nix
-                                    p.python
-                                    p.svelte
-                                    p.typescript
-                                    p.html
-                                    p.css p.scss
+        p.nix
+        p.python
+        p.svelte
+        p.typescript
+        p.html
+        p.css p.scss
       ]))
       neo-tree-nvim
       nvim-web-devicons
