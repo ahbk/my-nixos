@@ -67,7 +67,7 @@ in {
 
   programs.tmux = {
     enable = true;
-    terminal = "screen-256color";
+    terminal = "tmux-direct";
     keyMode = "vi";
     escapeTime = 10;
     extraConfig = (builtins.readFile ./tmux/tmux.conf);
