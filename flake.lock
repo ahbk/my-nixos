@@ -1,5 +1,20 @@
 {
   "nodes": {
+    "ahbk": {
+      "locked": {
+        "lastModified": 1697026470,
+        "narHash": "sha256-0ZPg2MTrCXS8QHk+pcuZYh1l86AUIxpMSnSplzTg2rM=",
+        "owner": "ahbk",
+        "repo": "ahbk",
+        "rev": "bc25eee8228786832be73d2da366bacd19060217",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ahbk",
+        "repo": "ahbk",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -101,6 +116,7 @@
     },
     "root": {
       "inputs": {
+        "ahbk": "ahbk",
         "home-manager": "home-manager",
         "hyprland": "hyprland",
         "nixpkgs": "nixpkgs_2"

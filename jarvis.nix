@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }: {
+{ inputs, pkgs, ... }: {
   imports = [
     ./hardware/jarvis.nix
     ./common.nix

@@ -7,9 +7,12 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     hyprland.url = "github:hyprwm/Hyprland";
+
+    ahbk.url = "github:ahbk/ahbk";
+    ahbk.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, hyprland } @ inputs:
+  outputs = { self, nixpkgs, home-manager, ... } @ inputs:
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
@@ -34,22 +37,24 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.frans.imports = [
-              hyprland.homeManagerModules.default
+              inputs.hyprland.homeManagerModules.default
               ./friday-home.nix
-            ]; }
-          ];
-        };
-
-        "jarvis" = nixpkgs.lib.nixosSystem {
-          inherit system;
-          modules = [
-            ./jarvis.nix
-            home-manager.nixosModules.home-manager {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.frans = import ./jarvis-home.nix; }
-            ];
-          };
-        };
+          ]; }
+        ];
       };
-    }
+
+      "jarvis" = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit inputs; };
+        modules = [
+          ./jarvis.nix
+          home-manager.nixosModules.home-manager {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.frans = import ./jarvis-home.nix; }
+        ];
+      };
+
+    };
+  };
+}
