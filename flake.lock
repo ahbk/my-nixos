@@ -1,17 +1,42 @@
 {
   "nodes": {
     "ahbk": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-stable": "nixpkgs-stable",
+        "poetry2nix": "poetry2nix"
+      },
       "locked": {
-        "lastModified": 1697026470,
-        "narHash": "sha256-0ZPg2MTrCXS8QHk+pcuZYh1l86AUIxpMSnSplzTg2rM=",
+        "lastModified": 1697276980,
+        "narHash": "sha256-CSuZS3sqGQU0kAiCgwHR0+tJsu8zSqMCOp5nzGkBEqY=",
         "owner": "ahbk",
         "repo": "ahbk",
-        "rev": "bc25eee8228786832be73d2da366bacd19060217",
+        "rev": "081fc67b517481bd7afd4dabd145f5492980f0ff",
         "type": "github"
       },
       "original": {
         "owner": "ahbk",
         "repo": "ahbk",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1689068808,
+        "narHash": "sha256-6ixXo3wt24N/melDWjq70UuHQLxGV8jZvooRanIHXw0=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "919d646de7be200f3bf08cb76ae1f09402b6f9b4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
         "type": "github"
       }
     },
@@ -39,7 +64,7 @@
       "inputs": {
         "hyprland-protocols": "hyprland-protocols",
         "nixpkgs": "nixpkgs",
-        "systems": "systems",
+        "systems": "systems_2",
         "wlroots": "wlroots",
         "xdph": "xdph"
       },
@@ -82,6 +107,28 @@
         "type": "github"
       }
     },
+    "nix-github-actions": {
+      "inputs": {
+        "nixpkgs": [
+          "ahbk",
+          "poetry2nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1688870561,
+        "narHash": "sha256-4UYkifnPEw1nAzqqPOTL2MvWtm3sNGw1UTYTalkTcGY=",
+        "owner": "nix-community",
+        "repo": "nix-github-actions",
+        "rev": "165b1650b753316aa7f1787f3005a8d2da0f5301",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nix-github-actions",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1696604326,
@@ -94,6 +141,22 @@
       "original": {
         "owner": "NixOS",
         "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-stable": {
+      "locked": {
+        "lastModified": 1696983906,
+        "narHash": "sha256-L7GyeErguS7Pg4h8nK0wGlcUTbfUMDu+HMf1UcyP72k=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "bd1cde45c77891214131cbbea5b1203e485a9d51",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-23.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -114,6 +177,29 @@
         "type": "github"
       }
     },
+    "poetry2nix": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nix-github-actions": "nix-github-actions",
+        "nixpkgs": [
+          "ahbk",
+          "nixpkgs-stable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1697268251,
+        "narHash": "sha256-oOHvyglowWcvThMWnkhtNado8tooec4xrCKNq6QB0dI=",
+        "owner": "ahbk",
+        "repo": "poetry2nix",
+        "rev": "90f0b1c6d484449dd5d157c3879dc4239f4713e3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ahbk",
+        "repo": "poetry2nix",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "ahbk": "ahbk",
@@ -123,6 +209,21 @@
       }
     },
     "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_2": {
       "locked": {
         "lastModified": 1689347949,
         "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",

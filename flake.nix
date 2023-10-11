@@ -28,6 +28,7 @@
     };
 
     nixosConfigurations = {
+
       "friday" = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs; };
@@ -48,6 +49,7 @@
         specialArgs = { inherit inputs; };
         modules = [
           ./jarvis.nix
+          inputs.ahbk.nixosModules.default
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
