@@ -11,6 +11,7 @@
     enable = true;
     extraConfig = builtins.readFile ./hypr/hyprland.conf;
   };
+  home.file.".config/hypr/wallpaper.jpg".source = ./hypr/wallpaper.jpg;
 
   programs.foot = {
     enable = true;
