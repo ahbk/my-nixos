@@ -21,8 +21,7 @@ in {
     l = ''ls -la'';
     ll = ''ls'';
     grep = ''grep --color=auto'';
-    seagull = ''sudo systemd-nspawn -b -D /home/frans/Desktop/seagull'';
-    blackbird = ''sudo systemd-nspawn -b -D /var/lib/machines/blackbird'';
+    seagull = ''sudo systemd-nspawn -b -D /var/lib/machines/seagull'';
   };
 
   home.file.".config/nvim/lua/".source = ./nvim;
@@ -66,7 +65,7 @@ in {
 
   programs.tmux = {
     enable = true;
-    terminal = "tmux-direct";
+    terminal = "screen-256color";
     keyMode = "vi";
     escapeTime = 10;
     extraConfig = (builtins.readFile ./tmux/tmux.conf);
