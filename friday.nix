@@ -48,6 +48,36 @@
     pulse.enable = true;
   };
 
+  # Test instance for ahbk
+  users = rec {
+    users."ahbk-api" = {
+      isSystemUser = true;
+      group = "ahbk-api";
+      uid = 994;
+    };
+    groups."ahbk-api".gid = users."ahbk-api".uid;
+  };
+  services.postgresql = {
+    enable = true;
+    identMap = [ "map1" "frans" "ahbk-api" ];
+    ensureDatabases = [ "ahbk" "frans" ];
+    ensureUsers = [
+      {
+        name = "ahbk-api";
+        ensurePermissions = {
+          "DATABASE ahbk" = "ALL PRIVILEGES";
+        };
+      }
+      {
+        name = "frans";
+        ensurePermissions = {
+          "DATABASE ahbk" = "ALL PRIVILEGES";
+          "DATABASE frans" = "ALL PRIVILEGES";
+        };
+      }
+    ];
+  };
+
   # add as we go
   xdg.mime.defaultApplications = {
     "image/*" = "feh.desktop";
