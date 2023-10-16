@@ -6,6 +6,7 @@
   ];
 
   ahbk.enable = true;
+
   networking.hostName = "jarvis";
 
   services.networking.inadyn = {

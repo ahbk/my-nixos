@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }: {
+{ inputs, pkgs, config, ... }: {
   imports = [
     ./hardware/friday.nix
     ./common.nix
@@ -48,6 +48,8 @@
     pulse.enable = true;
   };
 
+  services.openssh.enable = true;
+
   # Test instance for ahbk
   users = rec {
     users."ahbk-api" = {
@@ -59,7 +61,6 @@
   };
   services.postgresql = {
     enable = true;
-    identMap = [ "map1" "frans" "ahbk-api" ];
     ensureDatabases = [ "ahbk" "frans" ];
     ensureUsers = [
       {

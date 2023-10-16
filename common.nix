@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }: {
+{ config, pkgs, lib, inputs, ... }: {
   nix = {
     package = pkgs.nixFlakes;
     extraOptions = ''
@@ -61,6 +61,7 @@
     python3
     poetry
     wget
+    inputs.agenix.packages.${system}.default
   ];
 
   programs.tmux = {
