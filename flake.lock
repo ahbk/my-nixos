@@ -55,11 +55,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1697538789,
-        "narHash": "sha256-cFy4eytcnhO5GVWnENdWnDaFJVYGxAaKGDoJ7y6aoLI=",
+        "lastModified": 1697546684,
+        "narHash": "sha256-NtlBwELCZvApAU9fJqGpiPRI8oy9pSk65eIGI0nWrgU=",
         "owner": "ahbk",
         "repo": "ahbk",
-        "rev": "e882b0d52dfac2af7947c762348a30d45d6eada5",
+        "rev": "2fde4545510e96e6bcfa244ee5bd9f64f9a01f24",
         "type": "github"
       },
       "original": {
