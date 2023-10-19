@@ -9,7 +9,7 @@ in {
       enable = mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Enable {command}`inadyn`";
+        description = "Install and run inadyn as a service";
         relatedPackages = [ "inadyn" ];
       };
 
@@ -17,27 +17,25 @@ in {
         type = types.path;
         default = "/etc/inadyn.conf";
         example = "/home/user/inadyn.conf";
-        description = lib.mdDoc "Location of config file";
+        description = "Location of config file";
       };
     };
   };
 
   config = mkIf cfg.enable {
-    environment = {
-      #etc."inadyn.conf".text = inadynConf;
-      systemPackages = [ pkgs.inadyn ];
-    };
+    environment.systemPackages = [ pkgs.inadyn ];
 
     systemd.services.inadyn = {
-      enable = true;
-      description = "manage inadyn";
-      unitConfig = {
-        Type = "simple";
-        After = [ "network-online.target" ];
-        Requires = [ "network-online.target" ];
-      };
+      documentation = [
+        "man:inadyn"
+        "man:inadyn.conf"
+        "file:${pkgs.inadyn}/share/doc/inadyn/README.md"
+      ];
+      after = [ "network-online.target" ];
+      requires = [ "network-online.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.inadyn}/bin/inadyn --foreground --config ${cfg.configFile}";
+        ConditionPathExists=cfg.configFile;
+        ExecStart = pkgs.inadyn + "/bin/inadyn --foreground --syslog --config ${cfg.configFile}";
       };
       wantedBy = [ "multi-user.target" ];
     };
