@@ -17,9 +17,12 @@
   };
 
   # pet projects
-  networking.extraHosts = ''
-      127.0.0.2 weblog.local
-  '';
+  networking = {
+    extraHosts = ''
+      127.0.0.2 ahbk.local
+    '';
+    firewall.allowedTCPPorts = [ 5173 8000 ];
+  };
 
   # hw quirk: wrong keycode for pipe |
   systemd.services.pipefix = {
