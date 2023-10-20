@@ -13,7 +13,6 @@
 
   services.networking.inadyn = {
     enable = true;
-    period = 300;
     providers."default@noip.com" = {
       username = "alexander.holmback@gmail.com";
       hostname = "ahbk.ddns.net";
