@@ -5,7 +5,7 @@
     ./inadyn/default.nix
   ];
 
-  ahbk.enable = true;
+  rolf.enable = true;
 
   age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 
