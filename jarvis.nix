@@ -5,7 +5,13 @@
     ./inadyn/default.nix
   ];
 
-  rolf.enable = true;
+  rolf = {
+    enable = true;
+    user = "rolf";
+    www_root = "/var/www/ahbk.ddns.net";
+    hostname = "ahbk.ddns.net";
+
+  };
 
   age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 
