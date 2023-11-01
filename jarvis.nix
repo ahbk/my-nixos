@@ -5,12 +5,18 @@
     ./inadyn/default.nix
   ];
 
+  age.secrets."rolf_secret_key" = {
+    file = ./secrets/rolf_secret_key.age;
+    owner = "rolf";
+    group = "rolf";
+  };
+
   rolf = {
     enable = true;
     user = "rolf";
     www_root = "/var/www/ahbk.ddns.net";
     hostname = "ahbk.ddns.net";
-
+    secret_key_file = config.age.secrets."rolf_secret_key".path;
   };
 
   age.secrets."ddns-password".file = ./secrets/ddns-password.age;
