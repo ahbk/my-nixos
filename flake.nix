@@ -13,6 +13,9 @@
 
     hyprland.url = "github:hyprwm/Hyprland";
 
+    helix.url = "github:helix-editor/helix/23.10";
+    helix.inputs.nixpkgs.follows = "nixpkgs";
+
     ahbk.url = "github:ahbk/ahbk";
     ahbk.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -27,12 +30,8 @@
   in {
     homeConfigurations."frans@seagull" = home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
+      extraSpecialArgs = { inherit inputs; };
       modules = [ ./seagull-home.nix ];
-    };
-
-    homeConfigurations."frans@blackbird" = home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      modules = [ ./blackbird-home.nix ];
     };
 
     nixosConfigurations = {
@@ -42,6 +41,7 @@
         specialArgs = { inherit inputs; };
         modules = [
           ./friday.nix
+          inputs.agenix.nixosModules.default
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;

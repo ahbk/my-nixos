@@ -1,4 +1,4 @@
-{ inputs, pkgs, config, ... }: {
+{ inputs, pkgs, config, lib, ... }: {
   imports = [
     ./hardware/friday.nix
     ./common.nix
@@ -53,30 +53,14 @@
 
   services.openssh.enable = true;
 
-  # Test instance for ahbk
-  users = rec {
-    users."ahbk-api" = {
-      isSystemUser = true;
-      group = "ahbk-api";
-      uid = 994;
-    };
-    groups."ahbk-api".gid = users."ahbk-api".uid;
-  };
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_14;
-    ensureDatabases = [ "ahbk" "frans" ];
+    ensureDatabases = [ "frans" ];
     ensureUsers = [
-      {
-        name = "ahbk-api";
-        ensurePermissions = {
-          "DATABASE ahbk" = "ALL PRIVILEGES";
-        };
-      }
       {
         name = "frans";
         ensurePermissions = {
-          "DATABASE ahbk" = "ALL PRIVILEGES";
           "DATABASE frans" = "ALL PRIVILEGES";
         };
       }
@@ -98,6 +82,7 @@
     signal-desktop
     pavucontrol
     transmission-qt
+    sqlitebrowser
 
     # browsing and media
     qutebrowser firefox chromium

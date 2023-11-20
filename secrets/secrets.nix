@@ -4,5 +4,5 @@ let
   jarvis = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAzC6OKR5RpAMADxKsDlTrlE/4nrqSOLFK2MmcwHo+3E root@jarvis";
 in {
   "ddns-password.age".publicKeys = [frans friday jarvis];
+  "rolf_secret_key.age".publicKeys = [frans friday jarvis];
 }
-

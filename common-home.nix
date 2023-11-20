@@ -112,6 +112,7 @@ in {
     nodePackages.svelte-language-server
     hugo
     xh
+    yarn
   ];
 
   home.stateVersion = "22.11";
