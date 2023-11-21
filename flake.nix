@@ -16,9 +16,6 @@
     helix.url = "github:helix-editor/helix/23.10";
     helix.inputs.nixpkgs.follows = "nixpkgs";
 
-    ahbk.url = "github:ahbk/ahbk";
-    ahbk.inputs.nixpkgs.follows = "nixpkgs";
-
     rolf.url = "git+ssh://git@github.com/ahbk/rolf";
     rolf.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -57,7 +54,7 @@
         specialArgs = { inherit inputs; };
         modules = [
           ./jarvis.nix
-          #inputs.ahbk.nixosModules.default
+          inputs.agenix.nixosModules.default
           inputs.rolf.nixosModules.default
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
