@@ -39,13 +39,15 @@
         modules = [
           ./friday.nix
           inputs.agenix.nixosModules.default
-          home-manager.nixosModules.home-manager {
+          home-manager.nixosModules.home-manager
+          {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.frans.imports = [
               inputs.hyprland.homeManagerModules.default
               ./friday-home.nix
-          ]; }
+            ];
+          }
         ];
       };
 
@@ -56,10 +58,12 @@
           ./jarvis.nix
           inputs.agenix.nixosModules.default
           inputs.rolf.nixosModules.default
-          home-manager.nixosModules.home-manager {
+          home-manager.nixosModules.home-manager
+          {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.frans = import ./jarvis-home.nix; }
+            home-manager.users.frans = import ./jarvis-home.nix;
+          }
         ];
       };
 

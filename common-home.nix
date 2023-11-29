@@ -10,6 +10,7 @@ let
     };
   };
 in {
+
   home.username = "frans";
   home.homeDirectory = "/home/frans";
   home.enableNixpkgsReleaseCheck = true;
@@ -113,6 +114,7 @@ in {
     hugo
     xh
     yarn
+    php
   ];
 
   home.stateVersion = "22.11";

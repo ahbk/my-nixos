@@ -25,4 +25,8 @@
     };
   };
 
+  home.packages = with pkgs; [ 
+    inkscape
+  ];
+
 }
