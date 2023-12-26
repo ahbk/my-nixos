@@ -14,8 +14,8 @@
   rolf = {
     enable = true;
     user = "rolf";
-    www_root = "/var/www/ahbk.ddns.net";
-    hostname = "ahbk.ddns.net";
+    www_root = "/var/www/sverigesval.org";
+    hostname = "sverigesval.org";
     secret_key_file = config.age.secrets."rolf_secret_key".path;
   };
 
