@@ -18,6 +18,10 @@
 
     rolf.url = "git+ssh://git@github.com/ahbk/rolf";
     rolf.inputs.nixpkgs.follows = "nixpkgs";
+
+    chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
+    chatddx.inputs.nixpkgs.follows = "nixpkgs";
+
   };
 
   outputs = { self, nixpkgs, home-manager, ... } @ inputs:
@@ -58,6 +62,7 @@
           ./jarvis.nix
           inputs.agenix.nixosModules.default
           inputs.rolf.nixosModules.default
+          inputs.chatddx.nixosModules.default
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;

@@ -5,4 +5,5 @@ let
 in {
   "ddns-password.age".publicKeys = [frans friday jarvis];
   "rolf_secret_key.age".publicKeys = [frans friday jarvis];
+  "chatddx_secret_key.age".publicKeys = [frans friday jarvis];
 }
