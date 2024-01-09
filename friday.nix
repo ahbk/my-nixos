@@ -11,6 +11,9 @@
 
   networking.hostName = "friday";
 
+  programs.adb.enable = true;
+  users.users.frans.extraGroups = ["adbusers"];
+
   programs.hyprland = {
     enable = true;
     package = inputs.hyprland.packages.${pkgs.system}.hyprland;
@@ -26,7 +29,7 @@
     extraHosts = ''
       127.0.0.2 ahbk.local
     '';
-    firewall.allowedTCPPorts = [ 5173 8000 ];
+    firewall.allowedTCPPorts = [ 3000 5173 8000 ];
   };
 
   # hw quirk: wrong keycode for pipe |
