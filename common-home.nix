@@ -5,8 +5,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "s1n7ax";
       repo = "nvim-window-picker";
-      rev = "5902827";
-      sha256 = "sha256-1UbT/W1ngDnxX03aOk2V8VTOlXWyq/LjCfOl5MUOfsI=";
+      rev = "41cfaa4";
+      sha256 = "sha256-D5ikm5Fw0N/AjDL71cuATp1OCONuxPZNfEHuh0vXkq0=";
     };
   };
 in {

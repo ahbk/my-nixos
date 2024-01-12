@@ -11,8 +11,8 @@
 
   networking.hostName = "friday";
 
-  programs.adb.enable = true;
-  users.users.frans.extraGroups = ["adbusers"];
+  #programs.adb.enable = true;
+  #users.users.frans.extraGroups = ["adbusers"];
 
   programs.hyprland = {
     enable = true;
@@ -122,9 +122,7 @@
     ensureUsers = [
       {
         name = "frans";
-        ensurePermissions = {
-          "DATABASE frans" = "ALL PRIVILEGES";
-        };
+        ensureDBOwnership = true;
       }
     ];
   };
