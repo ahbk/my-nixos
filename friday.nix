@@ -9,7 +9,19 @@
     "helvetica-neue-lt-std"
   ];
 
-  networking.hostName = "friday";
+  networking = {
+    hostName = "friday";
+    extraHosts = ''
+      127.0.0.2 ahbk.local
+    '';
+    firewall.allowedTCPPorts = [ 3000 5173 8000 ];
+    nat = {
+      enable = true;
+      internalInterfaces = ["ve-+"];
+      externalInterface = "wlp1s0";
+    };
+    networkmanager.unmanaged = [ "interface-name:ve-*" ];
+  };
 
   #programs.adb.enable = true;
   #users.users.frans.extraGroups = ["adbusers"];
@@ -22,14 +34,6 @@
   nix.settings = {
     substituters = ["https://hyprland.cachix.org"];
     trusted-public-keys = ["hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="];
-  };
-
-  # pet projects
-  networking = {
-    extraHosts = ''
-      127.0.0.2 ahbk.local
-    '';
-    firewall.allowedTCPPorts = [ 3000 5173 8000 ];
   };
 
   # hw quirk: wrong keycode for pipe |

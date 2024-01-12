@@ -40,6 +40,10 @@
     recommendedOptimisation = true;
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
+    security.acme = {
+      acceptTerms = true;
+      defaults.email = "alxhbk@proton.me";
+    };
   };
 
   age.secrets."ddns-password".file = ./secrets/ddns-password.age;
