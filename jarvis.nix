@@ -34,6 +34,14 @@
     secret_key_file = config.age.secrets."chatddx_secret_key".path;
   };
 
+  services.nginx = {
+    enable = true;
+    recommendedGzipSettings = true;
+    recommendedOptimisation = true;
+    recommendedProxySettings = true;
+    recommendedTlsSettings = true;
+  };
+
   age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 
   networking.hostName = "jarvis";
