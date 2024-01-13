@@ -13,6 +13,8 @@
     hostName = "friday";
     extraHosts = ''
       127.0.0.2 ahbk.local
+      10.233.1.2 wp.local
+      10.233.1.2 www.wp.local
     '';
     firewall.allowedTCPPorts = [ 3000 5173 8000 ];
     nat = {
