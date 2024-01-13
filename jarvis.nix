@@ -34,6 +34,12 @@
     secret_key_file = config.age.secrets."chatddx_secret_key".path;
   };
 
+  wordpress = {
+    enable = true;
+    host = "test.esse.nu";
+    ssl = true;
+  };
+
   services.nginx = {
     enable = true;
     recommendedGzipSettings = true;
@@ -45,6 +51,20 @@
       defaults.email = "alxhbk@proton.me";
     };
   };
+
+  services.nginx.virtualHosts."_" = {
+    default = true;
+    locations."/" = {
+      return = "444";
+    };
+  };
+
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "alxhbk@proton.me";
+  };
+
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
 
   age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 
