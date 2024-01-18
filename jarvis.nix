@@ -27,10 +27,8 @@
 
   chatddx = {
     enable = true;
-    user = "chatddx";
-    www_root = "/var/www/chatddx.com";
-    db_root = "/var/db/chatddx.com";
-    hostname = "chatddx.com";
+    host = "chatddx";
+    port = "8001";
     secret_key_file = config.age.secrets."chatddx_secret_key".path;
   };
 

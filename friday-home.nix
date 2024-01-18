@@ -3,8 +3,18 @@
     ./common-home.nix
   ];
 
-  home.shellAliases = {
-    battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
+  programs.bash = {
+    shellAliases = {
+      battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
+    };
+    initExtra = ''
+      pwu() {
+        bw unlock --raw > ~/.bwsession
+      }
+      pw() {
+        BW_SESSION=$(<~/.bwsession) bw get password $@ | wl-copy
+      }
+    '';
   };
 
   wayland.windowManager.hyprland = {
