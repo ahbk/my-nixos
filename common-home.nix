@@ -14,13 +14,15 @@ in {
   home.username = "frans";
   home.homeDirectory = "/home/frans";
   home.enableNixpkgsReleaseCheck = true;
-  programs.bash.bashrcExtra = ''export PATH="$PATH:$HOME/.local/bin"'';
+  programs.bash.bashrcExtra = ''
+    export PATH="$PATH:$HOME/.local/bin"
+    eval "$(zoxide init bash)"
+    '';
   home.shellAliases = {
     nix-store-size = ''ls /nix/store | wc -l'';
-    f = ''find | fzf --print0 | xargs -0 -o vim'';
-    ls = ''ls --color=auto'';
-    l = ''ls -la'';
-    ll = ''ls'';
+    f = ''fzf | xargs -I {} rifle {}'';
+    l = ''eza -la --icons=auto'';
+    ll = ''eza'';
     grep = ''grep --color=auto'';
     seagull = ''sudo systemd-nspawn -b -D /var/lib/machines/seagull'';
   };
@@ -115,6 +117,8 @@ in {
     xh
     yarn
     php
+    eza
+    zoxide
   ];
 
   home.stateVersion = "22.11";

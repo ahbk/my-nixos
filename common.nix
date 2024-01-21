@@ -94,6 +94,11 @@
     vimAlias = true;
   };
 
+  programs.fzf = {
+    keybindings = true;
+    fuzzyCompletion = true;
+  };
+
   # birthday
   system.stateVersion = "20.03";
 }

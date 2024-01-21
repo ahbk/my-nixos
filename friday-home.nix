@@ -38,6 +38,8 @@
   home.packages = with pkgs; [ 
     inkscape
     figma-linux
+    krita
+    stremio
   ];
 
 }
