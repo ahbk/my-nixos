@@ -1510,11 +1510,11 @@
         "poetry2nix": "poetry2nix_10"
       },
       "locked": {
-        "lastModified": 1705094187,
-        "narHash": "sha256-RUMhjM+q3K0wdtBSoDWwIFTsjrY7TWWnmGWHlhruRNc=",
+        "lastModified": 1705919068,
+        "narHash": "sha256-4WL2GX9yupPS7o8dgLQO6v4KRwqf+FTJAguU8l7qna4=",
         "ref": "refs/heads/main",
-        "rev": "97bf15b38897692a4bf342e4a41fe4a30e1364ce",
-        "revCount": 42,
+        "rev": "342cab0c9a8af115c613c74b161c7ef9f038ea88",
+        "revCount": 50,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },

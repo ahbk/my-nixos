@@ -13,8 +13,8 @@
 
   age.secrets."chatddx_secret_key" = {
     file = ./secrets/chatddx_secret_key.age;
-    owner = "chatddx";
-    group = "chatddx";
+    owner = "chatddx.com";
+    group = "chatddx.com";
   };
 
   rolf = {
@@ -27,8 +27,9 @@
 
   chatddx = {
     enable = true;
-    host = "chatddx";
+    host = "chatddx.com";
     port = "8001";
+    uid = 994;
     secret_key_file = config.age.secrets."chatddx_secret_key".path;
   };
 
@@ -44,10 +45,6 @@
     recommendedOptimisation = true;
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
-    security.acme = {
-      acceptTerms = true;
-      defaults.email = "alxhbk@proton.me";
-    };
   };
 
   services.nginx.virtualHosts."_" = {
