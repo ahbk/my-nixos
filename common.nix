@@ -15,20 +15,8 @@
     ${pkgs.coreutils}/bin/stty -ixon
   '';
 
-  # As an end user who doesn't tinker with privileges or delve
-  # into system administration, the benefits of having Polkit
-  # in a system like NixOS might not be immediately apparent.
-  # However, Polkit still offers advantages that contribute
-  # to your overall experience and security:
-  # [ long list redacted ]
-  #
-  # /ChatGTP
   security.polkit.enable = true;
 
-  # makes certificates for https
-  security.pki.certificateFiles = [ ./minica/minica.pem ];
-
-  # nmtui
   networking.networkmanager.enable = true;
 
   i18n.defaultLocale = "en_US.UTF-8";
@@ -61,19 +49,7 @@
   };
 
   environment.systemPackages = with pkgs; [
-
-    # search
-    silver-searcher ripgrep fd fzf
-
-    # LSPs
-    nil lua-language-server
-
-    # misc
     debootstrap
-    minica
-    unzip
-    pciutils
-    lsof
     (sqlite.override { interactive = true; })
     python3
     poetry
@@ -92,11 +68,6 @@
     enable = true;
     defaultEditor = true;
     vimAlias = true;
-  };
-
-  programs.fzf = {
-    keybindings = true;
-    fuzzyCompletion = true;
   };
 
   # birthday

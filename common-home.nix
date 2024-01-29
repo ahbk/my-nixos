@@ -16,7 +16,6 @@ in {
   home.enableNixpkgsReleaseCheck = true;
   programs.bash.bashrcExtra = ''
     export PATH="$PATH:$HOME/.local/bin"
-    eval "$(zoxide init bash)"
     '';
   home.shellAliases = {
     nix-store-size = ''ls /nix/store | wc -l'';
@@ -78,6 +77,14 @@ in {
     enable = true;
   };
 
+  programs.zoxide = {
+    enable = true;
+  };
+
+  programs.fzf = {
+    enable = true;
+  };
+
   programs.starship = {
     enable = true;
     settings = {
@@ -110,6 +117,7 @@ in {
     pyright
     black
     nodejs
+    node2nix
     nodePackages.typescript-language-server
     nodePackages.typescript
     nodePackages.svelte-language-server
@@ -119,6 +127,7 @@ in {
     php
     eza
     zoxide
+    mkcert
   ];
 
   home.stateVersion = "22.11";

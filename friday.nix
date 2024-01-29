@@ -12,9 +12,12 @@
   networking = {
     hostName = "friday";
     extraHosts = ''
-      127.0.0.2 ahbk.local
-      10.233.1.2 wp.local
-      10.233.1.2 www.wp.local
+      127.0.0.2 dev.curetheweb.se
+      127.0.0.3 dev.chatddx.com
+      127.0.0.4 dev.sverigesval.org
+      127.0.0.5 dev.esse.nu
+      10.233.2.2 asdf1
+      10.233.2.2 asdf2
     '';
     firewall.allowedTCPPorts = [ 3000 5173 8000 ];
     nat = {
@@ -28,15 +31,7 @@
   #programs.adb.enable = true;
   #users.users.frans.extraGroups = ["adbusers"];
 
-  programs.hyprland = {
-    enable = true;
-    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
-  };
-
-  nix.settings = {
-    substituters = ["https://hyprland.cachix.org"];
-    trusted-public-keys = ["hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="];
-  };
+  programs.hyprland.enable = true;
 
   # hw quirk: wrong keycode for pipe |
   systemd.services.pipefix = {

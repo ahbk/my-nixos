@@ -11,11 +11,6 @@
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
 
-    hyprland.url = "github:hyprwm/Hyprland";
-
-    helix.url = "github:helix-editor/helix/23.10";
-    helix.inputs.nixpkgs.follows = "nixpkgs";
-
     rolf.url = "git+ssh://git@github.com/ahbk/rolf";
     rolf.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -51,7 +46,6 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.frans.imports = [
-              inputs.hyprland.homeManagerModules.default
               ./friday-home.nix
             ];
           }
