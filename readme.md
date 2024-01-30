@@ -1,20 +1,17 @@
-# my system
-This system is specified by flake.nix, configuration.nix and home.nix.
+# A NixOS Flake
 
-- [NixOS](https://github.com/NixOS/nixpkgs) + [Home Manager](https://github.com/nix-community/home-manager)
-- WM: [Hyprland](https://github.com/hyprwm/Hyprland) + [tmux](https://github.com/tmux/tmux/wiki)
-- Default apps:
-[qutebrowser](https://github.com/qutebrowser/qutebrowser),
-[foot](https://codeberg.org/dnkl/foot),
-[neovim](https://github.com/neovim/neovim),
-[mpv](https://github.com/mpv-player/mpv),
-[feh](https://github.com/derf/feh),
-[mupdf](https://mupdf.com) and
-[fzf](https://github.com/junegunn/fzf).
+## Overview
+A versatile NixOS flake for system configuration, integrating Hyprland, Neovim, Tmux, Home-Manager, and more.
 
-## todo
-- figure out telescope/ripgrep's deal with ignores
-- implement [swaylock with lid switch](https://wiki.hyprland.org/Configuring/Binds/#bind-flags)
-- fix [sound media keys](https://github.com/NixOS/nixpkgs/blob/nixos-22.11/nixos/modules/services/audio/alsa.nix)
-- optimize nix based on [this template](https://github.com/Misterio77/nix-starter-configs)
-- evaluate these neovim plugins: chadtree, bufferline, navic(with barbecue) or lsp saga, which-key, lualine or lightline, gitsigns , indent-blankline, monakai or monakai-pro
+## Key Features
+- **Window Management:** Hyprland.
+- **Development:** Neovim, Python, Node.js, Svelte, Django, FastAPI.
+- **System Management:** Home-Manager, Agenix.
+- **Media & Browsing:** MPV, Qutebrowser.
+- **Audio:** Pipewire.
+- **Networking:** Transmission.
+- **Containers:** For testing configurations.
+- **Flexibility:** Hybrid Home-Manager/NixOS modules.
+
+## Usage
+Open and free for modification and distribution.
