@@ -1,36 +1,16 @@
-{ config, ...}: {
-  age.secrets."rolf_secret_key" = {
-    file = ./secrets/rolf_secret_key.age;
-    owner = "rolf";
-    group = "rolf";
-  };
+{ inputs, ...}: {
+  imports = [
+    ./django.nix
+    ./fastapi.nix
+    ./svelte.nix
+    ./wordpress.nix
+  ];
 
-  age.secrets."chatddx_secret_key" = {
-    file = ./secrets/chatddx_secret_key.age;
-    owner = "chatddx.com";
-    group = "chatddx.com";
-  };
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
 
-  rolf = {
-    enable = true;
-    user = "rolf";
-    www_root = "/var/www/sverigesval.org";
-    hostname = "sverigesval.org";
-    secret_key_file = config.age.secrets."rolf_secret_key".path;
-  };
-
-  chatddx = {
-    enable = true;
-    host = "chatddx.com";
-    port = "8001";
-    uid = 994;
-    secret_key_file = config.age.secrets."chatddx_secret_key".path;
-  };
-
-  wordpress = {
-    enable = true;
-    host = "test.esse.nu";
-    ssl = true;
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "alxhbk@proton.me";
   };
 
   services.nginx = {
@@ -48,22 +28,45 @@
     };
   };
 
-  security.acme = {
-    acceptTerms = true;
-    defaults.email = "alxhbk@proton.me";
+  ahbk.wordpress.sites."esse.test" = {
+    enable = true;
+    ssl = false;
   };
 
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
-
-  age.secrets."ddns-password".file = ./secrets/ddns-password.age;
-
-  services.networking.inadyn = {
+  ahbk.fastapi.sites."sverigesval.test" = {
     enable = true;
-    providers."default@noip.com" = {
-      username = "alexander.holmback@gmail.com";
-      hostname = "ahbk.ddns.net";
-      passwordFile = config.age.secrets."ddns-password".path;
+    location = "api/";
+    port = "2000";
+    ssl = false;
+    pkgs = inputs.sverigesval.django;
+  };
+
+  ahbk.svelte.sites."sverigesval.test" = {
+    enable = true;
+    port = "2001";
+    ssl = false;
+    pkgs = inputs.sverigesval.svelte;
+    api = {
+      port = "2000";
+      location = "api/";
     };
   };
 
+  ahbk.django.sites."chatddx.test" = {
+    enable = true;
+    port = "2002";
+    ssl = false;
+    pkgs = inputs.chatddx.django;
+  };
+
+  ahbk.svelte.sites."chatddx.test" = {
+    enable = true;
+    port = "2003";
+    ssl = false;
+    pkgs = inputs.chatddx.svelte;
+    api = {
+      port = "2002";
+      location = "api/";
+    };
+  };
 }

@@ -21,15 +21,35 @@ let
       ssl = mkOption {
         type = types.bool;
       };
-      app = mkOption {
-        type = types.package;
+      api = {
+        type = types.submodule {
+          options = {
+            port = mkOption {
+              type = types.port;
+            };
+            location = mkOption {
+              type = types.str;
+            };
+          };
+        };
+      };
+      pkgs = mkOption {
+        type = types.submodule {
+          options = {
+            app = mkOption {
+              type = types.package;
+            };
+          };
+        };
       };
     };
   };
 
   envs = mapAttrs (hostname: cfg: (pkgs.writeText "${hostname}-env" (concatStringsSep "\n" (mapAttrsToList (k: v: "${k}=${v}") {
-    SCHEME = if cfg.ssl then "https" else "http";
-    HOST = hostname;
+    PUBLIC_SCHEME = if cfg.ssl then "https" else "http";
+    PUBLIC_HOST = hostname;
+    PUBLIC_API_PORT = cfg.api.port;
+    PUBLIC_API_LOCATION = cfg.api.location;
   })))) eachSite;
 in {
   options = {
@@ -64,7 +84,7 @@ in {
       nameValuePair "${hostname}-svelte" {
       description = "manage ${hostname}-svelte";
       serviceConfig = {
-        ExecStart = "${pkgs.nodejs_20}/bin/node ${cfg.app}/build";
+        ExecStart = "${pkgs.nodejs_20}/bin/node ${cfg.app.override({ env = envs.${hostname}; })}/build";
         User = hostname;
         Group = hostname;
         EnvironmentFile="${envs.${hostname}}";

@@ -27,22 +27,23 @@
     pkgs = nixpkgs.legacyPackages.${system};
     user = "frans";
   in {
-    homeConfigurations."${user}@seagull" = inputs.home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      extraSpecialArgs = { inherit inputs user system; isHM = true; };
-      modules = [
-        ./modules/agenix.nix
-        ./modules/git.nix
-        ./modules/hm.nix
-        ./modules/nvim.nix
-        ./modules/shell.nix
-        ./modules/tmux.nix
-        ./modules/webdev.nix
-      ];
+    homeConfigurations = {
+      "${user}@seagull" = inputs.home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        extraSpecialArgs = { inherit inputs user system; isHM = true; };
+        modules = [
+          ./modules/agenix.nix
+          ./modules/git.nix
+          ./modules/hm.nix
+          ./modules/nvim.nix
+          ./modules/shell.nix
+          ./modules/tmux.nix
+          ./modules/webdev.nix
+        ];
+      };
     };
 
     nixosConfigurations = rec {
-
       # nixos@10.233.2.2 for testing
       # nixos-container create test ~/Desktop/nixos
       container = test;
@@ -62,7 +63,8 @@
         inherit system;
         specialArgs = { inherit inputs user system; isHM = false; };
         modules = [
-          ./modules/friday.nix
+          ./hardware/friday.nix
+          { networking.hostName = "friday"; }
           ./modules/agenix.nix
           ./modules/battery.nix
           ./modules/boot.nix
@@ -74,8 +76,9 @@
           ./modules/hm.nix
           ./modules/hypr.nix
           ./modules/light.nix
-          ./modules/nix.nix
           ./modules/misc.nix
+          ./modules/nix.nix
+          ./modules/network.nix
           ./modules/nm.nix
           ./modules/nvim.nix
           ./modules/pipefix.nix
@@ -95,11 +98,12 @@
         inherit system;
         specialArgs = { inherit inputs user system; isHM = false; };
         modules = [
-          ./modules/jarvis.nix
+          ./hardware/jarvis.nix
+          { networking.hostName = "jarvis"; }
           ./modules/agenix.nix
+          ./modules/ahbk-ddns.nix
           ./modules/boot.nix
           ./modules/hm.nix
-          ./modules/inadyn.nix
           ./modules/nix.nix
           ./modules/nvim.nix
           ./modules/shell.nix

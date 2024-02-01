@@ -12,7 +12,13 @@
     ];
   };
 in if isHM then hm else {
+  imports = [
+    ./mysql.nix
+    ./postgresql.nix
+  ];
+
   home-manager.users.${user} = hm;
+
   environment.systemPackages = with pkgs; [
     (sqlite.override { interactive = true; })
     python3
@@ -25,31 +31,6 @@ in if isHM then hm else {
     hackgen-nf-font
   ];
 
-  services.mysql = {
-    enable = true;
-    package = pkgs.mariadb;
-
-    ensureDatabases = [ user ];
-    ensureUsers = [
-      {
-        name = user;
-        ensurePermissions = {
-          "${user}.*" = "ALL PRIVILEGES";
-        };
-      }
-    ];
-  };
-
-  services.postgresql = {
-    enable = true;
-    package = pkgs.postgresql_14;
-    ensureDatabases = [ user ];
-    ensureUsers = [
-      {
-        name = user;
-        ensureDBOwnership = true;
-      }
-    ];
-  };
-
+  ahbk.mysql.${user}.ensure = true;
+  ahbk.postgresql.${user}.ensure = true;
 }

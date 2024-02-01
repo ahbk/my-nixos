@@ -1,29 +1,35 @@
-{ pkgs, config, lib, ... }: {
+{ pkgs, config, lib, ... }:
+with lib;
+let
+  cfg = config.ahbk.wordpress;
+  eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
+  stateDir = hostname: "/var/lib/${hostname}/wordpress";
 
-  options.wordpress = with lib; {
-
-    enable = mkOption {
-      type = types.bool;
-      default = false;
+  siteOpts = { lib, name, config, ... }: {
+    options = {
+      enable = mkOption {
+        default = true;
+        type = types.bool;
+      };
+      ssl = mkOption {
+        type = types.bool;
+      };
     };
 
-    ssl = mkOption {
-      type = types.bool;
-      default = false;
-    };
+  };
 
-    www = mkOption {
-      type = types.bool;
-      default = false;
-    };
-
-    host = mkOption {
-      type = types.str;
-      default = "wp.local";
+in {
+  options = {
+    ahbk.wordpress = {
+      sites = mkOption {
+        type = types.attrsOf (types.submodule siteOpts);
+        default = {};
+        description = mdDoc "Specification of one or more Django sites to serve";
+      };
     };
   };
 
-  config = with config.wordpress; lib.mkIf enable {
+  config = mkIf (eachSite != {}) {
 
     environment = {
       systemPackages = with pkgs; [
@@ -32,85 +38,69 @@
       ];
     };
 
-    users = {
-      users.${host} = {
+    users = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
+      users.${hostname} = {
         isSystemUser = true;
-        group = host;
+        group = hostname;
       };
-      groups.${host}.name = host;
-    };
+      groups.${hostname} = {};
+    })) {} eachSite;
 
-    services.nginx.virtualHosts = {
+    systemd.tmpfiles.rules = flatten (mapAttrsToList (hostname: cfg: [
+      "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
+      "Z '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
+    ]) eachSite);
 
-      ${host} = {
-        forceSSL = ssl;
-        enableACME = ssl;
-        root = "/var/www/${host}";
-        extraConfig = ''
-          index index.php index.html index.htm;
+    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
+      serverName = hostname;
+      root = stateDir hostname;
+      forceSSL = ssl;
+      enableACME = ssl;
+      extraConfig = ''
+          index index.php;
+      '';
+      locations = {
+        "/" = {
+          priority = 200;
+          extraConfig = ''
+            try_files $uri $uri/ /index.php?$args;
+          '';
+        };
 
-          location / {
-          try_files $uri $uri/ /index.php?$args;
-          }
+        "~ \\.php$" = {
+          priority = 500;
+          extraConfig = ''
+            include ${pkgs.nginx}/conf/fastcgi.conf;
+            fastcgi_intercept_errors on;
+            fastcgi_pass unix:${config.services.phpfpm.pools.${hostname}.socket};
+            }
 
-          location ~ \.php$ {
-          include ${pkgs.nginx}/conf/fastcgi.conf;
-          fastcgi_intercept_errors on;
-          fastcgi_pass unix:/run/phpfpm/wordpress.sock;
-          }
-
-          location ~ /\.ht {
-          deny all;
-          }
-        '';
+            location ~ /\.ht {
+            deny all;
+            }
+          '';
+        };
       };
-    };
+    }) eachSite;
 
-    services.mysql = {
-      enable = true;
-      package = pkgs.mariadb;
+    ahbk.mysql = mapAttrs (hostname: cfg: { ensure = true; });
 
-      ensureDatabases = [ host ];
-      ensureUsers = [
-        {
-          name = host;
-          ensurePermissions = {
-            "\\`${host}\\`.*" = "ALL PRIVILEGES";
-          };
-        }
-      ];
-    };
-
-    systemd.services.${host} = {
-      description = "manage ${host}";
-      serviceConfig = {
-        ExecStartPre = [
-          "+-${pkgs.coreutils}/bin/mkdir -p /var/www/${host}"
-          "+${pkgs.coreutils}/bin/chown ${host}:${host} /var/www/${host}"
-        ];
-        ExecStart = ''${pkgs.coreutils}/bin/touch /var/www/${host}/.keep'';
-        User = host;
-        Group = host;
-      };
-      wantedBy = [ "multi-user.target" ];
-    };
-
-    services.phpfpm.pools.wordpress = {
-      user = host;
-      group = host;
+    services.phpfpm.pools = mapAttrs (hostname: cfg: {
+      user = hostname;
+      group = hostname;
       phpOptions = ''
-        cgi.fix_pathinfo = 1
+        cgi.fix_pathinfo = {1
       '';
       settings = {
         "listen.owner" = "nginx";
         "listen.group" = "nginx";
         "pm" = "dynamic";
-        "pm.max_children" = 75;
-        "pm.start_servers" = 10;
-        "pm.min_spare_servers" = 5;
-        "pm.max_spare_servers" = 20;
+        "pm.max_children" = 32;
+        "pm.start_servers" = 2;
+        "pm.min_spare_servers" = 2;
+        "pm.max_spare_servers" = 4;
         "pm.max_requests" = 500;
       };
-    };
+    }) eachSite;
   };
 }
