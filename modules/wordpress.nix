@@ -83,7 +83,7 @@ in {
       };
     }) eachSite;
 
-    ahbk.mysql = mapAttrs (hostname: cfg: { ensure = true; });
+    ahbk.mysql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
 
     services.phpfpm.pools = mapAttrs (hostname: cfg: {
       user = hostname;
