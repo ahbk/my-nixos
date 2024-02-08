@@ -90,7 +90,7 @@ in {
       };
     })) eachSite;
 
-    systemd.services = mapAttrs (hostname: cfg: (
+    systemd.services = mapAttrs' (hostname: cfg: (
       nameValuePair "${hostname}-django" {
       description = "manage ${hostname}-django";
       serviceConfig = {

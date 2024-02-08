@@ -1,56 +1,25 @@
-{ pkgs, user, isHM, ... }: let
-  hm = {
+{ lib, config, inputs, system, ... }: with lib;
+let
+  cfg = config.ahbk.shell;
+  eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
-    home.username = user;
-    home.homeDirectory = "/home/${user}";
-
-    programs.bash.bashrcExtra = ''
-      export PATH="$PATH:$HOME/.local/bin"
-    '';
-    home.shellAliases = {
-      nix-store-size = ''ls /nix/store | wc -l'';
-      f = ''fzf | xargs -I {} rifle {}'';
-      l = ''eza -la --icons=auto'';
-      ll = ''eza'';
-      grep = ''grep --color=auto'';
+  userOpts = with types; {
+    options.enable = mkEnableOption (mdDoc "Configure shell for this user") // {
+      default = true;
     };
-
-    programs.bash = {
-      enable = true;
-    };
-
-    programs.zoxide = {
-      enable = true;
-    };
-
-    programs.fzf = {
-      enable = true;
-    };
-
-    programs.starship = {
-      enable = true;
-      settings = {
-        add_newline = false;
-        aws.disabled = true;
-        gcloud.disabled = true;
-        line_break.disabled = true;
-      };
-    };
-
-    programs.ssh = {
-      enable = true;
-    };
-
-    home.packages = with pkgs; [ 
-      ranger
-      lazygit
-      silver-searcher
-      ripgrep
-      fd
-      eza
-      wget
-    ];
   };
-in if isHM then hm else {
-  home-manager.users.${user} = hm;
+
+  hm = import ./shell-hm.nix;
+in {
+  options.ahbk.shell = with types; mkOption {
+    type = attrsOf (submodule userOpts);
+    default = {};
+  };
+  config = mkIf (eachUser != {}) {
+    home-manager.users = mapAttrs (hm config.ahbk) eachUser;
+    environment.systemPackages = [
+      inputs.agenix.packages.${system}.default
+    ];
+
+  };
 }

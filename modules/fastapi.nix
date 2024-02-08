@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 with lib;
 let
   cfg = config.ahbk.fastapi;
@@ -43,6 +43,7 @@ let
   })) eachSite;
 
 in {
+
   options = {
     ahbk.fastapi = {
       sites = mkOption {
@@ -54,10 +55,6 @@ in {
   };
 
   config = mkIf (eachSite != {}) {
-    imports = [
-      ./postgresql.nix
-    ];
-
     environment.systemPackages = bins;
 
     age.secrets = mapAttrs' (hostname: cfg: (
@@ -75,7 +72,7 @@ in {
       groups.${hostname} = {};
     })) {} eachSite;
 
-    ahbk.postgresql = mapAttrs (hostname: cfg: { ensure = true; });
+    ahbk.postgresql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
 
     systemd.tmpfiles.rules = flatten (mapAttrsToList (hostname: cfg: [
       "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"

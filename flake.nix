@@ -25,23 +25,99 @@
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    user = "frans";
-  in {
-    homeConfigurations = {
-      "${user}@seagull" = inputs.home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        extraSpecialArgs = { inherit inputs user system; isHM = true; };
-        modules = [
-          ./modules/agenix.nix
-          ./modules/git.nix
-          ./modules/hm.nix
-          ./modules/nvim.nix
-          ./modules/shell.nix
-          ./modules/tmux.nix
-          ./modules/webdev.nix
-        ];
+    lib' = import ./lib.nix { inherit (nixpkgs) lib; };
+
+    ahbk = {
+      user.test = {
+        enable = true;
+        uid = 1337;
+        name = "test";
+        email = "test@example.com";
+        groups = [ "wheel" ];
+        keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
+      };
+
+      ide.test = {
+        enable = true;
+        postgresql = true;
+      };
+
+      shell.test.enable = true;
+
+      user.frans = {
+        enable = true;
+        uid = 1000;
+        name = "Alexander Holmbäck";
+        email = "alexander.holmback@gmail.com";
+        groups = [ "wheel" ];
+        keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
+      };
+
+      ide.frans = {
+        enable = true;
+        postgresql = true;
+        mysql = true;
+      };
+
+      shell.frans.enable = true;
+      de.frans.enable = true;
+
+      wordpress.sites."esse.test" = {
+        enable = true;
+        ssl = false;
+      };
+
+      fastapi.sites."sverigesval.test" = {
+        enable = true;
+        location = "api/";
+        port = "2000";
+        ssl = false;
+        pkgs = inputs.sverigesval.packages.${system}.fastapi;
+      };
+
+      svelte.sites."sverigesval.test" = {
+        enable = true;
+        port = "2001";
+        ssl = false;
+        pkgs = inputs.sverigesval.packages.${system}.svelte;
+        api = {
+          port = "2000";
+          location = "api/";
+        };
+      };
+
+      django.sites."chatddx.test" = {
+        enable = true;
+        port = "2002";
+        location = "api/";
+        ssl = false;
+        pkgs = inputs.chatddx.packages.${system}.django;
+      };
+
+      svelte.sites."chatddx.test" = {
+        enable = true;
+        port = "2003";
+        ssl = false;
+        pkgs = inputs.chatddx.packages.${system}.svelte;
+        api = {
+          port = "2002";
+          location = "api/";
+        };
       };
     };
+  in with nixpkgs.lib; {
+    homeConfigurations = mapAttrs' (user: cfg: (
+      nameValuePair "${user}@seagull" (inputs.home-manager.lib.homeManagerConfiguration {
+      inherit pkgs;
+      extraSpecialArgs = { inherit inputs system; };
+      modules = [ (import ./modules/all-hm.nix cfg user null) ];
+      }))) {
+        frans = with ahbk; {
+          user.frans = user.frans;
+          ide.frans = ide.frans;
+          shell.frans = shell.frans;
+        };
+      };
 
     nixosConfigurations = rec {
       # nixos@10.233.2.2 for testing
@@ -49,69 +125,127 @@
       container = test;
       test = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit inputs user system; isHM = false; };
-        modules = [
-          ./modules/agenix.nix
-          ./modules/container.nix
-          ./modules/ssh.nix
-          ./modules/system.nix
-          ./modules/user.nix
+        specialArgs = { inherit nixpkgs inputs system lib' ahbk; };
+        modules = with ahbk; [
+          ./modules/all.nix
+          {
+            networking.hostName = "test";
+            networking.firewall.enable = false;
+            networking.useDHCP = false;
+            boot.isContainer = true;
+            ahbk = {
+              user.frans = user.frans;
+              ide.frans = ide.frans;
+              shell.frans = shell.frans;
+            };
+          }
         ];
       };
 
       friday = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit inputs user system; isHM = false; };
-        modules = [
+        specialArgs = { inherit nixpkgs inputs system; };
+        modules = with ahbk; [
           ./hardware/friday.nix
-          { networking.hostName = "friday"; }
-          ./modules/agenix.nix
-          ./modules/battery.nix
-          ./modules/boot.nix
-          ./modules/bitwarden.nix
-          ./modules/containers.nix
-          ./modules/design.nix
-          ./modules/foot.nix
-          ./modules/git.nix
-          ./modules/hm.nix
-          ./modules/hypr.nix
-          ./modules/light.nix
-          ./modules/misc.nix
-          ./modules/nix.nix
-          ./modules/network.nix
-          ./modules/nm.nix
-          ./modules/nvim.nix
-          ./modules/pipefix.nix
-          ./modules/shell.nix
-          ./modules/sound.nix
-          ./modules/ssh.nix
-          ./modules/system.nix
-          ./modules/tmux.nix
-          ./modules/torrent.nix
-          ./modules/user.nix
-          ./modules/webdev.nix
-          ./modules/xdg.nix
+          ./modules/all.nix
+          {
+            ahbk = {
+              user.test = user.test;
+              user.frans = user.frans;
+              shell.frans = shell.frans;
+              ide.frans = ide.frans;
+              de.frans = de.frans;
+            };
+
+            networking = {
+              hostName = "friday";
+              nat = {
+                enable = true;
+                internalInterfaces = ["ve-+"];
+                externalInterface = "wlp1s0";
+              };
+              networkmanager.unmanaged = [ "interface-name:ve-*" ];
+            };
+
+            boot.loader.grub = {
+              enable = true;
+              device = "/dev/sda";
+            };
+
+            programs.light = {
+              enable = true;
+              brightnessKeys.step = 10;
+              brightnessKeys.enable = true;
+            };
+
+            services.dnsmasq = {
+              enable = true;
+              settings.address = "/.test/10.233.2.2";
+            };
+
+            # hw quirk: wrong keycode for pipe |
+            systemd.services.pipefix = {
+              wantedBy = [ "multi-user.target" ];
+              after = [ "nix-daemon.socket" ];
+              before = [ "systemd-user-sessions.service" ];
+              script = ''/run/current-system/sw/bin/setkeycodes 56 43'';
+            };
+          }
         ];
       };
 
       jarvis = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit inputs user system; isHM = false; };
+        specialArgs = { inherit nixpkgs inputs system; };
         modules = [
           ./hardware/jarvis.nix
-          { networking.hostName = "jarvis"; }
-          ./modules/agenix.nix
-          ./modules/ahbk-ddns.nix
-          ./modules/boot.nix
-          ./modules/hm.nix
-          ./modules/nix.nix
-          ./modules/nvim.nix
-          ./modules/shell.nix
-          ./modules/ssh.nix
-          ./modules/system.nix
-          ./modules/sites.nix
-          ./modules/tmux.nix
-          ./modules/user.nix
+          ./modules/all.nix
+          {
+            networking.hostName = "jarvis";
+            boot.loader.grub = {
+              enable = true;
+              device = "/dev/sda";
+            };
+
+            ahbk = {
+              user.frans = user.frans;
+              shell.frans = shell.frans;
+            };
+
+            age.secrets."ddns-password".file = ./secrets/ddns-password.age;
+
+            services.networking.inadyn = {
+              enable = true;
+              providers."default@noip.com" = {
+                username = "alexander.holmback@gmail.com";
+                hostname = "ahbk.ddns.net";
+                passwordFile = config.age.secrets."ddns-password".path;
+              };
+            };
+            networking.firewall.allowedTCPPorts = [ 80 443 ];
+
+            security.acme = {
+              acceptTerms = true;
+              defaults.email = "alxhbk@proton.me";
+            };
+
+            services.nginx = {
+              enable = true;
+              recommendedGzipSettings = true;
+              recommendedOptimisation = true;
+              recommendedProxySettings = true;
+              recommendedTlsSettings = true;
+            };
+
+            services.nginx.virtualHosts."_" = {
+              default = true;
+              locations."/" = {
+                return = "444";
+              };
+            };
+
+            environment.systemPackages = [ inputs.sverigesval.packages.${system}.bin ];
+          }
         ];
       };
     };
