@@ -18,7 +18,14 @@ in {
 
   config = mkIf (eachUser != {}) {
     home-manager.users = mapAttrs (hm config.ahbk) eachUser;
-    users.users = mapAttrs (user: cfg: { extraGroups = [ "audio" "transmission" ]; }) eachUser;
+    users.users = mapAttrs (user: cfg: { extraGroups = [ "audio" "transmission" "networkmanager" ]; }) eachUser;
+
+    fonts.packages = with pkgs; [
+      source-code-pro
+      hackgen-nf-font
+    ];
+
+    networking.networkmanager.enable = true;
 
     programs.hyprland.enable = true;
 

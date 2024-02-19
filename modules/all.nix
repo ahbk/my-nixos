@@ -17,8 +17,7 @@
   ];
 
   time.timeZone = "Europe/Stockholm";
-  system.stateVersion = "20.03";
-  services.openssh.enable = true;
+  i18n.defaultLocale = "en_US.UTF-8";
 
   home-manager = {
     useGlobalPkgs = true;
@@ -29,19 +28,10 @@
     package = pkgs.nixFlakes;
     registry.nixpkgs.flake = nixpkgs;
     channel.enable = false;
-    settings.nix-path = lib.mkForce "nixpkgs=/etc/nix/inputs/nixpkgs";
-    extraOptions = ''
-      experimental-features = nix-command flakes
-    '';
+    settings = {
+      nix-path = lib.mkForce "nixpkgs=/etc/nix/inputs/nixpkgs";
+      experimental-features = [ "nix-command" "flakes" ];
+    };
   };
   environment.etc."nix/inputs/nixpkgs".source = "${nixpkgs}";
-
-
-  networking.networkmanager.enable = true;
-  users.users = lib.mapAttrs(user: cfg: { extraGroups = [ "networkmanager" ]; }) config.ahbk.user;
-
-  fonts.packages = with pkgs; [
-    source-code-pro
-    hackgen-nf-font
-  ];
 }

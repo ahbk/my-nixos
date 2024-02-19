@@ -55,6 +55,8 @@ in {
       mutableUsers = false;
     })) {} eachUser;
 
+    services.openssh.enable = true;
+
     home-manager.users = mapAttrs (hm config.ahbk) eachUser;
   };
 }
