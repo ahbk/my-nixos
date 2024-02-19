@@ -83,24 +83,25 @@
         };
       };
 
-      django.sites."chatddx.test" = {
+      django.sites."test.chatddx.se" = {
         enable = true;
         port = "2002";
         location = "api/";
-        ssl = false;
+        ssl = true;
         pkgs = inputs.chatddx.packages.${system}.django;
       };
 
-      svelte.sites."chatddx.test" = {
+      svelte.sites."test.chatddx.se" = {
         enable = true;
         port = "2003";
-        ssl = false;
+        ssl = true;
         pkgs = inputs.chatddx.packages.${system}.svelte;
         api = {
           port = "2002";
           location = "api/";
         };
       };
+
     };
   in with nixpkgs.lib; {
     homeConfigurations = mapAttrs' (user: cfg: (
