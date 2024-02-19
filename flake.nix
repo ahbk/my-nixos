@@ -129,6 +129,7 @@
         modules = with ahbk; [
           ./modules/all.nix
           {
+            system.stateVersion = "23.11";
             networking.hostName = "test";
             networking.firewall.enable = false;
             networking.useDHCP = false;
@@ -157,6 +158,7 @@
               de.frans = de.frans;
             };
 
+            system.stateVersion = "20.03";
             networking = {
               hostName = "friday";
               nat = {
@@ -190,6 +192,37 @@
               before = [ "systemd-user-sessions.service" ];
               script = ''/run/current-system/sw/bin/setkeycodes 56 43'';
             };
+          }
+        ];
+      };
+
+      glesys = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit nixpkgs inputs system; };
+        modules = [
+          ./hardware/glesys.nix
+          ./modules/all.nix
+          {
+            networking.hostName = "glesys";
+            system.stateVersion = "23.11";
+
+            ahbk = {
+              user.frans = user.frans;
+              ide.frans = ide.frans;
+              shell.frans = shell.frans;
+            };
+
+            boot.loader.grub = {
+              enable = true;
+              device = "/dev/sda";
+            };
+
+            swapDevices = [
+              {
+                device = "/swapfile";
+                size = 4096;
+              }
+            ];
           }
         ];
       };
