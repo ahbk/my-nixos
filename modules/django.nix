@@ -12,10 +12,6 @@ let
         default = true;
         type = types.bool;
       };
-      location = mkOption {
-        default = "";
-        type = types.str;
-      };
       port = mkOption {
         type = types.port;
       };
@@ -30,9 +26,8 @@ let
 
   envs = mapAttrs (hostname: cfg: (pkgs.writeText "${hostname}-env" (concatStringsSep "\n" (mapAttrsToList (k: v: "${k}=${v}") {
     DEBUG = "false";
-    SECRET_KEY_FILE = config.age.secrets.${hostname}.path;
+    SECRET_KEY_FILE = config.age.secrets."${hostname}-secret-key".path;
     SCHEME = if cfg.ssl then "https" else "http";
-    APP_ROOT = cfg.location;
     STATE_DIR = stateDir hostname;
     HOST = hostname;
     DJANGO_SETTINGS_MODULE = "app.settings";
@@ -58,10 +53,11 @@ in {
 
     environment.systemPackages = bins;
 
-    age.secrets = mapAttrs (hostname: cfg: ({
-      file = ./secrets/${hostname}.age;
-      owner = hostname;
-      group = hostname;
+    age.secrets = mapAttrs' (host: cfg: (
+      nameValuePair "${host}-secret-key" {
+      file = ../secrets/${host}-secret-key.age;
+      owner = host;
+      group = host;
     })) eachSite;
 
     users = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
@@ -81,11 +77,11 @@ in {
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      locations."/${cfg.location}" = {
+      locations."/admin" = {
         recommendedProxySettings = true;
         proxyPass = "http://localhost:${toString cfg.port}";
       };
-      locations."/${cfg.location}static/" = {
+      locations."/static/" = {
         alias = "${cfg.pkgs.static}/";
       };
     })) eachSite;

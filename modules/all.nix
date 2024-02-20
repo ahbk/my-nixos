@@ -2,12 +2,14 @@
   imports = [
     inputs.agenix.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
+    ./chatddx.nix
     ./django.nix
     ./de.nix
     ./fastapi.nix
     ./ide.nix
     ./inadyn.nix
     ./mysql.nix
+    ./nginx.nix
     ./postgresql.nix
     ./shell.nix
     ./svelte.nix

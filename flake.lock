@@ -26,6 +26,27 @@
     "buildNodeModules": {
       "inputs": {
         "nixpkgs": [
+          "chatddx",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1700734302,
+        "narHash": "sha256-xQVkntT26jOX3sABTB3K7Hz0caDD3OZL8jKGPy+LG9g=",
+        "owner": "adisbladis",
+        "repo": "buildNodeModules",
+        "rev": "acd11250c9c600e034a1ad3aa6c87fc11df28190",
+        "type": "github"
+      },
+      "original": {
+        "owner": "adisbladis",
+        "repo": "buildNodeModules",
+        "type": "github"
+      }
+    },
+    "buildNodeModules_2": {
+      "inputs": {
+        "nixpkgs": [
           "rolf",
           "nixpkgs"
         ]
@@ -46,24 +67,24 @@
     },
     "chatddx": {
       "inputs": {
+        "buildNodeModules": "buildNodeModules",
         "nixpkgs": [
           "nixpkgs"
         ],
-        "nixpkgs-stable": "nixpkgs-stable",
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1706559927,
-        "narHash": "sha256-8xPkq8LZFyFC4Fnq3oDpIIS9ro0f8afdS9r9bBgv6Zc=",
+        "lastModified": 1708553614,
+        "narHash": "sha256-AkF5DPtKc9fbo54w00+dsTBWT/VGMcP24ciArkg+a+g=",
         "ref": "refs/heads/main",
-        "rev": "11ad1a2d72209e3098c01149d2dd6ab7842fd22e",
-        "revCount": 63,
+        "rev": "29239dbcaf120226077a58298baa748f102c172c",
+        "revCount": 15,
         "type": "git",
-        "url": "ssh://git@github.com/LigninDDX/chatddx"
+        "url": "ssh://git@github.com/ahbk/chatddx.com"
       },
       "original": {
         "type": "git",
-        "url": "ssh://git@github.com/LigninDDX/chatddx"
+        "url": "ssh://git@github.com/ahbk/chatddx.com"
       }
     },
     "darwin": {
@@ -257,22 +278,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-stable_3": {
-      "locked": {
-        "lastModified": 1706373441,
-        "narHash": "sha256-S1hbgNbVYhuY2L05OANWqmRzj4cElcbLuIkXTb69xkk=",
-        "owner": "ahbk",
-        "repo": "nixpkgs",
-        "rev": "56911ef3403a9318b7621ce745f5452fb9ef6867",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ahbk",
-        "ref": "nixos-23.11",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "poetry2nix": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -325,11 +330,11 @@
     },
     "rolf": {
       "inputs": {
-        "buildNodeModules": "buildNodeModules",
+        "buildNodeModules": "buildNodeModules_2",
         "nixpkgs": [
           "nixpkgs"
         ],
-        "nixpkgs-stable": "nixpkgs-stable_3",
+        "nixpkgs-stable": "nixpkgs-stable_2",
         "poetry2nix": "poetry2nix_2"
       },
       "locked": {
@@ -352,7 +357,7 @@
         "chatddx": "chatddx",
         "home-manager": "home-manager_2",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-stable": "nixpkgs-stable_2",
+        "nixpkgs-stable": "nixpkgs-stable",
         "rolf": "rolf"
       }
     },

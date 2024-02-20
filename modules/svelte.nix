@@ -21,7 +21,7 @@ let
       ssl = mkOption {
         type = types.bool;
       };
-      api = {
+      api = mkOption {
         type = types.submodule {
           options = {
             port = mkOption {
@@ -45,13 +45,17 @@ let
     };
   };
 
-  envs = mapAttrs (hostname: cfg: (pkgs.writeText "${hostname}-env" (concatStringsSep "\n" (mapAttrsToList (k: v: "${k}=${v}") {
+  envs = mapAttrs (hostname: cfg: (pkgs.writeText "${hostname}-env" (concatStringsSep "\n" (mapAttrsToList (k: v: "${k}=${v}") rec {
     PUBLIC_SCHEME = if cfg.ssl then "https" else "http";
     PUBLIC_HOST = hostname;
-    PUBLIC_API_PORT = cfg.api.port;
-    PUBLIC_API_LOCATION = cfg.api.location;
+    PUBLIC_API_PORT = toString cfg.api.port;
+    PUBLIC_API = "${PUBLIC_SCHEME}://${hostname}";
+    PUBLIC_API_SSR = "http://localhost:${PUBLIC_API_PORT}";
+    PORT = toString cfg.port;
+    HOST = "localhost";
   })))) eachSite;
 in {
+
   options = {
     ahbk.svelte = {
       sites = mkOption {
@@ -61,6 +65,7 @@ in {
       };
     };
   };
+
   config = mkIf (eachSite != {}) {
     users = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
       users.${hostname} = {
@@ -80,11 +85,11 @@ in {
       };
     })) eachSite;
 
-    systemd.services = mapAttrs (hostname: cfg: (
+    systemd.services = mapAttrs' (hostname: cfg: (
       nameValuePair "${hostname}-svelte" {
       description = "manage ${hostname}-svelte";
       serviceConfig = {
-        ExecStart = "${pkgs.nodejs_20}/bin/node ${cfg.app.override({ env = envs.${hostname}; })}/build";
+        ExecStart = "${pkgs.nodejs_20}/bin/node ${cfg.pkgs.app.overrideAttrs({ env = envs.${hostname}; })}/build";
         User = hostname;
         Group = hostname;
         EnvironmentFile="${envs.${hostname}}";

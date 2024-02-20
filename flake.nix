@@ -14,7 +14,7 @@
     rolf.url = "git+ssh://git@github.com/ahbk/rolf";
     rolf.inputs.nixpkgs.follows = "nixpkgs";
 
-    chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
+    chatddx.url = "git+ssh://git@github.com/ahbk/chatddx.com";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -83,23 +83,12 @@
         };
       };
 
-      django.sites."test.chatddx.se" = {
+      chatddx = {
         enable = true;
-        port = "2002";
-        location = "api/";
         ssl = true;
-        pkgs = inputs.chatddx.packages.${system}.django;
-      };
-
-      svelte.sites."test.chatddx.se" = {
-        enable = true;
-        port = "2003";
-        ssl = true;
-        pkgs = inputs.chatddx.packages.${system}.svelte;
-        api = {
-          port = "2002";
-          location = "api/";
-        };
+        host = "dev.chatddx.com";
+        pkgs = { inherit (inputs.chatddx.packages.${system}) svelte django; };
+        ports = [ 2002 2003 ];
       };
 
     };
@@ -208,6 +197,13 @@
               user.frans = user.frans;
               ide.frans = ide.frans;
               shell.frans = shell.frans;
+
+              nginx = {
+                enable = true;
+                email = user.frans.email;
+              };
+
+              inherit chatddx;
             };
 
             boot.loader.grub = {

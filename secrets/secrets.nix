@@ -11,4 +11,5 @@ in {
   "chatddx_secret_key.age".publicKeys = all;
   "test-pw.age".publicKeys = all;
   "frans-pw.age".publicKeys = all;
+  "dev.chatddx.com-secret-key.age".publicKeys = all;
 }
