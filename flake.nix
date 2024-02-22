@@ -11,8 +11,8 @@
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
 
-    rolf.url = "git+ssh://git@github.com/ahbk/rolf";
-    rolf.inputs.nixpkgs.follows = "nixpkgs";
+    sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
+    sverigesval.inputs.nixpkgs.follows = "nixpkgs";
 
     chatddx.url = "git+ssh://git@github.com/ahbk/chatddx.com";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
@@ -67,23 +67,12 @@
         ssl = false;
       };
 
-      fastapi.sites."sverigesval.test" = {
+      sverigesval = {
         enable = true;
-        location = "api/";
-        port = "2000";
         ssl = false;
-        pkgs = inputs.sverigesval.packages.${system}.fastapi;
-      };
-
-      svelte.sites."sverigesval.test" = {
-        enable = true;
-        port = "2001";
-        ssl = false;
-        pkgs = inputs.sverigesval.packages.${system}.svelte;
-        api = {
-          port = "2000";
-          location = "api/";
-        };
+        host = "dev.sverigesval.org";
+        pkgs = { inherit (inputs.sverigesval.packages.${system}) svelte fastapi; };
+        ports = [ 2000 2001 ];
       };
 
       chatddx = {

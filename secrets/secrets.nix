@@ -12,4 +12,5 @@ in {
   "test-pw.age".publicKeys = all;
   "frans-pw.age".publicKeys = all;
   "dev.chatddx.com-secret-key.age".publicKeys = all;
+  "dev.sverigesval.org-secret-key.age".publicKeys = all;
 }

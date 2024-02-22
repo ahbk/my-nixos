@@ -13,6 +13,7 @@
     ./postgresql.nix
     ./shell.nix
     ./svelte.nix
+    ./sverigesval.nix
     ./user.nix
     ./vd.nix
     ./wordpress.nix

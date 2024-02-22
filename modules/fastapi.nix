@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, ... }:
+{ config, lib, lib', pkgs, ... }:
 with lib;
 let
   cfg = config.ahbk.fastapi;
@@ -12,10 +12,6 @@ let
         default = true;
         type = types.bool;
       };
-      location = mkOption {
-        default = "";
-        type = types.str;
-      };
       port = mkOption {
         type = types.port;
       };
@@ -28,16 +24,15 @@ let
     };
   };
 
-  envs = mapAttrs (hostname: cfg: (pkgs.writeText "${hostname}-env" (concatStringsSep "\n" (mapAttrsToList (k: v: "${k}=${v}") {
+  envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname {
     DEBUG = "false";
-    SECRET_KEY_FILE = config.age.secrets.${hostname}.path;
+    SECRET_KEY_FILE = config.age.secrets."${hostname}-secret-key".path;
     SCHEME = if cfg.ssl then "https" else "http";
-    APP_ROOT = cfg.location;
     STATE_DIR = stateDir hostname;
     HOST = hostname;
-  })))) eachSite;
+  })) eachSite;
 
-  bins = mapAttrsToList (hostname: cfg: (cfg.pkgs.bin.override {
+  bins = mapAttrs (hostname: cfg: (cfg.pkgs.bin.overrideAttrs {
     env = envs.${hostname};
     name = "${hostname}-manage";
   })) eachSite;
@@ -55,22 +50,23 @@ in {
   };
 
   config = mkIf (eachSite != {}) {
-    environment.systemPackages = bins;
+
+    environment.systemPackages = mapAttrsToList (hostname: bin: bin) bins;
 
     age.secrets = mapAttrs' (hostname: cfg: (
-      nameValuePair "$hostname_key" {
-      file = ./secrets/${hostname}_key.age;
+      nameValuePair "${hostname}-secret-key" {
+      file = ../secrets/${hostname}-secret-key.age;
       owner = hostname;
       group = hostname;
     })) eachSite;
 
-    users = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
+    users = lib'.mergeAttrs (hostname: cfg: {
       users.${hostname} = {
         isSystemUser = true;
         group = hostname;
       };
       groups.${hostname} = {};
-    })) {} eachSite;
+    }) eachSite;
 
     ahbk.postgresql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
 
@@ -83,15 +79,15 @@ in {
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      locations."/${cfg.location}" = {
+      locations."/api" = {
         recommendedProxySettings = true;
         proxyPass = "http://localhost:${toString cfg.port}";
       };
     })) eachSite;
 
-    systemd.services = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
+    systemd.services = lib'.mergeAttrs (hostname: cfg: {
       "${hostname}-fastapi" = {
-        description = "manage ${hostname}-fastapi";
+        description = "serve ${hostname}-fastapi";
         serviceConfig = {
           ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/uvicorn app.main:run --bind localhost:${toString cfg.port}";
           User = hostname;
@@ -100,18 +96,23 @@ in {
         };
         wantedBy = [ "multi-user.target" ];
       };
-      "${hostname}-setup" = {
-        description = "${hostname-setup}";
+
+      "${hostname}-fastapi-migrate" = {
+        description = "migrate ${hostname}-fastapi";
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${cfg.pkgs.bin}/bin/manage setup";
-          User = cfg.user;
-          Group = cfg.user;
+          User = hostname;
+          Group = hostname;
           EnvironmentFile="${envs.${hostname}}";
         };
-        wantedBy = [ "multi-user.target" ];
-        before = [ "rolf-api.service" ];
       };
-    })) eachSite;
+    }) eachSite;
+
+    system.activationScripts = mapAttrs (hostname: cfg: {
+      text = ''
+        ${pkgs.systemd}/bin/systemctl start ${hostname}-fastapi-migrate
+      '';
+    }) eachSite;
   };
 }
