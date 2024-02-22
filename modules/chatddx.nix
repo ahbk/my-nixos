@@ -6,6 +6,7 @@ in {
   options.ahbk.chatddx = with types; {
     enable = mkOption {
       type = bool;
+      default = false;
     };
     ssl = mkOption {
       type = bool;

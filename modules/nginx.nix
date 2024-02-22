@@ -6,6 +6,7 @@ in {
   options.ahbk.nginx = {
     enable = mkOption {
       type = types.bool;
+      default = false;
     };
     email = mkOption {
       type = types.str;
