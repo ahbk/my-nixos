@@ -3,11 +3,11 @@ ahbk: user: cfg: { config, pkgs, ... }: {
       export PATH="$PATH:$HOME/.local/bin"
   '';
   home.shellAliases = {
-    nix-store-size = ''ls /nix/store | wc -l'';
-    f = ''fzf | xargs -I {} rifle {}'';
-    l = ''eza -la --icons=auto'';
-    ll = ''eza'';
-    grep = ''grep --color=auto'';
+    f = "fzf | xargs -I {} rifle {}";
+    l = "eza -la --icons=auto";
+    ll = "eza";
+    cd = "z";
+    grep = "grep --color=auto";
   };
 
   programs.bash = {
@@ -23,7 +23,7 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     '';
 
     shellAliases = {
-      battery = ''cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status'';
+      battery = "cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status";
     };
   };
 
