@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, lib', pkgs, ... }:
 with lib;
 let
   cfg = config.ahbk.django;
@@ -24,16 +24,16 @@ let
     };
   };
 
-  envs = mapAttrs (hostname: cfg: (pkgs.writeText "${hostname}-env" (concatStringsSep "\n" (mapAttrsToList (k: v: "${k}=${v}") {
+  envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname {
     DEBUG = "false";
     SECRET_KEY_FILE = config.age.secrets."${hostname}-secret-key".path;
     SCHEME = if cfg.ssl then "https" else "http";
     STATE_DIR = stateDir hostname;
     HOST = hostname;
     DJANGO_SETTINGS_MODULE = "app.settings";
-  })))) eachSite;
+  })) eachSite;
 
-  bins = mapAttrsToList (hostname: cfg: (cfg.pkgs.bin.overrideAttrs {
+  bins = mapAttrs (hostname: cfg: (cfg.pkgs.bin.overrideAttrs {
     env = envs.${hostname};
     name = "${hostname}-manage";
   })) eachSite;
@@ -51,22 +51,22 @@ in {
 
   config = mkIf (eachSite != {}) {
 
-    environment.systemPackages = bins;
+    environment.systemPackages = mapAttrsToList (hostname: bin: bin) bins;
 
-    age.secrets = mapAttrs' (host: cfg: (
-      nameValuePair "${host}-secret-key" {
-      file = ../secrets/${host}-secret-key.age;
-      owner = host;
-      group = host;
+    age.secrets = mapAttrs' (hostname: cfg: (
+      nameValuePair "${hostname}-secret-key" {
+      file = ../secrets/${hostname}-secret-key.age;
+      owner = hostname;
+      group = hostname;
     })) eachSite;
 
-    users = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
+    users = lib'.mergeAttrs (hostname: cfg: {
       users.${hostname} = {
         isSystemUser = true;
         group = hostname;
       };
       groups.${hostname} = {};
-    })) {} eachSite;
+    }) eachSite;
 
     systemd.tmpfiles.rules = flatten (mapAttrsToList (hostname: cfg: [
       "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
@@ -86,17 +86,34 @@ in {
       };
     })) eachSite;
 
-    systemd.services = mapAttrs' (hostname: cfg: (
-      nameValuePair "${hostname}-django" {
-      description = "manage ${hostname}-django";
-      serviceConfig = {
-        ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
-        User = hostname;
-        Group = hostname;
-        EnvironmentFile="${envs.${hostname}}";
+    systemd.services = lib'.mergeAttrs (hostname: cfg: {
+      "${hostname}-django" = {
+        description = "serve ${hostname}-django";
+        serviceConfig = {
+          ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
+          User = hostname;
+          Group = hostname;
+          EnvironmentFile="${envs.${hostname}}";
+        };
+        wantedBy = [ "multi-user.target" ];
       };
-      wantedBy = [ "multi-user.target" ];
-    })) eachSite;
 
+      "${hostname}-django-migrate" = {
+        description = "migrate ${hostname}-django";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/django-admin migrate";
+          User = hostname;
+          Group = hostname;
+          EnvironmentFile="${envs.${hostname}}";
+        };
+      };
+    }) eachSite;
+
+    system.activationScripts = mapAttrs (hostname: cfg: {
+      text = ''
+        ${pkgs.systemd}/bin/systemctl start ${hostname}-django-migrate
+      '';
+    }) eachSite;
   };
 }

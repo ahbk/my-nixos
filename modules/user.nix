@@ -1,4 +1,4 @@
-{ lib, config, ... }: with lib;
+{ lib, lib', config, ... }: with lib;
 let
   cfg = config.ahbk.user;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
@@ -42,7 +42,7 @@ in {
       group = user;
     })) eachUser;
 
-    users = foldlAttrs (acc: user: cfg: (recursiveUpdate acc {
+    users = lib'.mergeAttrs (user: cfg: {
       users.${user} = {
         uid = cfg.uid;
         isNormalUser = true;
@@ -53,7 +53,7 @@ in {
       };
       groups.${user}.gid = config.users.users.${user}.uid;
       mutableUsers = false;
-    })) {} eachUser;
+    }) eachUser;
 
     services.openssh.enable = true;
 

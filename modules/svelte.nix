@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, lib', pkgs, ... }:
 with lib;
 let
   cfg = config.ahbk.svelte;
@@ -45,7 +45,7 @@ let
     };
   };
 
-  envs = mapAttrs (hostname: cfg: (pkgs.writeText "${hostname}-env" (concatStringsSep "\n" (mapAttrsToList (k: v: "${k}=${v}") rec {
+  envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname rec {
     PUBLIC_SCHEME = if cfg.ssl then "https" else "http";
     PUBLIC_HOST = hostname;
     PUBLIC_API_PORT = toString cfg.api.port;
@@ -53,7 +53,7 @@ let
     PUBLIC_API_SSR = "http://localhost:${PUBLIC_API_PORT}";
     PORT = toString cfg.port;
     HOST = "localhost";
-  })))) eachSite;
+  })) eachSite;
 in {
 
   options = {
@@ -67,13 +67,13 @@ in {
   };
 
   config = mkIf (eachSite != {}) {
-    users = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
+    users = lib'.mergeAttrs (hostname: cfg: {
       users.${hostname} = {
         isSystemUser = true;
         group = hostname;
       };
       groups.${hostname} = {};
-    })) {} eachSite;
+    }) eachSite;
 
     services.nginx.virtualHosts = mapAttrs (hostname: cfg: ({
       serverName = hostname;
@@ -87,7 +87,7 @@ in {
 
     systemd.services = mapAttrs' (hostname: cfg: (
       nameValuePair "${hostname}-svelte" {
-      description = "manage ${hostname}-svelte";
+      description = "serve ${hostname}-svelte";
       serviceConfig = {
         ExecStart = "${pkgs.nodejs_20}/bin/node ${cfg.pkgs.app.overrideAttrs({ env = envs.${hostname}; })}/build";
         User = hostname;

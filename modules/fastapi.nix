@@ -91,7 +91,7 @@ in {
 
     systemd.services = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
       "${hostname}-fastapi" = {
-        description = "manage ${hostname}-fastap";
+        description = "manage ${hostname}-fastapi";
         serviceConfig = {
           ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/uvicorn app.main:run --bind localhost:${toString cfg.port}";
           User = hostname;

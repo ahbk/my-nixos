@@ -22,7 +22,10 @@
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    lib' = import ./lib.nix { inherit (nixpkgs) lib; };
+    lib' = import ./lib.nix {
+      inherit (nixpkgs) lib;
+      inherit pkgs;
+    };
 
     ahbk = {
       user.test = {
@@ -107,6 +110,7 @@
       };
 
     nixosConfigurations = rec {
+
       # nixos@10.233.2.2 for testing
       # nixos-container create test ~/Desktop/nixos
       container = test;
@@ -132,7 +136,7 @@
 
       friday = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit nixpkgs inputs system; };
+        specialArgs = { inherit nixpkgs inputs system lib'; };
         modules = with ahbk; [
           ./hardware/friday.nix
           ./modules/all.nix
@@ -185,7 +189,7 @@
 
       glesys = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit nixpkgs inputs system; };
+        specialArgs = { inherit nixpkgs inputs system lib'; };
         modules = [
           ./hardware/glesys.nix
           ./modules/all.nix
