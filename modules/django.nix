@@ -26,7 +26,7 @@ let
 
   envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname {
     DEBUG = "false";
-    SECRET_KEY_FILE = config.age.secrets."${hostname}-secret-key".path;
+    SECRET_KEY_FILE = config.age.secrets."${hostname}/secret-key".path;
     SCHEME = if cfg.ssl then "https" else "http";
     STATE_DIR = stateDir hostname;
     HOST = hostname;
@@ -55,7 +55,7 @@ in {
     environment.systemPackages = mapAttrsToList (hostname: bin: bin) bins;
 
     age.secrets = mapAttrs' (hostname: cfg: (
-      nameValuePair "${hostname}-secret-key" {
+      nameValuePair "${hostname}/secret-key" {
       file = ../secrets/${hostname}-secret-key.age;
       owner = hostname;
       group = hostname;
