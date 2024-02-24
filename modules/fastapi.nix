@@ -25,11 +25,11 @@ let
   };
 
   envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname {
-    DEBUG = "false";
-    SECRET_KEY_FILE = config.age.secrets."${hostname}-secret-key".path;
-    SCHEME = if cfg.ssl then "https" else "http";
+    ENV = "production";
+    SSL = builtins.toString cfg.ssl;
+    HOSTNAME = hostname;
     STATE_DIR = stateDir hostname;
-    HOST = hostname;
+    SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret-key".path;
   })) eachSite;
 
   bins = mapAttrs (hostname: cfg: (cfg.pkgs.bin.overrideAttrs {
@@ -54,7 +54,7 @@ in {
     environment.systemPackages = mapAttrsToList (hostname: bin: bin) bins;
 
     age.secrets = mapAttrs' (hostname: cfg: (
-      nameValuePair "${hostname}-secret-key" {
+      nameValuePair "${hostname}/secret-key" {
       file = ../secrets/${hostname}-secret-key.age;
       owner = hostname;
       group = hostname;
