@@ -22,16 +22,10 @@ let
         type = types.bool;
       };
       api = mkOption {
-        type = types.submodule {
-          options = {
-            port = mkOption {
-              type = types.port;
-            };
-            location = mkOption {
-              type = types.str;
-            };
-          };
-        };
+        type = types.str;
+      };
+      api_ssr = mkOption {
+        type = types.str;
       };
       pkgs = mkOption {
         type = types.submodule {
@@ -45,14 +39,10 @@ let
     };
   };
 
-  envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname rec {
-    PUBLIC_SCHEME = if cfg.ssl then "https" else "http";
-    PUBLIC_HOST = hostname;
-    PUBLIC_API_PORT = toString cfg.api.port;
-    PUBLIC_API = "${PUBLIC_SCHEME}://${hostname}";
-    PUBLIC_API_SSR = "http://localhost:${PUBLIC_API_PORT}";
-    PORT = toString cfg.port;
-    HOST = "localhost";
+  envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname {
+    ORIGIN = "${if cfg.ssl then "https" else "http"}://${hostname}}";
+    PUBLIC_API = cfg.api;
+    PUBLIC_API_SSR = cfg.api_ssr;
   })) eachSite;
 in {
 

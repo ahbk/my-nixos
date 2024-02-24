@@ -25,9 +25,9 @@ let
   };
 
   envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname {
-    ENV = "production";
-    SSL = builtins.toString cfg.ssl;
     HOSTNAME = hostname;
+    ENV = "production";
+    SSL = if cfg.ssl then "true" else "false";
     STATE_DIR = stateDir hostname;
     SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret-key".path;
   })) eachSite;
@@ -101,7 +101,7 @@ in {
         description = "migrate ${hostname}-fastapi";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${cfg.pkgs.bin}/bin/manage setup";
+          ExecStart = "${cfg.pkgs.bin}/bin/manage migrate";
           User = hostname;
           Group = hostname;
           EnvironmentFile="${envs.${hostname}}";

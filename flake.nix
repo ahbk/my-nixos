@@ -70,7 +70,7 @@
       sverigesval = {
         enable = true;
         ssl = false;
-        host = "dev.sverigesval.org";
+        hostname = "dev.sverigesval.org";
         pkgs = { inherit (inputs.sverigesval.packages.${system}) svelte fastapi; };
         ports = [ 2000 2001 ];
       };
@@ -78,7 +78,7 @@
       chatddx = {
         enable = true;
         ssl = true;
-        host = "dev.chatddx.com";
+        hostname = "dev.chatddx.com";
         pkgs = { inherit (inputs.chatddx.packages.${system}) svelte django; };
         ports = [ 2002 2003 ];
       };

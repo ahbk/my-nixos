@@ -11,7 +11,7 @@ in {
     ssl = mkOption {
       type = bool;
     };
-    host = mkOption {
+    hostname = mkOption {
       type = str;
     };
     pkgs.svelte = mkOption {
@@ -25,22 +25,21 @@ in {
     };
   };
 
-  config = mkIf cfg.enable rec {
-    ahbk.django.sites.${cfg.host} = {
+  config = mkIf cfg.enable {
+    ahbk.django.sites.${cfg.hostname} = {
       enable = cfg.enable;
       port = builtins.elemAt cfg.ports 0;
       ssl = cfg.ssl;
       pkgs = cfg.pkgs.django;
     };
 
-    ahbk.svelte.sites.${cfg.host} = {
+    ahbk.svelte.sites.${cfg.hostname} = {
       enable = cfg.enable;
       port = builtins.elemAt cfg.ports 1;
       ssl = cfg.ssl;
       pkgs = cfg.pkgs.svelte;
-      api = {
-        port = ahbk.django.sites.${cfg.host}.port;
-      };
+      api = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}";
+      api_ssr = "http://localhost:${toString cfg.ports 0}";
     };
 
   };
