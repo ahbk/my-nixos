@@ -74,17 +74,17 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1708622775,
-        "narHash": "sha256-y4sgpk/SwL/efrTrKvtn/h5VESGutzxOo8Y2nFxc520=",
+        "lastModified": 1708985259,
+        "narHash": "sha256-Fx6OE+z8Mee2JhOeVUiDeiGGP16ADGDfaUNzzLFZJVw=",
         "ref": "refs/heads/main",
-        "rev": "d2cf95e91003387a350ea1613d867c6ad1c4ed61",
-        "revCount": 16,
+        "rev": "6599b0e13db075eb013fa02b6fa0cb2532a0d1be",
+        "revCount": 66,
         "type": "git",
-        "url": "ssh://git@github.com/ahbk/chatddx.com"
+        "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
       "original": {
         "type": "git",
-        "url": "ssh://git@github.com/ahbk/chatddx.com"
+        "url": "ssh://git@github.com/LigninDDX/chatddx"
       }
     },
     "darwin": {

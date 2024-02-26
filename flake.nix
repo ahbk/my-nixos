@@ -14,7 +14,7 @@
     sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
     sverigesval.inputs.nixpkgs.follows = "nixpkgs";
 
-    chatddx.url = "git+ssh://git@github.com/ahbk/chatddx.com";
+    chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
   };
 
