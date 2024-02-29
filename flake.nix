@@ -69,7 +69,7 @@
 
       sverigesval = {
         enable = true;
-        ssl = false;
+        ssl = true;
         hostname = "dev.sverigesval.org";
         pkgs = { inherit (inputs.sverigesval.packages.${system}) svelte fastapi; };
         ports = [ 2000 2001 ];
@@ -196,7 +196,7 @@
                 email = user.frans.email;
               };
 
-              inherit chatddx;
+              inherit chatddx sverigesval;
             };
 
             boot.loader.grub = {

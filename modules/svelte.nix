@@ -40,7 +40,7 @@ let
   };
 
   envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname {
-    ORIGIN = "${if cfg.ssl then "https" else "http"}://${hostname}}";
+    ORIGIN = "${if cfg.ssl then "https" else "http"}://${hostname}";
     PUBLIC_API = cfg.api;
     PUBLIC_API_SSR = cfg.api_ssr;
     PORT = toString cfg.port;

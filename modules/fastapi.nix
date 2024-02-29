@@ -29,7 +29,8 @@ let
     ENV = "production";
     SSL = if cfg.ssl then "true" else "false";
     STATE_DIR = stateDir hostname;
-    SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret-key".path;
+    SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret_key".path;
+    ALLOW_ORIGINS = "[\"${if cfg.ssl then "https" else "http"}://${hostname}\"]";
   })) eachSite;
 
   bins = mapAttrs (hostname: cfg: (cfg.pkgs.bin.overrideAttrs {
@@ -54,7 +55,7 @@ in {
     environment.systemPackages = mapAttrsToList (hostname: bin: bin) bins;
 
     age.secrets = mapAttrs' (hostname: cfg: (
-      nameValuePair "${hostname}/secret-key" {
+      nameValuePair "${hostname}/secret_key" {
       file = ../secrets/${hostname}-secret-key.age;
       owner = hostname;
       group = hostname;
@@ -89,7 +90,7 @@ in {
       "${hostname}-fastapi" = {
         description = "serve ${hostname}-fastapi";
         serviceConfig = {
-          ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/uvicorn app.main:run --bind localhost:${toString cfg.port}";
+          ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/uvicorn app.main:run --host localhost --port ${toString cfg.port}";
           User = hostname;
           Group = hostname;
           EnvironmentFile="${envs.${hostname}}";
@@ -98,6 +99,7 @@ in {
       };
 
       "${hostname}-fastapi-migrate" = {
+        path = [pkgs.bash];
         description = "migrate ${hostname}-fastapi";
         serviceConfig = {
           Type = "oneshot";
