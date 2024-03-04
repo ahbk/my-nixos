@@ -136,6 +136,8 @@
               shell.frans = shell.frans;
               ide.frans = ide.frans;
               de.frans = de.frans;
+
+              laptop.enable = true;
             };
 
             system.stateVersion = "20.03";
@@ -153,12 +155,6 @@
             boot.loader.grub = {
               enable = true;
               device = "/dev/sda";
-            };
-
-            programs.light = {
-              enable = true;
-              brightnessKeys.step = 10;
-              brightnessKeys.enable = true;
             };
 
             services.dnsmasq = {

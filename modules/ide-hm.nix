@@ -55,6 +55,7 @@ ahbk: user: cfg: { config, pkgs, ... }: {
         mini-nvim
         toggleterm-nvim
         kanagawa-nvim
+        vim-nix
       ];
       extraLuaConfig = (builtins.readFile ./nvim.lua);
     };

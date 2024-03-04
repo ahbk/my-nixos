@@ -8,6 +8,7 @@
     ./fastapi.nix
     ./ide.nix
     ./inadyn.nix
+    ./laptop.nix
     ./mysql.nix
     ./nginx.nix
     ./postgresql.nix

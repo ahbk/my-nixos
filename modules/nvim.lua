@@ -12,6 +12,10 @@ require 'nvim-treesitter.configs'.setup {
   auto_install = false,
   ensure_installed = {},
   ignore_install = { "all" },
+  indent = {
+    enable = true,
+    disable = { "nix" },
+  },
   highlight = {
     enable = true,
     additional_vim_regex_highlighting = false,
