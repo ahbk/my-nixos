@@ -147,6 +147,7 @@
                 externalInterface = "wlp1s0";
               };
               networkmanager.unmanaged = [ "interface-name:ve-*" ];
+              firewall.allowedTCPPorts = [ 3000 5173 8000 ];
             };
 
             boot.loader.grub = {

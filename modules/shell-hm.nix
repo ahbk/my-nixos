@@ -35,6 +35,14 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     enable = true;
   };
 
+  programs.tmux = {
+    enable = true;
+    terminal = "tmux-256color";
+    keyMode = "vi";
+    escapeTime = 10;
+    extraConfig = (builtins.readFile ./tmux.conf);
+  };
+
   programs.starship = {
     enable = true;
     settings = {

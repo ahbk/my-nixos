@@ -2,7 +2,6 @@ ahbk: user: cfg: { config, pkgs, ... }: {
   programs.foot = {
     enable = true;
     settings = {
-      main.term = "xterm-256color";
       main.font = "Source Code Pro:size=11";
       main.include = "~/.config/foot/include.ini";
       main.dpi-aware = "no";
