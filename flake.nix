@@ -123,15 +123,14 @@
         ];
       };
 
-      friday = nixpkgs.lib.nixosSystem {
+      laptop = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
         modules = with ahbk; [
-          ./hardware/friday.nix
+          ./hardware/laptop.nix
           ./modules/all.nix
           {
             ahbk = {
-              user.test = user.test;
               user.frans = user.frans;
               shell.frans = shell.frans;
               ide.frans = ide.frans;
@@ -140,9 +139,10 @@
               laptop.enable = true;
             };
 
-            system.stateVersion = "20.03";
+            system.stateVersion = "23.11";
+
             networking = {
-              hostName = "friday";
+              hostName = "laptop";
               nat = {
                 enable = true;
                 internalInterfaces = ["ve-+"];
