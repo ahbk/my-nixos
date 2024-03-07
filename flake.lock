@@ -74,11 +74,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1709053796,
-        "narHash": "sha256-DJd6MZjmAzG+D6hOcwHIGwIeMWgoaTObJ29s4UpI5U8=",
+        "lastModified": 1709725310,
+        "narHash": "sha256-/rMXazcTGvB7FGdkOieLtguNY4EKNs4WVPbRmhAYEpE=",
         "ref": "refs/heads/main",
-        "rev": "297298be593fb12f79f400f02fd33f77d85f5c04",
-        "revCount": 69,
+        "rev": "4c189168a4a22c7dd8d21e3eb8e3d799d7384093",
+        "revCount": 71,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
@@ -331,11 +331,11 @@
         "poetry2nix": "poetry2nix_2"
       },
       "locked": {
-        "lastModified": 1709162696,
-        "narHash": "sha256-+4KEjIM9se08/dGNDD8/7ShKFYkgw6KOV1iL5TXomwA=",
+        "lastModified": 1709805200,
+        "narHash": "sha256-gk58dLW1nz8EXmJTFGC0daOUXge8BP5hA4RI7eAQm/8=",
         "ref": "refs/heads/main",
-        "rev": "db10f552ab045cf0d40fcab0ab7102d43cce0c48",
-        "revCount": 93,
+        "rev": "30939449483544dc22b350febbd155d5c234305f",
+        "revCount": 98,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },

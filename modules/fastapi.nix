@@ -30,7 +30,7 @@ let
     SSL = if cfg.ssl then "true" else "false";
     STATE_DIR = stateDir hostname;
     SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret_key".path;
-    ALLOW_ORIGINS = "[\"${if cfg.ssl then "https" else "http"}://${hostname}\"]";
+    ALLOW_ORIGINS = "'[\"${if cfg.ssl then "https" else "http"}://${hostname}\"]'";
   })) eachSite;
 
   bins = mapAttrs (hostname: cfg: (cfg.pkgs.bin.overrideAttrs {

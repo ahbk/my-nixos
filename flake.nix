@@ -70,7 +70,7 @@
       sverigesval = {
         enable = true;
         ssl = true;
-        hostname = "dev.sverigesval.org";
+        hostname = "sverigesval.org";
         pkgs = { inherit (inputs.sverigesval.packages.${system}) svelte fastapi; };
         ports = [ 2000 2001 ];
       };
