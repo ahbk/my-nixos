@@ -157,6 +157,13 @@
               device = "/dev/sda";
             };
 
+            swapDevices = [
+              {
+                device = "/swapfile";
+                size = 8192;
+              }
+            ];
+
             services.dnsmasq = {
               enable = true;
               settings.address = "/.test/10.233.2.2";
