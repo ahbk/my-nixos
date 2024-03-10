@@ -3,6 +3,10 @@ vim.o.wildmenu = true
 vim.o.wildmode = 'longest:full,full'
 vim.o.termguicolors = true
 vim.cmd.colorscheme('kanagawa-dragon')
+vim.cmd([[
+  cnoremap <expr> <Up> pumvisible() ? "\<C-p>" : "\<Up>"
+  cnoremap <expr> <Down> pumvisible() ? "\<C-n>" : "\<Down>"
+]])
 
 -- nixpkgs: nvim-treesitter
 -- https://github.com/nvim-treesitter/nvim-treesitter
@@ -43,12 +47,27 @@ require('toggleterm').setup { open_mapping = '<leader>t' }
 
 -- nixpkgs: telescope-nvim telescope-fzf-native-nvim
 -- https://github.com/nvim-telescope/telescope.nvim
+-- https://github.com/nvim-telescope/telescope.nvim?tab=readme-ov-file#pickers
 require('telescope').load_extension('fzf')
 local telescope = require('telescope.builtin')
+vim.keymap.set('n', '<leader>pp', telescope.planets, {})
 vim.keymap.set('n', '<leader>fg', telescope.live_grep, {})
 vim.keymap.set('n', '<leader>fb', telescope.buffers, {})
 vim.keymap.set('n', '<leader>fh', telescope.help_tags, {})
 vim.keymap.set('n', '<Leader>ff', function() telescope.find_files({ hidden = true }) end)
+vim.keymap.set('n', '<leader>fc', telescope.commands, {})
+vim.keymap.set('n', '<leader>fm', telescope.man_pages, {})
+vim.keymap.set('n', '<leader>fo', telescope.vim_options, {})
+vim.keymap.set('n', '<leader>fk', telescope.keymaps, {})
+vim.keymap.set('n', '<leader>fp', telescope.pickers, {})
+vim.keymap.set('n', '<leader>fr', telescope.current_buffer_fuzzy_find, {})
+
+vim.keymap.set('n', '<leader>gc', telescope.git_commits, {})
+vim.keymap.set('n', '<leader>gb', telescope.git_bcommits, {})
+vim.keymap.set('n', '<leader>gg', telescope.git_branches, {})
+
+vim.keymap.set('n', '<leader>ld', telescope.diagnostics, {})
+
 
 
 -- nixpkgs: nvim-lspconfig

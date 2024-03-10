@@ -3,7 +3,7 @@ ahbk: user: cfg: { config, pkgs, ... }: {
       export PATH="$PATH:$HOME/.local/bin"
   '';
   home.shellAliases = {
-    f = "fzf | xargs -I {} rifle {}";
+    f = "fzf | xargs -r xdg-open";
     l = "eza -la --icons=auto";
     ll = "eza";
     cd = "z";

@@ -27,7 +27,10 @@ in {
 
     networking.networkmanager.enable = true;
 
-    programs.hyprland.enable = true;
+    programs.hyprland = {
+      enable = true;
+      xwayland.enable = false;
+    };
 
     security.rtkit.enable = true;
 
@@ -52,21 +55,23 @@ in {
       XDG_DATA_HOME   = "$HOME/.local/share";
       XDG_STATE_HOME  = "$HOME/.local/state";
 
-    # Not officially in the specification
-    XDG_BIN_HOME    = "$HOME/.local/bin";
-    PATH = [ 
+      # Not officially in the specification
+      XDG_BIN_HOME    = "$HOME/.local/bin";
+      PATH = [ 
         "${XDG_BIN_HOME}"
       ];
     };
 
-    # add as we go
     xdg.mime.defaultApplications = {
+      "text/*" = "nvim.desktop";
       "image/*" = "feh.desktop";
-      "text/html" = "org.qutebrowser.qutebrowser.desktop";
+      "video/*" = "mpv.desktop";
+      "audio/*" = "mpv.desktop";
+      "application/pdf" = "mupdf.desktop";
+      "application/x-bittorrent" = "transmission-qt.desktop";
       "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
       "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
-      "x-scheme-handler/about" = "org.qutebrowser.qutebrowser.desktop";
-      "x-scheme-handler/unknown" = "org.qutebrowser.qutebrowser.desktop";
+      "x-scheme-handler/magnet" = "transmission-qt.desktop";
     };
   };
 }
