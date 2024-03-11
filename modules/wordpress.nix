@@ -1,4 +1,4 @@
-{ pkgs, config, lib, ... }:
+{ pkgs, config, lib, lib', ... }:
 with lib;
 let
   cfg = config.ahbk.wordpress;
@@ -14,6 +14,10 @@ let
       ssl = mkOption {
         type = types.bool;
       };
+      hostPrefix = mkOption {
+        default = "";
+        type = types.str;
+      };
     };
 
   };
@@ -24,7 +28,7 @@ in {
       sites = mkOption {
         type = types.attrsOf (types.submodule siteOpts);
         default = {};
-        description = mdDoc "Specification of one or more Django sites to serve";
+        description = mdDoc "Specification of one or more wordpress sites to serve";
       };
     };
   };
@@ -38,47 +42,55 @@ in {
       ];
     };
 
-    users = foldlAttrs (acc: hostname: cfg: (recursiveUpdate acc {
+    users = lib'.mergeAttrs (hostname: cfg: {
       users.${hostname} = {
         isSystemUser = true;
         group = hostname;
       };
       groups.${hostname} = {};
-    })) {} eachSite;
+    }) eachSite;
 
     systemd.tmpfiles.rules = flatten (mapAttrsToList (hostname: cfg: [
       "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
       "Z '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
+      "A '${stateDir hostname}' - - - - u:nginx:rX"
     ]) eachSite);
 
-    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
-      serverName = hostname;
-      root = stateDir hostname;
-      forceSSL = ssl;
-      enableACME = ssl;
-      extraConfig = ''
-          index index.php;
+    services.nginx.virtualHosts = lib'.mergeAttrs (hostname: cfg: let
+      finalHostname = if cfg.hostPrefix != "" then "${cfg.hostPrefix}.${hostname}" else hostname;
+    in {
+      ${hostname}.extraConfig = if (hostname == finalHostname) then "" else ''
+        return 301 $scheme://${finalHostname}$request_uri;
       '';
-      locations = {
-        "/" = {
-          priority = 200;
-          extraConfig = ''
-            try_files $uri $uri/ /index.php?$args;
-          '';
-        };
 
-        "~ \\.php$" = {
-          priority = 500;
-          extraConfig = ''
-            include ${pkgs.nginx}/conf/fastcgi.conf;
-            fastcgi_intercept_errors on;
-            fastcgi_pass unix:${config.services.phpfpm.pools.${hostname}.socket};
-            }
+      ${finalHostname} = {
+        serverName = finalHostname;
+        root = stateDir hostname;
+        forceSSL = cfg.ssl;
+        enableACME = cfg.ssl;
+        extraConfig = ''
+          index index.php;
+        '';
+        locations = {
+          "/" = {
+            priority = 200;
+            extraConfig = ''
+              try_files $uri $uri/ /index.php?$args;
+            '';
+          };
 
-            location ~ /\.ht {
-            deny all;
-            }
-          '';
+          "~ \\.php$" = {
+            priority = 500;
+            extraConfig = ''
+              include ${pkgs.nginx}/conf/fastcgi.conf;
+              fastcgi_intercept_errors on;
+              fastcgi_pass unix:${config.services.phpfpm.pools.${hostname}.socket};
+
+              location ~ /\.ht {
+                deny all;
+              }
+            '';
+          };
         };
       };
     }) eachSite;

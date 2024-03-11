@@ -62,9 +62,10 @@
       shell.frans.enable = true;
       de.frans.enable = true;
 
-      wordpress.sites."esse.test" = {
+      wordpress.sites."test2.esse.nu" = {
         enable = true;
         ssl = false;
+        hostPrefix = "www";
       };
 
       sverigesval = {
@@ -101,7 +102,7 @@
     nixosConfigurations = rec {
 
       # nixos@10.233.2.2 for testing
-      # nixos-container create test ~/Desktop/nixos
+      # nixos-container create test --flake ~/Desktop/nixos
       container = test;
       test = nixpkgs.lib.nixosSystem {
         inherit system;
@@ -110,14 +111,29 @@
           ./modules/all.nix
           {
             system.stateVersion = "23.11";
-            networking.hostName = "test";
-            networking.firewall.enable = false;
-            networking.useDHCP = false;
+            networking = {
+              hostName = "test";
+              firewall.enable = false;
+              useDHCP = false;
+              nameservers = [ "8.8.8.8" "8.8.4.4" ];
+            };
             boot.isContainer = true;
+
             ahbk = {
               user.frans = user.frans;
               ide.frans = ide.frans;
               shell.frans = shell.frans;
+
+              nginx = {
+                enable = true;
+                email = user.frans.email;
+              };
+
+              wordpress.sites."esse.test" = {
+                enable = true;
+                ssl = false;
+                hostPrefix = "www";
+              };
             };
           }
         ];
@@ -166,7 +182,7 @@
 
             services.dnsmasq = {
               enable = true;
-              settings.address = "/.test/10.233.2.2";
+              settings.address = "/.test/10.233.1.2";
             };
 
             # hw quirk: wrong keycode for pipe |
@@ -201,6 +217,7 @@
               };
 
               inherit chatddx sverigesval;
+              wordpress.sites."test2.esse.nu" = wordpress.sites."test2.esse.nu";
             };
 
             boot.loader.grub = {

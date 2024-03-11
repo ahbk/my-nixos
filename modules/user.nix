@@ -55,7 +55,12 @@ in {
       mutableUsers = false;
     }) eachUser;
 
-    services.openssh.enable = true;
+    services.openssh = {
+      enable = true;
+      settings = {
+        PasswordAuthentication = false;
+      };
+    };
 
     home-manager.users = mapAttrs (hm config.ahbk) eachUser;
   };

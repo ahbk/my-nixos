@@ -64,14 +64,14 @@ in {
 
     xdg.mime.defaultApplications = {
       "text/*" = "nvim.desktop";
+      "text/x-lua" = "nvim.desktop";
       "image/*" = "feh.desktop";
+      "image/jpeg" = "feh.desktop";
       "video/*" = "mpv.desktop";
       "audio/*" = "mpv.desktop";
       "application/pdf" = "mupdf.desktop";
-      "application/x-bittorrent" = "transmission-qt.desktop";
       "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
       "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
-      "x-scheme-handler/magnet" = "transmission-qt.desktop";
     };
   };
 }
