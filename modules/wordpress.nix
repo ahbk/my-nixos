@@ -22,6 +22,9 @@ let
 
   };
 
+  wpPhp = pkgs.php.withExtensions ({ enabled, ... }: enabled ++ [ pkgs.phpExtensions.imagick ]);
+
+
 in {
   options = {
     ahbk.wordpress = {
@@ -37,7 +40,7 @@ in {
 
     environment = {
       systemPackages = with pkgs; [
-        php
+        wpPhp
         unzip
       ];
     };
@@ -100,6 +103,7 @@ in {
     services.phpfpm.pools = mapAttrs (hostname: cfg: {
       user = hostname;
       group = hostname;
+      phpPackage = myPhp;
       phpOptions = ''
         cgi.fix_pathinfo = {1
       '';
