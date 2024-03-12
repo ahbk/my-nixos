@@ -63,5 +63,6 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     eza
     wget
     unzip
+    imagemagick
   ];
 }
