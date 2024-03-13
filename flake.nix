@@ -64,7 +64,16 @@
 
       wordpress.sites."test2.esse.nu" = {
         enable = true;
-        ssl = false;
+        ssl = true;
+        hostPrefix = "www";
+        basicAuth = {
+          asdf = "asdf";
+        };
+      };
+
+      wordpress.sites."esse.nu" = {
+        enable = true;
+        ssl = true;
         hostPrefix = "www";
       };
 
@@ -218,6 +227,7 @@
 
               inherit chatddx sverigesval;
               wordpress.sites."test2.esse.nu" = wordpress.sites."test2.esse.nu";
+              wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
             };
 
             boot.loader.grub = {

@@ -18,8 +18,11 @@ let
         default = "";
         type = types.str;
       };
+      basicAuth = mkOption {
+        type = types.attrsOf types.str;
+        default = {};
+      };
     };
-
   };
 
   wpPhp = pkgs.php.withExtensions ({ enabled, ... }: enabled ++ [ pkgs.phpExtensions.imagick ]);
@@ -76,6 +79,7 @@ in {
         '';
         locations = {
           "/" = {
+            basicAuth = mkIf (cfg.basicAuth != {}) cfg.basicAuth;
             priority = 200;
             extraConfig = ''
               try_files $uri $uri/ /index.php?$args;
@@ -103,9 +107,10 @@ in {
     services.phpfpm.pools = mapAttrs (hostname: cfg: {
       user = hostname;
       group = hostname;
-      phpPackage = myPhp;
+      phpPackage = wpPhp;
       phpOptions = ''
-        cgi.fix_pathinfo = {1
+        upload_max_filesize = 16M;
+        post_max_size = 16M;
       '';
       settings = {
         "listen.owner" = "nginx";
