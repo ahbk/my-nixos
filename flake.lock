@@ -74,11 +74,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1709725310,
-        "narHash": "sha256-/rMXazcTGvB7FGdkOieLtguNY4EKNs4WVPbRmhAYEpE=",
+        "lastModified": 1710679776,
+        "narHash": "sha256-lWw3Eqgkg54yVzGIOmB4GfvCYguFh22c4/kqFfX6e/I=",
         "ref": "refs/heads/main",
-        "rev": "4c189168a4a22c7dd8d21e3eb8e3d799d7384093",
-        "revCount": 71,
+        "rev": "e46dd76adf85441a5c7b622442a8527aa8b547c8",
+        "revCount": 73,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
