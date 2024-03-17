@@ -88,7 +88,7 @@
       chatddx = {
         enable = true;
         ssl = true;
-        hostname = "dev.chatddx.com";
+        hostname = "chatddx.com";
         pkgs = { inherit (inputs.chatddx.packages.${system}) svelte django; };
         ports = [ 2002 2003 ];
       };
