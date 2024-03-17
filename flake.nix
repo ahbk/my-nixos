@@ -243,14 +243,14 @@
         ];
       };
 
-      jarvis = nixpkgs.lib.nixosSystem {
+      stationary = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
         modules = [
-          ./hardware/jarvis.nix
+          ./hardware/stationary.nix
           ./modules/all.nix
           ({ config, ... }: {
-            networking.hostName = "jarvis";
+            networking.hostName = "stationary";
             system.stateVersion = "20.03";
             boot.loader.grub = {
               enable = true;
