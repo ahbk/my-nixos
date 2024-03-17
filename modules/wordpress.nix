@@ -67,6 +67,8 @@ in {
       serverNameRedirect = if cfg.www then hostname else "www.${hostname}";
     in {
       ${serverNameRedirect} = {
+        forceSSL = cfg.ssl;
+        enableACME = cfg.ssl;
         extraConfig = ''
           return 301 $scheme://${serverName}$request_uri;
         '';
