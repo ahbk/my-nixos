@@ -27,6 +27,11 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     };
   };
 
+  programs.yazi = {
+    enable = true;
+    enableBashIntegration = true;
+  };
+
   programs.zoxide = {
     enable = true;
   };
