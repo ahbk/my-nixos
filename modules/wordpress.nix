@@ -111,6 +111,10 @@ in {
       phpOptions = ''
         upload_max_filesize = 16M;
         post_max_size = 16M;
+        error_reporting = E_ALL;
+        display_errors = Off;
+        log_errors = On;
+        error_log = ${stateDir hostname}/error.log;
       '';
       settings = {
         "listen.owner" = "nginx";
