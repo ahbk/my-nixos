@@ -62,19 +62,18 @@
       shell.frans.enable = true;
       de.frans.enable = true;
 
-      wordpress.sites."test2.esse.nu" = {
+      wordpress.sites."test.esse.nu" = {
         enable = true;
         ssl = true;
-        hostPrefix = "www";
         basicAuth = {
-          asdf = "asdf";
+          "test" = "test";
         };
       };
 
       wordpress.sites."esse.nu" = {
         enable = true;
         ssl = true;
-        hostPrefix = "www";
+        www = true;
       };
 
       sverigesval = {
@@ -226,7 +225,6 @@
               };
 
               inherit chatddx sverigesval;
-              wordpress.sites."test2.esse.nu" = wordpress.sites."test2.esse.nu";
               wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
             };
 
@@ -247,20 +245,28 @@
 
       jarvis = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit nixpkgs inputs system; };
+        specialArgs = { inherit nixpkgs inputs system lib'; };
         modules = [
           ./hardware/jarvis.nix
           ./modules/all.nix
-          {
+          ({ config, ... }: {
             networking.hostName = "jarvis";
+            system.stateVersion = "20.03";
             boot.loader.grub = {
               enable = true;
               device = "/dev/sda";
             };
 
-            ahbk = {
+            ahbk = with ahbk; {
               user.frans = user.frans;
               shell.frans = shell.frans;
+              ide.frans = ide.frans;
+
+              nginx = {
+                enable = true;
+                email = user.frans.email;
+              };
+
               inadyn = {
                 enable = true;
                 providers."default@noip.com" = {
@@ -269,11 +275,13 @@
                   passwordFile = config.age.secrets."ddns-password".path;
                 };
               };
+
+              wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
             };
 
             age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 
-          }
+          })
         ];
       };
     };

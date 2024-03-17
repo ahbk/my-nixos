@@ -14,9 +14,9 @@ let
       ssl = mkOption {
         type = types.bool;
       };
-      hostPrefix = mkOption {
-        default = "";
-        type = types.str;
+      www = mkOption {
+        default = false;
+        type = types.bool;
       };
       basicAuth = mkOption {
         type = types.attrsOf types.str;
@@ -63,14 +63,17 @@ in {
     ]) eachSite);
 
     services.nginx.virtualHosts = lib'.mergeAttrs (hostname: cfg: let
-      finalHostname = if cfg.hostPrefix != "" then "${cfg.hostPrefix}.${hostname}" else hostname;
+      serverName = if cfg.www then "www.${hostname}" else hostname;
+      serverNameRedirect = if cfg.www then hostname else "www.${hostname}";
     in {
-      ${hostname}.extraConfig = if (hostname == finalHostname) then "" else ''
-        return 301 $scheme://${finalHostname}$request_uri;
-      '';
+      ${serverNameRedirect} = {
+        extraConfig = ''
+          return 301 $scheme://${serverName}$request_uri;
+        '';
+      };
 
-      ${finalHostname} = {
-        serverName = finalHostname;
+      ${serverName} = {
+        inherit serverName;
         root = stateDir hostname;
         forceSSL = cfg.ssl;
         enableACME = cfg.ssl;
