@@ -1,11 +1,11 @@
 { config, pkgs, lib, ...}:
 let
   inherit (lib) mkOption types mkIf mdDoc;
-  cfg = config.services.networking.inadyn;
+  cfg = config.ahbk.inadyn;
 in {
   options = {
 
-    services.networking.inadyn = with types; {
+    ahbk.inadyn = with types; {
 
       enable = lib.mkEnableOption (mdDoc ''
         Synchronize your machine's IP address with a dynamic DNS provider using inadyn

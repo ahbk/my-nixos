@@ -261,41 +261,18 @@
             ahbk = {
               user.frans = user.frans;
               shell.frans = shell.frans;
+              inadyn = {
+                enable = true;
+                providers."default@noip.com" = {
+                  username = "alexander.holmback@gmail.com";
+                  hostname = "ahbk.ddns.net";
+                  passwordFile = config.age.secrets."ddns-password".path;
+                };
+              };
             };
 
             age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 
-            services.networking.inadyn = {
-              enable = true;
-              providers."default@noip.com" = {
-                username = "alexander.holmback@gmail.com";
-                hostname = "ahbk.ddns.net";
-                passwordFile = config.age.secrets."ddns-password".path;
-              };
-            };
-            networking.firewall.allowedTCPPorts = [ 80 443 ];
-
-            security.acme = {
-              acceptTerms = true;
-              defaults.email = "alxhbk@proton.me";
-            };
-
-            services.nginx = {
-              enable = true;
-              recommendedGzipSettings = true;
-              recommendedOptimisation = true;
-              recommendedProxySettings = true;
-              recommendedTlsSettings = true;
-            };
-
-            services.nginx.virtualHosts."_" = {
-              default = true;
-              locations."/" = {
-                return = "444";
-              };
-            };
-
-            environment.systemPackages = [ inputs.sverigesval.packages.${system}.bin ];
           }
         ];
       };
