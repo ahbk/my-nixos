@@ -11,6 +11,7 @@
     ./laptop.nix
     ./mysql.nix
     ./nginx.nix
+    ./odoo.nix
     ./postgresql.nix
     ./shell.nix
     ./svelte.nix

@@ -267,6 +267,11 @@
                 email = user.frans.email;
               };
 
+              odoo = {
+                enable = true;
+                domain = "ahbk.ddns.net";
+              };
+
               inadyn = {
                 enable = true;
                 providers."default@noip.com" = {
