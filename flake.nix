@@ -22,6 +22,7 @@
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    pkgs' = import ./packages/all.nix { inherit pkgs; };
     lib' = import ./lib.nix {
       inherit (nixpkgs) lib;
       inherit pkgs;
@@ -245,11 +246,11 @@
 
       stationary = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit nixpkgs inputs system lib'; };
+        specialArgs = { inherit nixpkgs inputs system lib' pkgs'; };
         modules = [
           ./hardware/stationary.nix
           ./modules/all.nix
-          ({ config, ... }: {
+          ({ config, pkgs', ... }: {
             networking.hostName = "stationary";
             system.stateVersion = "20.03";
             boot.loader.grub = {
@@ -257,6 +258,7 @@
               device = "/dev/sda";
             };
 
+            environment.systemPackages = [ pkgs'.odoo ];
             ahbk = with ahbk; {
               user.frans = user.frans;
               shell.frans = shell.frans;
@@ -269,7 +271,15 @@
 
               odoo = {
                 enable = true;
+                package = pkgs'.odoo;
                 domain = "ahbk.ddns.net";
+                settings = {
+                  options = {
+                    db_user = "odoo";
+                    db_name = "odoo";
+                  };
+                };
+                ssl = true;
               };
 
               inadyn = {

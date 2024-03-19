@@ -8,10 +8,19 @@ let
 in
 {
   options = {
-    services.odoo = {
+    ahbk.odoo = {
       enable = mkEnableOption (lib.mdDoc "odoo");
 
-      package = mkPackageOption pkgs "odoo" { };
+      package = mkOption {
+        type = types.package;
+        default = pkgs.odoo;
+        defaultText = literalExpression "pkgs.odoo";
+        description = lib.mdDoc "Odoo package to use.";
+      };
+
+      ssl = mkOption {
+        type = types.bool;
+      };
 
       addons = mkOption {
         type = with types; listOf package;
@@ -57,6 +66,8 @@ in
       };
 
       virtualHosts."${cfg.domain}" = {
+        forceSSL = cfg.ssl;
+        enableACME = cfg.ssl;
         extraConfig = ''
           proxy_read_timeout 720s;
           proxy_connect_timeout 720s;
@@ -83,7 +94,7 @@ in
       };
     };
 
-    services.odoo.settings.options = {
+    ahbk.odoo.settings.options = {
       proxy_mode = cfg.domain != null;
     };
 
@@ -110,6 +121,6 @@ in
       };
     };
 
-    ahbk.postgresql."odoo".ensure = true;
+    ahbk.postgresql.odoo.ensure = true;
   });
 }
