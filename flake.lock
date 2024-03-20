@@ -109,6 +109,27 @@
         "type": "github"
       }
     },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": [
+          "nixpak",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1706830856,
+        "narHash": "sha256-a0NYyp+h9hlb7ddVz4LUn1vT/PLwqfrWYcHMvFB1xYg=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "b253292d9c0a5ead9bc98c4e9a26c6312e27d69f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems_2"
@@ -142,6 +163,31 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "hercules-ci-effects": {
+      "inputs": {
+        "flake-parts": [
+          "nixpak",
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpak",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1704029560,
+        "narHash": "sha256-a4Iu7x1OP+uSYpqadOu8VCPY+MPF3+f6KIi+MAxlgyw=",
+        "owner": "hercules-ci",
+        "repo": "hercules-ci-effects",
+        "rev": "d5cbf433a6ae9cae05400189a8dbc6412a03ba16",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "hercules-ci-effects",
         "type": "github"
       }
     },
@@ -230,6 +276,28 @@
         "type": "github"
       }
     },
+    "nixpak": {
+      "inputs": {
+        "flake-parts": "flake-parts",
+        "hercules-ci-effects": "hercules-ci-effects",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1709985524,
+        "narHash": "sha256-29ZwMJBErP41ZPis1MskhdheDRgt+reDuf53jONSkc8=",
+        "owner": "nixpak",
+        "repo": "nixpak",
+        "rev": "b0862a125da8fe5d179633d6cc7aed57d5316871",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixpak",
+        "repo": "nixpak",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1706371002,
@@ -246,19 +314,20 @@
         "type": "github"
       }
     },
-    "nixpkgs-stable": {
+    "nixpkgs-wkhtmltopdf": {
+      "flake": false,
       "locked": {
-        "lastModified": 1706373441,
-        "narHash": "sha256-S1hbgNbVYhuY2L05OANWqmRzj4cElcbLuIkXTb69xkk=",
-        "owner": "ahbk",
+        "lastModified": 1512035474,
+        "narHash": "sha256-xtgs9WSP5Dhs6bGbuhSBRay7sLzePSQO9X7WHGJd8gU=",
+        "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "56911ef3403a9318b7621ce745f5452fb9ef6867",
+        "rev": "c8d822252b86022a71dcc4f0f48bc869ef446401",
         "type": "github"
       },
       "original": {
-        "owner": "ahbk",
-        "ref": "nixos-23.11",
+        "owner": "NixOS",
         "repo": "nixpkgs",
+        "rev": "c8d822252b86022a71dcc4f0f48bc869ef446401",
         "type": "github"
       }
     },
@@ -317,8 +386,9 @@
         "agenix": "agenix",
         "chatddx": "chatddx",
         "home-manager": "home-manager_2",
+        "nixpak": "nixpak",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-stable": "nixpkgs-stable",
+        "nixpkgs-wkhtmltopdf": "nixpkgs-wkhtmltopdf",
         "sverigesval": "sverigesval"
       }
     },

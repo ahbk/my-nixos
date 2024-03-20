@@ -1,10 +1,27 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, system, ... }:
 
 with lib;
 
 let
   cfg = config.ahbk.odoo;
   format = pkgs.formats.ini {};
+
+  pkgs-wkhtmltopdf = import inputs.nixpkgs-wkhtmltopdf { inherit system; };
+
+  mkNixPak = inputs.nixpak.lib.nixpak {
+    inherit (pkgs) lib;
+    inherit pkgs;
+  };
+
+  wkhtmltopdf = (mkNixPak {
+    config = {
+      app.package = pkgs-wkhtmltopdf.wkhtmltopdf;
+      app.binPath = "bin/wkhtmltopdf";
+      bubblewrap = {
+        bind.rw = [ "/tmp" ];
+      };
+    };
+  }).config.script;
 in
 {
   options = {
@@ -38,7 +55,7 @@ in
         example = literalExpression ''
           options = {
             db_user = "odoo";
-            db_password="odoo";
+            db_password = "odoo";
           };
         '';
       };
@@ -54,6 +71,9 @@ in
   config = mkIf (cfg.enable) (let
     cfgFile = format.generate "odoo.cfg" cfg.settings;
   in {
+
+    environment.systemPackages = [ cfg.package ];
+
     services.nginx = mkIf (cfg.domain != null) {
       upstreams = {
         odoo.servers = {
@@ -108,11 +128,25 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" "postgresql.service" ];
 
-      # pg_dump
-      path = [ config.services.postgresql.package ];
+      # pg_dump and pdf generation
+      path = [
+        config.services.postgresql.package
+        wkhtmltopdf
+      ];
+
+      # wkhtmltopdf requires this to be set
+      environment = {
+        DBUS_SESSION_BUS_ADDRESS = "unix:path=/dev/null";
+      };
 
       requires = [ "postgresql.service" ];
-      script = "HOME=$STATE_DIRECTORY ${cfg.package}/bin/odoo ${optionalString (cfg.addons != []) "--addons-path=${concatMapStringsSep "," escapeShellArg cfg.addons}"} -c ${cfgFile}";
+      script = ''
+        HOME=$STATE_DIRECTORY \
+        XDG_RUNTIME_DIR=$STATE_DIRECTORY \
+        ${cfg.package}/bin/odoo \
+        ${optionalString (cfg.addons != []) "--addons-path=${concatMapStringsSep "," escapeShellArg cfg.addons}"} \
+        -c ${cfgFile}
+      '';
 
       serviceConfig = {
         DynamicUser = true;

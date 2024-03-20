@@ -3,13 +3,18 @@
 
   inputs = {
     nixpkgs.url = "github:ahbk/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:ahbk/nixpkgs/nixos-23.11";
+
+    nixpkgs-wkhtmltopdf.url = "github:NixOS/nixpkgs/c8d822252b86022a71dcc4f0f48bc869ef446401";
+    nixpkgs-wkhtmltopdf.flake = false;
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixpak.url = "github:nixpak/nixpak";
+    nixpak.inputs.nixpkgs.follows = "nixpkgs";
 
     sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
     sverigesval.inputs.nixpkgs.follows = "nixpkgs";
@@ -258,7 +263,6 @@
               device = "/dev/sda";
             };
 
-            environment.systemPackages = [ pkgs'.odoo ];
             ahbk = with ahbk; {
               user.frans = user.frans;
               shell.frans = shell.frans;
@@ -272,6 +276,7 @@
               odoo = {
                 enable = true;
                 package = pkgs'.odoo;
+                ssl = true;
                 domain = "ahbk.ddns.net";
                 settings = {
                   options = {
@@ -279,7 +284,6 @@
                     db_name = "odoo";
                   };
                 };
-                ssl = true;
               };
 
               inadyn = {

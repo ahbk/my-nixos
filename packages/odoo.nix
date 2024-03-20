@@ -1,25 +1,25 @@
-{ stdenv
-, lib
+{ lib
 , fetchzip
 , python311
+, rtlcss
 , nixosTests
 }:
 
 let
   python = python311.override {
     packageOverrides = self: super: {
-      flask = super.flask.overridePythonAttrs (old: rec {
-        version = "2.3.3";
+      werkzeug = super.werkzeug.overridePythonAttrs (old: rec {
+        version = "2.3.8";
         src = old.src.override {
           inherit version;
-          hash = "sha256-CcNHqSqn/0qOfzIGeV8w2CZlS684uHPQdEzVccpgnvw=";
+          hash = "sha256-VUslfHS763oNJUFgpPj/4YUkP1KlIDUGC3Ycpi2XfwM=";
         };
       });
-      werkzeug = super.werkzeug.overridePythonAttrs (old: rec {
-        version = "2.3.7";
+      pypdf2 = super.pypdf2.overridePythonAttrs (old: rec {
+        version = "2.12.1";
         src = old.src.override {
           inherit version;
-          hash = "sha256-K4wORHtLnbzIXdl7butNy69si2w74L1lTiVVPgohV9g=";
+          hash = "sha256-4D7xirzHXadBoKzBp3SSU0loh744zZiHvM4c7jk9pF4=";
         };
       });
     };
@@ -34,6 +34,7 @@ in python.pkgs.buildPythonApplication rec {
   format = "setuptools";
 
   # latest release is at https://github.com/odoo/docker/blob/master/17.0/Dockerfile
+  # nightly at https://nightly.odoo.com/17.0/nightly/src
   src = fetchzip {
     url = "https://nightly.odoo.com/${odoo_version}/nightly/src/odoo_${version}.zip";
     name = "${pname}-${version}";
@@ -42,6 +43,10 @@ in python.pkgs.buildPythonApplication rec {
 
   # needs some investigation
   doCheck = false;
+
+  makeWrapperArgs = [
+    "--prefix" "PATH" ":" "${lib.makeBinPath [ rtlcss ]}"
+  ];
 
   propagatedBuildInputs = with python.pkgs; [
     babel
@@ -91,7 +96,7 @@ in python.pkgs.buildPythonApplication rec {
     mock
   ];
 
-  # takes 5+ minutes and there are not files to strip
+  # takes 5+ minutes and there are no files to strip
   dontStrip = true;
 
   passthru = {

@@ -25,8 +25,10 @@ let
     };
   };
 
-  wpPhp = pkgs.php.withExtensions ({ enabled, ... }: enabled ++ [ pkgs.phpExtensions.imagick ]);
-
+  wpPhp = pkgs.php.buildEnv {
+    extensions = { enabled, all }: with all; enabled ++ [ imagick ];
+    extraConfig = "memory_limit=256M";
+  };
 
 in {
   options = {
@@ -40,13 +42,6 @@ in {
   };
 
   config = mkIf (eachSite != {}) {
-
-    environment = {
-      systemPackages = with pkgs; [
-        wpPhp
-        unzip
-      ];
-    };
 
     users = lib'.mergeAttrs (hostname: cfg: {
       users.${hostname} = {
