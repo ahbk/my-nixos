@@ -27,6 +27,7 @@ let
 
   odoo_version = "17.0";
   odoo_release = "20240312";
+  odoo_hash = "sha256-iPLKOABZcwnGYUXWN9Az8Q6S2t3A0JmVxAYUrAvcvek=";
 in python.pkgs.buildPythonApplication rec {
   pname = "odoo";
   version = "${odoo_version}.${odoo_release}";
@@ -38,7 +39,7 @@ in python.pkgs.buildPythonApplication rec {
   src = fetchzip {
     url = "https://nightly.odoo.com/${odoo_version}/nightly/src/odoo_${version}.zip";
     name = "${pname}-${version}";
-    hash = "sha256-iPLKOABZcwnGYUXWN9Az8Q6S2t3A0JmVxAYUrAvcvek="; # odoo
+    hash = odoo_hash;
   };
 
   # needs some investigation

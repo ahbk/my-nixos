@@ -4,9 +4,6 @@
   inputs = {
     nixpkgs.url = "github:ahbk/nixpkgs/nixos-unstable";
 
-    nixpkgs-wkhtmltopdf.url = "github:NixOS/nixpkgs/c8d822252b86022a71dcc4f0f48bc869ef446401";
-    nixpkgs-wkhtmltopdf.flake = false;
-
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -21,87 +18,33 @@
 
     chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
+
+    # wkhtmltopdf is broken and unsafe, this is the context for running wkhtmltopdf as a nixpak
+    nixpkgs-wkhtmltopdf.url = "github:NixOS/nixpkgs/c8d822252b86022a71dcc4f0f48bc869ef446401";
+    nixpkgs-wkhtmltopdf.flake = false;
+
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+
+    # custom packages not found in nixpkgs.pkgs
     pkgs' = import ./packages/all.nix { inherit pkgs; };
+
+    # custom library functions not found in nixpkgs.lib
     lib' = import ./lib.nix {
       inherit (nixpkgs) lib;
       inherit pkgs;
     };
 
-    ahbk = {
-      user.test = {
-        enable = true;
-        uid = 1337;
-        name = "test";
-        email = "test@example.com";
-        groups = [ "wheel" ];
-        keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
-      };
+    # chunks of reusable configuration snippets
+    ahbk = import ./ahbk.nix { inherit inputs system; };
 
-      ide.test = {
-        enable = true;
-        postgresql = true;
-      };
-
-      shell.test.enable = true;
-
-      user.frans = {
-        enable = true;
-        uid = 1000;
-        name = "Alexander Holmbäck";
-        email = "alexander.holmback@gmail.com";
-        groups = [ "wheel" ];
-        keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
-      };
-
-      ide.frans = {
-        enable = true;
-        postgresql = true;
-        mysql = true;
-      };
-
-      shell.frans.enable = true;
-      de.frans.enable = true;
-
-      wordpress.sites."test.esse.nu" = {
-        enable = true;
-        ssl = true;
-        basicAuth = {
-          "test" = "test";
-        };
-      };
-
-      wordpress.sites."esse.nu" = {
-        enable = true;
-        ssl = true;
-        www = true;
-      };
-
-      sverigesval = {
-        enable = true;
-        ssl = true;
-        hostname = "sverigesval.org";
-        pkgs = { inherit (inputs.sverigesval.packages.${system}) svelte fastapi; };
-        ports = [ 2000 2001 ];
-      };
-
-      chatddx = {
-        enable = true;
-        ssl = true;
-        hostname = "chatddx.com";
-        pkgs = { inherit (inputs.chatddx.packages.${system}) svelte django; };
-        ports = [ 2002 2003 ];
-      };
-
-    };
   in with nixpkgs.lib; {
     homeConfigurations = mapAttrs' (user: cfg: (
-      nameValuePair "${user}@seagull" (inputs.home-manager.lib.homeManagerConfiguration {
+      nameValuePair "${user}@debian" (inputs.home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs = { inherit inputs system; };
       modules = [ (import ./modules/all-hm.nix cfg user null) ];
