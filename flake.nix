@@ -165,6 +165,7 @@
               shell.frans = shell.frans;
               ide.frans = ide.frans;
               de.frans = de.frans;
+              vd.frans.enable = true;
 
               laptop.enable = true;
             };
