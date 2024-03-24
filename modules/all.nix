@@ -2,6 +2,7 @@
   imports = [
     inputs.agenix.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
+    inputs.nixos-mailserver.nixosModules.default
     ./chatddx.nix
     ./django.nix
     ./de.nix

@@ -68,5 +68,6 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     eza
     unzip
     imagemagick
+    openssl
   ];
 }
