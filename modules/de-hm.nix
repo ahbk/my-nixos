@@ -23,6 +23,7 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     swaybg
     wl-clipboard
     signal-desktop
+    thunderbird
     qutebrowser firefox chromium
     mpv mupdf feh
   ];

@@ -1,4 +1,4 @@
-# chunks of configuration that are commonly used
+# edge chunks used on zero or more hosts
 { inputs, system }: {
   user.test = {
     enable = true;
@@ -9,12 +9,14 @@
     keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
   };
 
-  ide.test = {
+  user.alex = {
     enable = true;
-    postgresql = true;
+    name = "Alexander Holmbäck";
+    uid = 1001;
+    email = "alex@ahbk.se";
+    groups = [ "wheel" ];
+    keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
   };
-
-  shell.test.enable = true;
 
   user.frans = {
     enable = true;
@@ -24,15 +26,6 @@
     groups = [ "wheel" ];
     keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
   };
-
-  ide.frans = {
-    enable = true;
-    postgresql = true;
-    mysql = true;
-  };
-
-  shell.frans.enable = true;
-  de.frans.enable = true;
 
   wordpress.sites."test.esse.nu" = {
     enable = true;
@@ -63,5 +56,4 @@
     pkgs = { inherit (inputs.chatddx.packages.${system}) svelte django; };
     ports = [ 2002 2003 ];
   };
-
 }

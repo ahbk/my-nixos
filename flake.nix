@@ -54,8 +54,8 @@
       }))) {
         frans = with ahbk; {
           user.frans = user.frans;
-          ide.frans = ide.frans;
-          shell.frans = shell.frans;
+          ide.frans.enable = true;
+          shell.frans.enable = true;
         };
       };
 
@@ -68,33 +68,17 @@
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' ahbk; };
         modules = with ahbk; [
+          ./hardware/container.nix
           ./modules/all.nix
           {
-            system.stateVersion = "23.11";
-            networking = {
-              hostName = "test";
-              firewall.enable = false;
-              useDHCP = false;
-              nameservers = [ "8.8.8.8" "8.8.4.4" ];
-            };
-            boot.isContainer = true;
-
             ahbk = {
               user.frans = user.frans;
-              ide.frans = ide.frans;
-              shell.frans = shell.frans;
-
-              nginx = {
-                enable = true;
-                email = user.frans.email;
-              };
-
-              wordpress.sites."esse.test" = {
-                enable = true;
-                ssl = false;
-                hostPrefix = "www";
-              };
+              ide.frans.enable = true;
+              shell.frans.enable = true;
             };
+
+            system.stateVersion = "23.11";
+            networking.hostName = "test";
           }
         ];
       };
@@ -107,10 +91,11 @@
           ./modules/all.nix
           {
             ahbk = {
+              user.alex = user.alex;
               user.frans = user.frans;
-              shell.frans = shell.frans;
-              ide.frans = ide.frans;
-              de.frans = de.frans;
+              shell.frans.enable = true;
+              ide.frans.enable = true;
+              de.frans.enable = true;
               vd.frans.enable = true;
 
               laptop.enable = true;

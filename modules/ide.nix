@@ -7,8 +7,12 @@ let
     options.enable = mkEnableOption (mdDoc "Configure IDE for this user") // {
       default = true;
     };
-    options.postgresql = mkEnableOption (mdDoc "Ensure user has a postgres db with same name");
-    options.mysql = mkEnableOption (mdDoc "Ensure user has a mysql db with same name");
+    options.postgresql = mkEnableOption (mdDoc "Ensure user has a postgres db with same name") // {
+      default = true;
+    };
+    options.mysql = mkEnableOption (mdDoc "Ensure user has a mysql db with same name") // {
+      default = true;
+    };
   };
 
   hm = import ./ide-hm.nix;
