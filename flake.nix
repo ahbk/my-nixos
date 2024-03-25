@@ -200,8 +200,8 @@
 
             ahbk = with ahbk; {
               user.frans = user.frans;
-              shell.frans = shell.frans;
-              ide.frans = ide.frans;
+              shell.frans.enable = true;
+              ide.frans.enable = true;
 
               nginx = {
                 enable = true;

@@ -19,5 +19,6 @@ That said, here comes a selection of what's going on in this repo that, for vari
 - Modules for deploying Django, SvelteKit, FastAPI, and WordPress.
 - A working setup for the latest Odoo (version 17), an open source ERP system.
 - The broken and unsafe wkthmltopdf package safely contained in [nixpak](https://github.com/nixpak/nixpak)
+- A 10/10 mailserver made possible by [nixos-webserver](https://gitlab.com/simple-nixos-mailserver/nixos-mailserver)
 
 Feel free to incorporate whatever fits your NixOS setup!
