@@ -148,19 +148,22 @@
         modules = [
           ./hardware/glesys.nix
           ./modules/all.nix
-          {
+          ({ config, ... }: {
             networking.hostName = "glesys";
             system.stateVersion = "23.11";
 
             ahbk = with ahbk; {
+              user.alex = user.alex;
               user.frans = user.frans;
-              ide.frans = ide.frans;
-              shell.frans = shell.frans;
+              ide.frans.enable = true;
+              shell.frans.enable = true;
 
               nginx = {
                 enable = true;
                 email = user.frans.email;
               };
+
+              mail.enable = true;
 
               inherit chatddx sverigesval;
               wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
@@ -177,7 +180,7 @@
                 size = 4096;
               }
             ];
-          }
+          })
         ];
       };
 

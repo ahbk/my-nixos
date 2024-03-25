@@ -10,32 +10,29 @@ in {
         default = false;
         type = types.bool;
       };
-      hostname = mkOption {
-        type = types.str;
-      };
-      ssl = mkOption {
-        type = types.bool;
-      };
     };
   };
 
   config = mkIf (cfg.enable) {
-
-    services.postfix = {
+    mailserver = {
       enable = true;
-      sslCert = config.security.acme.certs.${cfg.hostname}.directory + "/full.pem";
-      sslKey = config.security.acme.certs.${cfg.hostname}.directory + "/key.pem";
-    };
+      fqdn = "mail.ahbk.se";
+      domains = [ "ahbk.se" ];
 
-    services.nginx.virtualHosts.${cfg.hostname} = {
-      forceSSL = true;
-      enableACME = true;
-      locations."/" = {
-        return = "444";
+      loginAccounts = {
+        "alex@ahbk.se" = {
+          hashedPasswordFile = config.users.users.alex.hashedPasswordFile;
+          aliases = [
+            "postmaster@ahbk.se"
+            "abuse@ahbk.se"
+            "admin@ahbk.se"
+            "hej@ahbk.se"
+          ];
+        };
       };
-    };
 
-    networking.firewall.allowedTCPPorts = [ 25 80 443 ];
+      certificateScheme = "acme-nginx";
+    };
   };
 }
 

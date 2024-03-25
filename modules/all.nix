@@ -10,6 +10,7 @@
     ./ide.nix
     ./inadyn.nix
     ./laptop.nix
+    ./mail.nix
     ./mysql.nix
     ./nginx.nix
     ./odoo.nix

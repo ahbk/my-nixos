@@ -4,14 +4,10 @@ let
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure IDE for this user") // {
-      default = true;
-    };
-    options.postgresql = mkEnableOption (mdDoc "Ensure user has a postgres db with same name") // {
-      default = true;
-    };
-    options.mysql = mkEnableOption (mdDoc "Ensure user has a mysql db with same name") // {
-      default = true;
+    options = {
+      enable = mkEnableOption (mdDoc "Configure IDE for this user") // { default = true; };
+      postgresql = mkEnableOption (mdDoc "Ensure user has a postgres db with same name") // { default = true; };
+      mysql = mkEnableOption (mdDoc "Ensure user has a mysql db with same name") // { default = true; };
     };
   };
 
@@ -45,7 +41,7 @@ in {
     networking.hosts."127.0.0.2" = mapAttrsToList (user: cfg: user) eachUser;
 
     services.dnsmasq = {
-      enable = true;
+      enable = false; # todo: conflicts with knot resolver
       settings.address = mapAttrsToList (user: cfg: "/.${user}/127.0.0.2") eachUser;
     };
 
