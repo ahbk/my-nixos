@@ -155,8 +155,12 @@
             ahbk = with ahbk; {
               user.alex = user.alex;
               user.frans = user.frans;
-              ide.frans.enable = true;
               shell.frans.enable = true;
+
+              ide.frans = {
+                enable = true;
+                userAsTopDomain = false; # dnsmasq conflicts with knot resolver in mail
+              };
 
               nginx = {
                 enable = true;
