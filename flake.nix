@@ -131,33 +131,29 @@
       glesys = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
-        modules = [
+        modules = with ahbk; [
           ./hardware/glesys.nix
           ./modules/all.nix
           ({ config, ... }: {
             networking.hostName = "glesys";
             system.stateVersion = "23.11";
 
-            ahbk = with ahbk; {
-              user.alex = user.alex;
-              user.frans = user.frans;
-              shell.frans.enable = true;
+            ahbk.user = { inherit alex frans; };
 
-              ide.frans = {
-                enable = true;
-                userAsTopDomain = false; # dnsmasq conflicts with knot resolver in mail
-              };
+            ahbk.ide.frans = mkForce { enable = true; };
+            ahbk.de.frans = mkForce {};
+            ahbk.vd.frans = mkForce {};
 
-              nginx = {
-                enable = true;
-                email = user.frans.email;
-              };
-
-              mail.enable = true;
-
-              inherit chatddx sverigesval;
-              wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
+            ahbk.nginx = {
+              enable = true;
+              email = user.frans.email;
             };
+
+            ahbk.mail.enable = true;
+
+            ahbk.chatddx = chatddx;
+            ahbk.sverigesval = sverigesval;
+            ahbk.wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
 
             boot.loader.grub = {
               enable = true;
@@ -177,7 +173,7 @@
       stationary = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' pkgs'; };
-        modules = [
+        modules = with ahbk; [
           ./hardware/stationary.nix
           ./modules/all.nix
           ({ config, pkgs', ... }: {
@@ -189,10 +185,12 @@
             };
 
             ahbk.user = with ahbk; { inherit frans; };
+            ahbk.de.frans = mkForce {};
+            ahbk.vd.frans = mkForce {};
 
             ahbk.nginx = {
               enable = true;
-              email = user.frans.email;
+              email = frans.email;
             };
 
             ahbk.odoo = {
