@@ -4,7 +4,7 @@ The module structure is similar to NixOS' and adds a new set of options under `a
 
 > :warning: **Warning for very new NixOS users:**
 Do not directly clone or fork this repository!
-It's at best for inspiration and learning.
+It's for inspiration and learning at best.
 Read through the configurations and selectively copy-paste the parts that suit your setup.
 
 > :bulb: **Notice to moderately new NixOS users:**

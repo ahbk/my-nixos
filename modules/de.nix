@@ -4,9 +4,7 @@ let
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure IDE for this user") // {
-      default = true;
-    };
+    options.enable = mkEnableOption (mdDoc "Configure IDE for this user");
   };
 
   hm = import ./de-hm.nix;

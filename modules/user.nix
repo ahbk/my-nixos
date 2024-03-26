@@ -1,4 +1,4 @@
-{ lib, lib', config, ... }: with lib;
+{ lib, lib', config, options, ... }: with lib;
 let
   cfg = config.ahbk.user;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
@@ -24,6 +24,10 @@ let
       groups = mkOption {
         type = listOf str;
       };
+      shell = (options.ahbk.shell.type.getSubOptions [""]);
+      ide = (options.ahbk.ide.type.getSubOptions [""]);
+      de = (options.ahbk.de.type.getSubOptions [""]);
+      vd = (options.ahbk.vd.type.getSubOptions [""]);
     };
   };
 
@@ -42,7 +46,7 @@ in {
       group = user;
     })) eachUser;
 
-    users = lib'.mergeAttrs (user: cfg: {
+    users = (lib'.mergeAttrs (user: cfg: {
       users.${user} = {
         uid = cfg.uid;
         isNormalUser = true;
@@ -52,8 +56,14 @@ in {
         openssh.authorizedKeys.keys = cfg.keys;
       };
       groups.${user}.gid = config.users.users.${user}.uid;
+    }) eachUser) // {
       mutableUsers = false;
-    }) eachUser;
+    };
+
+    ahbk.shell = mapAttrs (user: cfg: cfg.shell) eachUser;
+    ahbk.ide = mapAttrs (user: cfg: cfg.ide) eachUser;
+    ahbk.de = mapAttrs (user: cfg: cfg.de) eachUser;
+    ahbk.vd = mapAttrs (user: cfg: cfg.vd) eachUser;
 
     services.openssh = {
       enable = true;

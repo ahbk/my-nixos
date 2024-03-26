@@ -6,10 +6,10 @@ let
 
   userOpts = with types; {
     options = {
-      enable = mkEnableOption (mdDoc "Configure IDE for this user") // { default = true; };
-      postgresql = mkEnableOption (mdDoc "Ensure user has a postgres db with same name") // { default = true; };
-      mysql = mkEnableOption (mdDoc "Ensure user has a mysql db with same name") // { default = true; };
-      userAsTopDomain = mkEnableOption (mdDoc "Make username a top domain name in local network") // { default = true; };
+      enable = mkEnableOption (mdDoc "Configure IDE for this user");
+      postgresql = mkEnableOption (mdDoc "Ensure user has a postgres db with same name");
+      mysql = mkEnableOption (mdDoc "Ensure user has a mysql db with same name");
+      userAsTopDomain = mkEnableOption (mdDoc "Make username a top domain name in local network");
     };
   };
 

@@ -52,11 +52,7 @@
       extraSpecialArgs = { inherit inputs system; };
       modules = [ (import ./modules/all-hm.nix cfg user null) ];
       }))) {
-        frans = with ahbk; {
-          user.frans = user.frans;
-          ide.frans.enable = true;
-          shell.frans.enable = true;
-        };
+        frans.user = ahbk.frans;
       };
 
     nixosConfigurations = rec {
@@ -71,11 +67,7 @@
           ./hardware/container.nix
           ./modules/all.nix
           {
-            ahbk = {
-              user.frans = user.frans;
-              ide.frans.enable = true;
-              shell.frans.enable = true;
-            };
+            ahbk = { inherit testuser; };
 
             system.stateVersion = "23.11";
             networking.hostName = "test";
@@ -90,16 +82,10 @@
           ./hardware/laptop.nix
           ./modules/all.nix
           {
-            ahbk = {
-              user.alex = user.alex;
-              user.frans = user.frans;
-              shell.frans.enable = true;
-              ide.frans.enable = true;
-              de.frans.enable = true;
-              vd.frans.enable = true;
+            ahbk.user = { inherit alex frans; };
+            #ahbk.ide.frans.userAsTopDomain = mkForce false;
 
-              laptop.enable = true;
-            };
+            ahbk.laptop.enable = true;
 
             system.stateVersion = "23.11";
 
@@ -202,40 +188,36 @@
               device = "/dev/sda";
             };
 
-            ahbk = with ahbk; {
-              user.frans = user.frans;
-              shell.frans.enable = true;
-              ide.frans.enable = true;
+            ahbk.user = with ahbk; { inherit frans; };
 
-              nginx = {
-                enable = true;
-                email = user.frans.email;
-              };
-
-              odoo = {
-                enable = true;
-                package = pkgs'.odoo;
-                ssl = true;
-                domain = "ahbk.ddns.net";
-                settings = {
-                  options = {
-                    db_user = "odoo";
-                    db_name = "odoo";
-                  };
-                };
-              };
-
-              inadyn = {
-                enable = true;
-                providers."default@noip.com" = {
-                  username = "alexander.holmback@gmail.com";
-                  hostname = "ahbk.ddns.net";
-                  passwordFile = config.age.secrets."ddns-password".path;
-                };
-              };
-
-              wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
+            ahbk.nginx = {
+              enable = true;
+              email = user.frans.email;
             };
+
+            ahbk.odoo = {
+              enable = true;
+              package = pkgs'.odoo;
+              ssl = true;
+              domain = "ahbk.ddns.net";
+              settings = {
+                options = {
+                  db_user = "odoo";
+                  db_name = "odoo";
+                };
+              };
+            };
+
+            ahbk.inadyn = {
+              enable = true;
+              providers."default@noip.com" = {
+                username = "alexander.holmback@gmail.com";
+                hostname = "ahbk.ddns.net";
+                passwordFile = config.age.secrets."ddns-password".path;
+              };
+            };
+
+            ahbk.wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
 
             age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 

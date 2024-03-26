@@ -1,6 +1,6 @@
 # edge chunks used on zero or more hosts
 { inputs, system }: {
-  user.test = {
+  testuser = {
     enable = true;
     uid = 1337;
     name = "test";
@@ -9,7 +9,7 @@
     keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
   };
 
-  user.alex = {
+  alex = {
     enable = true;
     name = "Alexander Holmbäck";
     uid = 1001;
@@ -18,13 +18,22 @@
     keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
   };
 
-  user.frans = {
+  frans = {
     enable = true;
     uid = 1000;
     name = "Alexander Holmbäck";
     email = "alexander.holmback@gmail.com";
     groups = [ "wheel" ];
     keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
+    shell.enable = true;
+    ide = {
+      enable = true;
+      postgresql = true;
+      mysql = true;
+      userAsTopDomain = true;
+    };
+    de.enable = true;
+    vd.enable = true;
   };
 
   wordpress.sites."test.esse.nu" = {

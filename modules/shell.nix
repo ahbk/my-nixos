@@ -4,9 +4,7 @@ let
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure shell for this user") // {
-      default = true;
-    };
+    options.enable = mkEnableOption (mdDoc "Configure shell for this user");
   };
 
   hm = import ./shell-hm.nix;
