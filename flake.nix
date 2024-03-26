@@ -146,7 +146,7 @@
 
             ahbk.nginx = {
               enable = true;
-              email = user.frans.email;
+              email = frans.email;
             };
 
             ahbk.mail.enable = true;
