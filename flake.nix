@@ -43,7 +43,7 @@
     };
 
     # chunks of reusable configuration snippets
-    ahbk = import ./ahbk.nix { inherit inputs system; };
+    edgechunks = import ./edgechunks.nix { inherit inputs system; };
 
   in with nixpkgs.lib; {
     homeConfigurations = mapAttrs' (user: cfg: (
@@ -52,7 +52,7 @@
       extraSpecialArgs = { inherit inputs system; };
       modules = [ (import ./modules/all-hm.nix cfg user null) ];
       }))) {
-        frans.user = ahbk.frans;
+        frans.user.frans = edgechunks.frans;
       };
 
     nixosConfigurations = rec {
@@ -62,8 +62,8 @@
       container = test;
       test = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit nixpkgs inputs system lib' ahbk; };
-        modules = with ahbk; [
+        specialArgs = { inherit nixpkgs inputs system lib'; };
+        modules = with edgechunks; [
           ./hardware/container.nix
           ./modules/all.nix
           {
@@ -78,7 +78,7 @@
       laptop = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
-        modules = with ahbk; [
+        modules = with edgechunks; [
           ./hardware/laptop.nix
           ./modules/all.nix
           {
@@ -131,7 +131,7 @@
       glesys = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
-        modules = with ahbk; [
+        modules = with edgechunks; [
           ./hardware/glesys.nix
           ./modules/all.nix
           ({ config, ... }: {
@@ -173,7 +173,7 @@
       stationary = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' pkgs'; };
-        modules = with ahbk; [
+        modules = with edgechunks; [
           ./hardware/stationary.nix
           ./modules/all.nix
           ({ config, pkgs', ... }: {
@@ -184,7 +184,7 @@
               device = "/dev/sda";
             };
 
-            ahbk.user = with ahbk; { inherit frans; };
+            ahbk.user = with edgechunks; { inherit frans; };
             ahbk.de.frans = mkForce {};
             ahbk.vd.frans = mkForce {};
 
