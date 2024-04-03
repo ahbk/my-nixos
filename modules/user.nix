@@ -24,10 +24,10 @@ let
       groups = mkOption {
         type = listOf str;
       };
-      shell = (options.ahbk.shell.type.getSubOptions [""]);
-      ide = (options.ahbk.ide.type.getSubOptions [""]);
-      de = (options.ahbk.de.type.getSubOptions [""]);
-      vd = (options.ahbk.vd.type.getSubOptions [""]);
+      shell = (options.ahbk.shell.type.getSubOptions []);
+      ide = (options.ahbk.ide.type.getSubOptions []);
+      de = (options.ahbk.de.type.getSubOptions []);
+      vd = (options.ahbk.vd.type.getSubOptions []);
     };
   };
 
