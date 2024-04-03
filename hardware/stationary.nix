@@ -8,7 +8,7 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "uhci_hcd" "ehci_pci" "ata_piix" "usbhid" "floppy" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "uhci_hcd" "ehci_pci" "ata_piix" "xhci_pci" "usb_storage" "usbhid" "floppy" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
@@ -18,18 +18,27 @@
       fsType = "ext4";
     };
 
-  fileSystems."/mnt/t1" =
-    { device = "/dev/disk/by-uuid/982cb8b1-5e62-4285-837a-047338a0c8ea";
-      fsType = "ext4";
-    };
+  #fileSystems."/mnt/t1" =
+  #  { device = "/dev/disk/by-uuid/982cb8b1-5e62-4285-837a-047338a0c8ea";
+  #    fsType = "ext4";
+  #  };
 
-  fileSystems."/mnt/t2" =
-    { device = "/dev/disk/by-uuid/a24d01c5-dbc7-4839-907b-9c6fc49e3996";
-      fsType = "ext4";
-    };
+  #fileSystems."/mnt/t2" =
+  #  { device = "/dev/disk/by-uuid/a24d01c5-dbc7-4839-907b-9c6fc49e3996";
+  #    fsType = "ext4";
+  #  };
 
   swapDevices =
     [ { device = "/dev/disk/by-uuid/2a419392-c7cc-4c9b-9d38-da36f7c29666"; }
     ];
 
+  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
+  # (the default) this is the recommended approach. When using systemd-networkd it's
+  # still possible to use this option, but it's recommended to use it in conjunction
+  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
+  networking.useDHCP = lib.mkDefault true;
+  # networking.interfaces.enp3s0.useDHCP = lib.mkDefault true;
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
