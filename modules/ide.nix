@@ -32,7 +32,6 @@ in {
     environment.systemPackages = with pkgs; [
       sqlitebrowser
       python3
-      poetry
       payload-dumper-go
     ];
 
