@@ -49,7 +49,7 @@ ahbk: user: cfg: { config, pkgs, ... }: {
   };
 
   programs.starship = {
-    enable = true;
+    enable = false;
     settings = {
       add_newline = false;
       aws.disabled = true;
