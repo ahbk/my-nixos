@@ -1,12 +1,13 @@
-ahbk: user: cfg: { config, pkgs, ... }: {
-  home.file.".config/nvim/lua/".source = ./nvim.lua;
+ahbk: user: cfg: { config, pkgs, inputs, ... }: {
+  imports = [
+    inputs.nixvim.homeManagerModules.nixvim
+  ];
   home.packages = with pkgs; [ 
     xh
     mkcert
     (sqlite.override { interactive = true; })
     pyright
     nil
-    lua-language-server
     nodePackages.svelte-language-server
     nodePackages.typescript-language-server
     nodejs
@@ -23,41 +24,72 @@ ahbk: user: cfg: { config, pkgs, ... }: {
       userEmail = ahbk.user.${user}.email;
     };
 
-    neovim = {
+    nixvim = {
       enable = true;
       vimAlias = true;
-      vimdiffAlias = true;
-      plugins = with pkgs.vimPlugins; [
-        (nvim-treesitter.withPlugins (p: [
-          p.c
-          p.nix
-          p.lua
-          p.vimdoc
-          p.python
-          p.svelte
-          p.typescript
-          p.javascript
-          p.html
-          p.css p.scss
-        ]))
-        neo-tree-nvim
-        nvim-web-devicons
-        telescope-nvim
-        telescope-fzf-native-nvim
-        nvim-lspconfig
-        luasnip
-        nvim-cmp
-        cmp_luasnip
-        cmp-nvim-lsp
-        vim-sleuth
-        vim-fugitive
-        leap-nvim
-        mini-nvim
-        toggleterm-nvim
-        kanagawa-nvim
-        vim-nix
+      colorschemes.kanagawa.enable = true;
+      opts = {
+        number = true;
+        shiftwidth = 2;
+        wildmenu = true;
+        wildmode = "longest:full,full";
+      };
+      keymaps = [
+        { key = "<F2>"; action = "<cmd>Neotree toggle<cr>"; }
       ];
-      extraLuaConfig = (builtins.readFile ./nvim.lua);
+
+      plugins = {
+        leap.enable = true;
+        sleuth.enable = true;
+        neo-tree.enable = true;
+        oil.enable = true;
+        nix.enable = true;
+
+        treesitter = {
+          enable = true;
+          indent = true;
+        };
+
+        telescope = {
+          enable = true;
+          keymaps = {
+            "<leader>ff" = "find_files";
+            "<leader>fg" = "live_grep";
+          };
+        };
+
+        lsp = {
+          enable = true;
+          servers = {
+            tsserver.enable = true;
+            svelte.enable = true;
+            pyright.enable = true;
+            nil_ls.enable = true;
+          };
+        };
+
+        cmp = {
+          enable = true;
+          autoEnableSources = true;
+          settings = {
+            sources = [
+              { name = "nvim_lsp"; }
+              { name = "luasnip"; }
+              { name = "path"; }
+              { name = "buffer"; }
+            ];
+            mapping = {
+              "<C-Space>" = "cmp.mapping.complete()";
+              "<C-e>" = "cmp.mapping.close()";
+              "<CR>" = "cmp.mapping.confirm({ select = true })";
+              "<S-Tab>" = "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
+              "<Tab>" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
+            };
+          };
+        };
+
+      };
+
     };
   };
 }
