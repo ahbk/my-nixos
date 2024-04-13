@@ -25,15 +25,6 @@
     email = "alexander.holmback@gmail.com";
     groups = [ "wheel" ];
     keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
-    shell.enable = true;
-    ide = {
-      enable = true;
-      postgresql = true;
-      mysql = true;
-      userAsTopDomain = true;
-    };
-    de.enable = true;
-    vd.enable = true;
   };
 
   wordpress.sites."test.esse.nu" = {

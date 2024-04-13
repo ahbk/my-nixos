@@ -24,10 +24,6 @@ let
       groups = mkOption {
         type = listOf str;
       };
-      shell = (options.ahbk.shell.type.getSubOptions []);
-      ide = (options.ahbk.ide.type.getSubOptions []);
-      de = (options.ahbk.de.type.getSubOptions []);
-      vd = (options.ahbk.vd.type.getSubOptions []);
     };
   };
 
@@ -59,11 +55,6 @@ in {
     }) eachUser) // {
       mutableUsers = false;
     };
-
-    ahbk.shell = mapAttrs (user: cfg: cfg.shell) eachUser;
-    ahbk.ide = mapAttrs (user: cfg: cfg.ide) eachUser;
-    ahbk.de = mapAttrs (user: cfg: cfg.de) eachUser;
-    ahbk.vd = mapAttrs (user: cfg: cfg.vd) eachUser;
 
     services.openssh = {
       enable = true;

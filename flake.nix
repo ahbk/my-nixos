@@ -53,9 +53,13 @@
       nameValuePair "${user}@debian" (inputs.home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs = { inherit inputs system; };
-      modules = [ (import ./modules/all-hm.nix cfg user null) ];
+      modules = [ (import ./modules/all-hm.nix cfg user) ];
       }))) {
-        frans.user.frans = edgechunks.frans;
+        frans = {
+          user.frans = edgechunks.frans;
+          shell.frans.enable = true;
+          ide.frans.enable = true;
+        };
       };
 
     nixosConfigurations = rec {
@@ -85,10 +89,19 @@
           ./hardware/laptop.nix
           ./modules/all.nix
           {
-            ahbk.user = { inherit alex frans; };
-            #ahbk.ide.frans.userAsTopDomain = mkForce false;
-
-            ahbk.laptop.enable = true;
+            ahbk = {
+              user = { inherit alex frans; };
+              shell.frans.enable = true;
+              ide.frans = {
+                enable = true;
+                postgresql = true;
+                mysql = true;
+                userAsTopDomain = true;
+              };
+              de.frans.enable = true;
+              vd.frans.enable = true;
+              laptop.enable = true;
+            };
 
             system.stateVersion = "23.11";
 

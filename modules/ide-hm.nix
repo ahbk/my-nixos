@@ -47,6 +47,7 @@ in {
       };
       keymaps = [
         { key = "<F2>"; action = "<cmd>Neotree toggle<cr>"; }
+        { key = "<space>e"; action = "vim.diagnostic.open_float"; lua = true; }
       ];
 
       plugins = {
