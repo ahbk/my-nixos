@@ -1,4 +1,6 @@
-ahbk: user: cfg: { config, pkgs, inputs, ... }: {
+ahbk: user: cfg: { config, pkgs, inputs, lib, ... }: let
+  base16 = lib.mapAttrs (n: v: "#" + v) (import ./base16.nix);
+in {
   imports = [
     inputs.nixvim.homeManagerModules.nixvim
   ];
@@ -27,7 +29,16 @@ ahbk: user: cfg: { config, pkgs, inputs, ... }: {
     nixvim = {
       enable = true;
       vimAlias = true;
-      colorschemes.kanagawa.enable = true;
+      colorschemes.kanagawa = {
+        enable = true;
+        settings = {
+          transparent = false;
+        };
+      };
+      colorschemes.base16 = {
+        enable = false;
+        colorscheme = "kanagawa";
+      };
       opts = {
         number = true;
         shiftwidth = 2;
@@ -44,6 +55,7 @@ ahbk: user: cfg: { config, pkgs, inputs, ... }: {
         neo-tree.enable = true;
         oil.enable = true;
         nix.enable = true;
+        nvim-colorizer.enable = true;
 
         treesitter = {
           enable = true;
