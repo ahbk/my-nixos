@@ -7,26 +7,26 @@ ahbk: user: cfg: { config, pkgs, ... }: {
       mouse.hide-when-typing = "yes";
       colors = {
         alpha = .8;
-        foreground="dcdccc";
-        background="111111";
+        foreground = "dcdccc";
+        background = "111111";
 
-        regular0="222222" ; # black
-        regular1="cc9393";  # red
-        regular2="7f9f7f";  # green
-        regular3="d0bf8f";  # yellow
-        regular4="6ca0a3";  # blue
-        regular5="dc8cc3";  # magenta
-        regular6="93e0e3";  # cyan
-        regular7="dcdccc";  # white
+        regular0 = "222222"; # black
+        regular1 = "cc9393"; # red
+        regular2 = "7f9f7f"; # green
+        regular3 = "d0bf8f"; # yellow
+        regular4 = "6ca0a3"; # blue
+        regular5 = "dc8cc3"; # magenta
+        regular6 = "93e0e3"; # cyan
+        regular7 = "dcdccc"; # white
 
-        bright0="666666";   # bright black
-        bright1="dca3a3";   # bright red
-        bright2="bfebbf";   # bright green
-        bright3="f0dfaf";   # bright yellow
-        bright4="8cd0d3";   # bright blue
-        bright5="fcace3";   # bright magenta
-        bright6="b3ffff";   # bright cyan
-        bright7="ffffff";   # bright white
+        bright0 = "666666"; # bright black
+        bright1 = "dca3a3"; # bright red
+        bright2 = "bfebbf"; # bright green
+        bright3 = "f0dfaf"; # bright yellow
+        bright4 = "8cd0d3"; # bright blue
+        bright5 = "fcace3"; # bright magenta
+        bright6 = "b3ffff"; # bright cyan
+        bright7 = "ffffff"; # bright white
       };
     };
   };
@@ -35,7 +35,10 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     enable = true;
     settings = {
       monitor = ",preferred,auto,1";
-      exec-once = "${pkgs.swaybg} -i ${config.home.file.wallpaper.target}";
+      exec-once = [
+        "${pkgs.swaybg} -i ${config.home.file.wallpaper.target}"
+      ];
+
       input = {
         kb_layout = "us,se";
         kb_options = "grp:alt_shift_toggle";
@@ -47,38 +50,21 @@ ahbk: user: cfg: { config, pkgs, ... }: {
           tap-and-drag = true;
         };
       };
+
       misc = {
         disable_hyprland_logo = true;
         disable_splash_rendering = true;
         disable_autoreload = true;
       };
-      general = {
-        gaps_in = 5;
-        gaps_out = 20;
-        border_size = 2;
-        "col.active_border" = "rgba(33ccffee) rgba(00ff99ee) 45deg";
-        "col.inactive_border" = "rgba(595959aa)";
-        layout = "dwindle";
-      };
-      decoration = {
-        rounding = 10;
-        drop_shadow = true;
-        shadow_range = 4;
-        shadow_render_power = 3;
-        "col.shadow" = "rgba(1a1a1aee)";
-      };
+
       animations = {
         enabled = true;
-        bezier = "myBezier, 0.05, 0.9, 0.1, 1.05";
         animation = [
-          "windows, 1, 7, myBezier"
-          "windowsOut, 1, 7, default, popin 80%"
-          "border, 1, 10, default"
-          "borderangle, 1, 8, default"
-          "fade, 1, 7, default"
+          "global, 1, 5, default"
           "workspaces, 1, 1, default"
         ];
       };
+
       dwindle = {
         pseudotile = true;
         preserve_split = true;
