@@ -56,6 +56,7 @@ in {
         oil.enable = true;
         nix.enable = true;
         nvim-colorizer.enable = true;
+        fugitive.enable = true;
 
         treesitter = {
           enable = true;

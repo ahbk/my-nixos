@@ -17,6 +17,25 @@
 #  base0E = "#b3ffff"; # bright cyan
 #  base0F = "#ffffff"; # bright white
 #}
+#{
+#  base00 = "#1F1F28";
+#  base01 = "#C34043";
+#  base02 = "#98BB6C";
+#  base03 = "#FFA066";
+#  base04 = "#7E9CD8";
+#  base05 = "#D27E99";
+#  base06 = "#7FB4CA";
+#  base07 = "#727169";
+#
+#  base08 = "#2A2A37";
+#  base09 = "#dca3a3";
+#  base0A = "#C8C093";
+#  base0B = "#DCA561";
+#  base0C = "#8cd0d3";
+#  base0D = "#957FB8";
+#  base0E = "#938AA9";
+#  base0F = "#DCD7BA";
+#}
 {
   base00 = "1F1F28";
   base01 = "C34043";

@@ -45,7 +45,13 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     terminal = "tmux-256color";
     keyMode = "vi";
     escapeTime = 10;
-    extraConfig = (builtins.readFile ./tmux.conf);
+    baseIndex = 1;
+    extraConfig = ''
+      set-option -ga terminal-features ',foot:RGB'
+      set -g allow-passthrough on
+      set -ga update-environment TERM
+      set -ga update-environment TERM_PROGRAM
+    '';
   };
 
   programs.starship = {
