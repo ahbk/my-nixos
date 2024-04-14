@@ -1,4 +1,4 @@
-{ inputs, pkgs, config, lib, nixpkgs, ... }: {
+{ inputs, pkgs, config, lib, nixpkgs, theme, ... }: {
   imports = [
     inputs.agenix.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
@@ -29,7 +29,7 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = { inherit inputs; };
+    extraSpecialArgs = { inherit inputs theme; };
   };
 
   nix = {

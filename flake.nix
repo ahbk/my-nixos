@@ -35,6 +35,7 @@
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    theme = import ./theme.nix;
 
     # custom packages not found in nixpkgs.pkgs
     pkgs' = import ./packages/all.nix { inherit pkgs; };
@@ -52,7 +53,7 @@
     homeConfigurations = mapAttrs' (user: cfg: (
       nameValuePair "${user}@debian" (inputs.home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
-      extraSpecialArgs = { inherit inputs system; };
+      extraSpecialArgs = { inherit inputs system theme; };
       modules = [ (import ./modules/all-hm.nix cfg user) ];
       }))) {
         frans = {
@@ -84,7 +85,7 @@
 
       laptop = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit nixpkgs inputs system lib'; };
+        specialArgs = { inherit nixpkgs inputs system lib' theme; };
         modules = with edgechunks; [
           ./hardware/laptop.nix
           ./modules/all.nix

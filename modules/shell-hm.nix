@@ -1,6 +1,14 @@
-ahbk: user: cfg: { config, pkgs, ... }: let
-  palette = import ./base16.nix;
-in with palette; {
+ahbk: user: cfg: {
+  config,
+  pkgs,
+  theme,
+  ...
+}:
+
+with theme.colors;
+with theme.fonts;
+
+{
   programs.bash.bashrcExtra = ''
       export PATH="$PATH:$HOME/.local/bin"
   '';
@@ -50,13 +58,13 @@ in with palette; {
     baseIndex = 1;
     extraConfig = ''
       set-option -ga terminal-features ',foot:RGB'
-      set-option -g status-right ""
+      set-option -g status-right "#{user}@#{host}"
       set -ga terminal-overrides ",256col:Tc"
       set -ga update-environment TERM
       set -ga update-environment TERM_PROGRAM
       set -g allow-passthrough on
-      set -g status-bg "#${base00}"
-      set -g status-fg "#${base0F}"
+      set -g status-bg "${black-600}"
+      set -g status-fg "${white-600}"
     '';
   };
 

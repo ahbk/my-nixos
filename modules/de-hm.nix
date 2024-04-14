@@ -1,14 +1,25 @@
-ahbk: user: cfg: { config, pkgs, lib, ... }: let
-  base16 = import ./base16.nix;
-in with base16; {
+ahbk: user: cfg: {
+  config,
+  pkgs,
+  lib,
+  theme,
+  ...
+}:
+
+with theme.colors;
+with theme.fonts;
+
+let
+  unhashedHexes = lib.mapAttrs (n: c: builtins.substring 1 6 c) theme.colors;
+in {
   config = lib.mkIf cfg.enable {
     programs.foot = {
       enable = true;
       settings = {
-        main.font = "Source Code Pro:size=11";
+        main.font = "${monospace}:size=11";
         main.dpi-aware = "no";
         mouse.hide-when-typing = "yes";
-        colors = {
+        colors = with unhashedHexes; {
           alpha = .8;
           background = base00;
           foreground = base0F;
@@ -65,58 +76,58 @@ in with base16; {
           };
         };
         fonts = {
-          default_family = [ "Source Code Pro" ];
+          default_family = [ monospace ];
           default_size = "11pt";
           hints = "default_size default_family";
         };
-        hints.border = "1px solid #${base00}";
+        hints.border = "1px solid ${black-100}";
         colors = {
           statusbar = {
-            normal.bg = "#${base00}";
-            normal.fg = "#${base0F}";
-            insert.bg = "#${base02}";
-            insert.fg = "#${base0F}";
-            passthrough.bg = "#${base04}";
-            passthrough.fg = "#${base0F}";
+            normal.bg = black-100;
+            normal.fg = white-600;
+            insert.bg = black-100;
+            insert.fg = white-600;
+            passthrough.bg = blue-400;
+            passthrough.fg = white-600;
           };
           completion = {
-            fg = "#${base0F}";
-            even.bg = "#${base08}";
-            odd.bg = "#${base00}";
-            match.fg = "#${base09}";
-            scrollbar.fg = "#${base0F}";
-            scrollbar.bg = "#${base00}";
+            fg = white-600;
+            even.bg = black-100;
+            odd.bg = black-400;
+            match.fg = red-200;
+            scrollbar.fg = white-600;
+            scrollbar.bg = black-100;
             item = {
-              selected.bg = "#${base0F}";
-              selected.fg = "#${base00}";
-              selected.border.top = "#${base08}";
-              selected.border.bottom = "#${base08}";
-              selected.match.fg = "#${base01}";
+              selected.bg = white-600;
+              selected.fg = black-100;
+              selected.border.top = white-600;
+              selected.border.bottom = white-600;
+              selected.match.fg = red-200;
             };
             category = {
-              bg = "#${base07}";
-              fg = "#${base00}";
-              border.bottom = "#${base08}";
-              border.top = "#${base08}";
+              bg = black-600;
+              fg = white-400;
+              border.bottom = black-300;
+              border.top = black-300;
             };
           };
           tabs = {
-            bar.bg = "#${base00}";
-            even.bg = "#${base00}";
-            even.fg = "#${base0F}";
-            odd.bg = "#${base00}";
-            odd.fg = "#${base0F}";
+            bar.bg = black-100;
+            even.bg = black-100;
+            even.fg = white-600;
+            odd.bg = black-100;
+            odd.fg = white-600;
             selected = {
-              even.bg = "#${base0F}";
-              even.fg = "#${base00}";
-              odd.bg = "#${base0F}";
-              odd.fg = "#${base00}";
+              even.bg = white-600;
+              even.fg = black-100;
+              odd.bg = white-600;
+              odd.fg = black-100;
             };
           };
           hints = {
-            bg = "#${base00}";
-            fg = "#${base0F}";
-            match.fg = "#${base09}";
+            bg = black-100;
+            fg = white-600;
+            match.fg = red-500;
           };
         };
       };
@@ -144,11 +155,11 @@ in with base16; {
               mode-mon-col = 3;
               weeks-pos = "left";
               format = {
-                months = "<span color='#${base0A}'><b>{}</b></span>";
-                days = "<span color='#${base0F}'><b>{}</b></span>";
-                weeks = "<span color='#${base0D}'><b>{}</b></span>";
-                weekdays = "<span color='#${base0B}'><b>{}</b></span>";
-                today = "<span color='#${base01}'><b><u>{}</u></b></span>";
+                months = "<span color='${green-600}'><b>{}</b></span>";
+                days = "<span color='${white-600}'><b>{}</b></span>";
+                weeks = "<span color='${purple-400}'><b>{}</b></span>";
+                weekdays = "<span color='${yellow-700}'><b>{}</b></span>";
+                today = "<span color='${red-200}'><b><u>{}</u></b></span>";
               };
             };
           };
@@ -156,18 +167,18 @@ in with base16; {
       };
       style = ''
       * {
-        font-family: Source Code Pro;
-        background-color: #${base00};
+        font-family: ${monospace};
+        background-color: ${black-100};
       }
       #battery {
         padding: 0 10px;
         border-radius: 10px;
-        background-color: #${base06};
+        background-color: ${blue-400};
       }
       #clock {
         padding: 0 10px;
-        background-color: #${base08};
-        color: #${base0F};
+        background-color: ${black-400};
+        color: ${white-600};
       }
       '';
     };
