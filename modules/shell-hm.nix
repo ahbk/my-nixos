@@ -1,4 +1,6 @@
-ahbk: user: cfg: { config, pkgs, ... }: {
+ahbk: user: cfg: { config, pkgs, ... }: let
+  palette = import ./base16.nix;
+in with palette; {
   programs.bash.bashrcExtra = ''
       export PATH="$PATH:$HOME/.local/bin"
   '';
@@ -48,9 +50,13 @@ ahbk: user: cfg: { config, pkgs, ... }: {
     baseIndex = 1;
     extraConfig = ''
       set-option -ga terminal-features ',foot:RGB'
-      set -g allow-passthrough on
+      set-option -g status-right ""
+      set -ga terminal-overrides ",256col:Tc"
       set -ga update-environment TERM
       set -ga update-environment TERM_PROGRAM
+      set -g allow-passthrough on
+      set -g status-bg "#${base00}"
+      set -g status-fg "#${base0F}"
     '';
   };
 

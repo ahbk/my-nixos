@@ -34,6 +34,94 @@ in with base16; {
       };
     };
 
+    programs.qutebrowser = {
+      enable = true;
+      extraConfig = ''
+        c.url.searchengines = {'DEFAULT': 'https://ecosia.org/search?q={}'}
+        config.unbind('<Ctrl-W>')
+        config.unbind('D')
+        config.unbind('d')
+        config.bind('h', 'history')
+        config.bind('x', 'tab-close')
+        config.bind('<Ctrl-O>', 'back')
+        config.bind('<Ctrl-I>', 'forward')
+      '';
+      settings = {
+        input = {
+          links_included_in_focus_chain = false;
+        };
+        search = {
+          incremental = false;
+        };
+        url = {
+          start_pages = [ "qute://history/" ];
+          default_page = "qute://history/";
+        };
+        content = {
+          pdfjs = true;
+          cache = {
+            appcache = true;
+            maximum_pages = 7;
+          };
+        };
+        fonts = {
+          default_family = [ "Source Code Pro" ];
+          default_size = "11pt";
+          hints = "default_size default_family";
+        };
+        hints.border = "1px solid #${base00}";
+        colors = {
+          statusbar = {
+            normal.bg = "#${base00}";
+            normal.fg = "#${base0F}";
+            insert.bg = "#${base02}";
+            insert.fg = "#${base0F}";
+            passthrough.bg = "#${base04}";
+            passthrough.fg = "#${base0F}";
+          };
+          completion = {
+            fg = "#${base0F}";
+            even.bg = "#${base08}";
+            odd.bg = "#${base00}";
+            match.fg = "#${base09}";
+            scrollbar.fg = "#${base0F}";
+            scrollbar.bg = "#${base00}";
+            item = {
+              selected.bg = "#${base0F}";
+              selected.fg = "#${base00}";
+              selected.border.top = "#${base08}";
+              selected.border.bottom = "#${base08}";
+              selected.match.fg = "#${base01}";
+            };
+            category = {
+              bg = "#${base07}";
+              fg = "#${base00}";
+              border.bottom = "#${base08}";
+              border.top = "#${base08}";
+            };
+          };
+          tabs = {
+            bar.bg = "#${base00}";
+            even.bg = "#${base00}";
+            even.fg = "#${base0F}";
+            odd.bg = "#${base00}";
+            odd.fg = "#${base0F}";
+            selected = {
+              even.bg = "#${base0F}";
+              even.fg = "#${base00}";
+              odd.bg = "#${base0F}";
+              odd.fg = "#${base00}";
+            };
+          };
+          hints = {
+            bg = "#${base00}";
+            fg = "#${base0F}";
+            match.fg = "#${base09}";
+          };
+        };
+      };
+    };
+
     programs.waybar = {
       enable = true;
       settings = {
@@ -182,7 +270,7 @@ in with base16; {
       wl-clipboard
       signal-desktop
       thunderbird
-      qutebrowser firefox chromium
+      firefox chromium
       mpv mupdf feh
     ];
   };
