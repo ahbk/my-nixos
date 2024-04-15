@@ -6,94 +6,101 @@
   };
 
   colors = rec {
-    base00 = black-100;
-    base01 = red-200;
+    base00 = black-900;
+    base01 = red-400;
     base02 = green-400;
-    base03 = yellow-600;
+    base03 = yellow-400;
     base04 = blue-400;
-    base05 = purple-300;
-    base06 = cyan-300;
+    base05 = purple-400;
+    base06 = cyan-400;
     base07 = white-400;
 
-    base08 = black-800;
+    base08 = black-100;
     base09 = red-500;
-    base0A = green-600;
-    base0B = yellow-700;
+    base0A = green-500;
+    base0B = yellow-500;
     base0C = blue-500;
-    base0D = purple-400;
+    base0D = purple-500;
     base0E = cyan-500;
-    base0F = white-600;
+    base0F = white-300;
 
-    bg-300 = black-300;
-    bg-400 = black-400;
-    bg-500 = black-500;
-    bg-selected = white-600;
+    bg-300 = black-600;
+    bg-400 = black-700;
+    bg-500 = black-800;
+    bg-inv = fg-400;
+
+    bg-selected = bg-inv;
     bg-success = green-400;
-    bg-disabled = black-800;
+    bg-disabled = black-400;
     bg-error = red-400;
     bg-warning = yellow-400;
     bg-info = blue-400;
 
-    fg-300 = white-600;
-    fg-400 = white-600;
-    fg-500 = white-600;
-    fg-selected = black-200;
-    fg-success = white-600;
-    fg-disabled = black-700;
-    fg-error = white-600;
-    fg-warning = white-600;
-    fg-info = white-600;
+    fg-300 = white-300;
+    fg-400 = white-400;
+    fg-500 = white-500;
+    fg-inv = bg-400;
+
+    fg-selected = fg-inv;
+    fg-success = white-400;
+    fg-disabled = black-200;
+    fg-error = white-400;
+    fg-warning = white-400;
+    fg-info = white-400;
 
     fg-match = red-500;
     fg-match-selected = red-500;
 
-    black-100 = "#16161D";
-    black-200 = "#181820";
-    black-300 = "#1a1a22";
-    black-400 = "#1F1F28";
-    black-500 = "#2A2A37";
-    black-600 = "#363646";
-    black-700 = "#54546D";
-    black-800 = "#727169";
-    black-900 = "#717C7C";
+    black-100 = "#717C7C"; # katanaGray
+    black-200 = "#727169"; # fujiGray
+    black-300 = "#54546D"; # sumiInk6
+    black-400 = "#363646"; # sumiInk5
+    black-500 = "#2A2A37"; # sumiInk4
+    black-600 = "#1F1F28"; # sumiInk3
+    black-700 = "#1a1a22"; # sumiInk2
+    black-800 = "#181820"; # sumiInk1
+    black-900 = "#16161D"; # sumiInk0
 
-    red-100 = "#43242B";
-    red-200 = "#C34043";
-    red-300 = "#D27E99";
-    red-400 = "#E46876";
-    red-500 = "#E82424";
-    red-600 = "#FF5D62";
+    red-300 = "#FF5D62"; # peachRed
+    red-400 = "#C34043"; # autumnRed
+    red-500 = "#E82424"; # samuraiRed
 
-    green-200 = "#2B3328";
-    green-400 = "#76946A";
-    green-600 = "#98BB6C";
+    pink-300 = "#D27E99"; # sakuraPink
+    pink-400 = "#E46876"; # waveRed
+    pink-500 = "#43242B"; # winterRed
 
-    yellow-200 = "#49443C";
-    yellow-300 = "#938056";
-    yellow-400 = "#FF9E3B";
-    yellow-500 = "#DCA561";
-    yellow-600 = "#C0A36E";
-    yellow-700 = "#E6C384";
+    green-300 = "#98BB6C"; # springGreen
+    green-400 = "#76946A"; # autumnGreen
+    green-500 = "#2B3328"; # winterGreen
 
-    orange-300 = "#FFA066";
+    yellow-300 = "#E6C384"; # carpYellow
+    yellow-400 = "#DCA561"; # autumnYellow
+    yellow-500 = "#FF9E3B"; # roninYellow
 
-    blue-100 = "#252535";
-    blue-200 = "#223249";
-    blue-300 = "#2D4F67";
-    blue-400 = "#7E9CD8";
-    blue-500 = "#7FB4CA";
-    blue-600 = "#658594";
-    blue-700 = "#A3D4D5";
+    beige-300 = "#C0A36E"; # boatYellow2
+    beige-400 = "#938056"; # boatYellow1
+    beige-500 = "#49443C"; # winterYellow
 
-    purple-300 = "#957FB8";
-    purple-400 = "#938AA9";
-    purple-500 = "#9CABCA";
-    purple-700 = "#b8b4d0";
+    orange-400 = "#FFA066"; # surimiOrange
 
-    cyan-300 = "#6A9589";
-    cyan-500 = "#7AA89F";
+    blue-200 = "#A3D4D5"; # lightBlue
+    blue-300 = "#7FB4CA"; # springBlue
+    blue-400 = "#7E9CD8"; # crystalBlue
+    blue-500 = "#2D4F67"; # waveblue2
+    blue-600 = "#223249"; # waveBlue1
+    blue-700 = "#252535"; # winterBlue
 
-    white-400 = "#C8C093";
-    white-600 = "#DCD7BA";
+    purple-200 = "#b8b4d0"; # oniViolet2
+    purple-300 = "#9CABCA"; # springViolet2
+    purple-400 = "#938AA9"; # springViolet1
+    purple-500 = "#957FB8"; # oniViolet
+
+    cyan-300 = "#7AA89F"; # waveAqua2
+    cyan-400 = "#6A9589"; # waveAqua1
+    cyan-500 = "#658594"; # dragonBlue
+
+    white-300 = "#ECE7DA";
+    white-400 = "#DCD7BA"; # fujiWhite
+    white-500 = "#C8C093"; # oldwhite
   };
 }

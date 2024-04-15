@@ -63,8 +63,8 @@ with theme.fonts;
       set -ga update-environment TERM
       set -ga update-environment TERM_PROGRAM
       set -g allow-passthrough on
-      set -g status-bg "${black-600}"
-      set -g status-fg "${white-600}"
+      set -g status-bg "${bg-400}"
+      set -g status-fg "${fg-500}"
     '';
   };
 

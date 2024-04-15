@@ -22,7 +22,7 @@ in {
         colors = with unhashedHexes; {
           alpha = .8;
           background = base00;
-          foreground = base0F;
+          foreground = base07;
 
           regular0 = base00;
           regular1 = base01;
@@ -234,11 +234,11 @@ in {
               mode-mon-col = 3;
               weeks-pos = "left";
               format = {
-                months = "<span color='${green-600}'><b>{}</b></span>";
-                days = "<span color='${white-600}'><b>{}</b></span>";
+                months = "<span color='${green-400}'><b>{}</b></span>";
+                days = "<span color='${white-400}'><b>{}</b></span>";
                 weeks = "<span color='${purple-400}'><b>{}</b></span>";
-                weekdays = "<span color='${yellow-700}'><b>{}</b></span>";
-                today = "<span color='${red-200}'><b><u>{}</u></b></span>";
+                weekdays = "<span color='${yellow-400}'><b>{}</b></span>";
+                today = "<span color='${red-400}'><b><u>{}</u></b></span>";
               };
             };
           };
@@ -247,7 +247,7 @@ in {
       style = ''
       * {
         font-family: ${monospace};
-        background-color: ${black-100};
+        background-color: ${bg-400};
       }
       #battery {
         padding: 0 10px;
@@ -256,8 +256,8 @@ in {
       }
       #clock {
         padding: 0 10px;
-        background-color: ${black-400};
-        color: ${white-600};
+        background-color: ${bg-300};
+        color: ${fg-300};
       }
       '';
     };
