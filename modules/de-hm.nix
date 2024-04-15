@@ -79,55 +79,134 @@ in {
           default_family = [ monospace ];
           default_size = "11pt";
           hints = "default_size default_family";
+          contextmenu = monospace;
         };
-        hints.border = "1px solid ${black-100}";
+        hints.border = "1px solid ${bg-400}";
         colors = {
-          statusbar = {
-            normal.bg = black-100;
-            normal.fg = white-600;
-            insert.bg = black-100;
-            insert.fg = white-600;
-            passthrough.bg = blue-400;
-            passthrough.fg = white-600;
-          };
           completion = {
-            fg = white-600;
-            even.bg = black-100;
-            odd.bg = black-400;
-            match.fg = red-200;
-            scrollbar.fg = white-600;
-            scrollbar.bg = black-100;
-            item = {
-              selected.bg = white-600;
-              selected.fg = black-100;
-              selected.border.top = white-600;
-              selected.border.bottom = white-600;
-              selected.match.fg = red-200;
-            };
             category = {
-              bg = black-600;
-              fg = white-400;
-              border.bottom = black-300;
-              border.top = black-300;
+              bg = bg-300;
+              border.bottom = bg-300;
+              border.top = bg-300;
+              fg = fg-300;
             };
+            even.bg = bg-400;
+            fg = fg-400;
+            item.selected = {
+              bg = bg-selected;
+              border.bottom = bg-selected;
+              border.top = bg-selected;
+              fg = fg-selected;
+              match.fg = fg-match-selected;
+            };
+            match.fg = fg-match;
+            odd.bg = bg-500;
+            scrollbar.bg = bg-500;
+            scrollbar.fg = fg-500;
           };
-          tabs = {
-            bar.bg = black-100;
-            even.bg = black-100;
-            even.fg = white-600;
-            odd.bg = black-100;
-            odd.fg = white-600;
-            selected = {
-              even.bg = white-600;
-              even.fg = black-100;
-              odd.bg = white-600;
-              odd.fg = black-100;
-            };
+          contextmenu = {
+            disabled.bg = bg-disabled;
+            disabled.fg = fg-disabled;
+            menu.bg = bg-400;
+            menu.fg = fg-400;
+            selected.bg = bg-selected;
+            selected.fg = fg-selected;
+          };
+          downloads = {
+            bar.bg = bg-400;
+            error.bg = bg-error;
+            error.fg = fg-error;
+            start.bg = bg-400;
+            start.fg = fg-400;
+            stop.bg = bg-success;
+            stop.fg = fg-success;
+            system.bg = "rgb";
+            system.fg = "rgb";
           };
           hints = {
-            bg = black-100;
-            fg = white-600;
-            match.fg = red-500;
+            bg = bg-400;
+            fg = fg-400;
+            match.fg = fg-match;
+          };
+          keyhint = {
+            bg = bg-400;
+            fg = fg-400;
+            suffix.fg = fg-match;
+          };
+          messages = {
+            error.bg = bg-error;
+            error.border = bg-error;
+            error.fg = fg-error;
+            info.bg = bg-info;
+            info.border = bg-info;
+            info.fg = fg-info;
+            warning.bg = bg-warning;
+            warning.border = bg-warning;
+            warning.fg = fg-warning;
+          };
+          prompts = {
+            bg = bg-400;
+            border = bg-400;
+            fg = fg-400;
+            selected.bg = bg-selected;
+            selected.fg = fg-selected;
+          };
+          statusbar = {
+            caret.bg = bg-400;
+            caret.fg = fg-400;
+            caret.selection.bg = bg-400;
+            caret.selection.fg = fg-400;
+            command.bg = bg-400;
+            command.fg = fg-400;
+            command.private.bg = bg-400;
+            command.private.fg = fg-400;
+            insert.bg = bg-400;
+            insert.fg = fg-400;
+            normal.bg = bg-400;
+            normal.fg = fg-400;
+            passthrough.bg = bg-400;
+            passthrough.fg = fg-400;
+            private.bg = bg-400;
+            private.fg = fg-400;
+            progress.bg = bg-400;
+            url.error.fg = fg-error;
+            url.fg = fg-400;
+            url.hover.fg = fg-400;
+            url.success.http.fg = fg-success;
+            url.success.https.fg = fg-success;
+            url.warn.fg = fg-warning;
+          };
+
+          tabs = {
+            bar.bg = bg-400;
+            even.bg = bg-400;
+            even.fg = fg-400;
+            indicator = {
+              error = bg-error;
+              start = bg-info;
+              stop = bg-success;
+              system = "rgb";
+            };
+            odd.bg = bg-400;
+            odd.fg = fg-400;
+            pinned = {
+              even.bg = bg-500;
+              even.fg = fg-500;
+              odd.bg = bg-500;
+              odd.fg = fg-500;
+              selected = {
+                even.bg = bg-selected;
+                even.fg = fg-selected;
+                odd.bg = bg-selected;
+                odd.fg = fg-selected;
+              };
+            };
+            selected = {
+              even.bg = bg-selected;
+              even.fg = fg-selected;
+              odd.bg = bg-selected;
+              odd.fg = fg-selected;
+            };
           };
         };
       };

@@ -23,9 +23,29 @@
     base0D = purple-400;
     base0E = cyan-500;
     base0F = white-600;
-    
-    cyan-300 = "#6A9589";
-    cyan-500 = "#7AA89F";
+
+    bg-300 = black-300;
+    bg-400 = black-400;
+    bg-500 = black-500;
+    bg-selected = white-600;
+    bg-success = green-400;
+    bg-disabled = black-800;
+    bg-error = red-400;
+    bg-warning = yellow-400;
+    bg-info = blue-400;
+
+    fg-300 = white-600;
+    fg-400 = white-600;
+    fg-500 = white-600;
+    fg-selected = black-200;
+    fg-success = white-600;
+    fg-disabled = black-700;
+    fg-error = white-600;
+    fg-warning = white-600;
+    fg-info = white-600;
+
+    fg-match = red-500;
+    fg-match-selected = red-500;
 
     black-100 = "#16161D";
     black-200 = "#181820";
@@ -54,7 +74,8 @@
     yellow-500 = "#DCA561";
     yellow-600 = "#C0A36E";
     yellow-700 = "#E6C384";
-    yellow-800 = "#FFA066";
+
+    orange-300 = "#FFA066";
 
     blue-100 = "#252535";
     blue-200 = "#223249";
@@ -68,6 +89,9 @@
     purple-400 = "#938AA9";
     purple-500 = "#9CABCA";
     purple-700 = "#b8b4d0";
+
+    cyan-300 = "#6A9589";
+    cyan-500 = "#7AA89F";
 
     white-400 = "#C8C093";
     white-600 = "#DCD7BA";

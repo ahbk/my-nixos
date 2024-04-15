@@ -70,7 +70,7 @@ with theme.fonts;
             boatYellow1 = yellow-300;
             boatYellow2 = yellow-600; # syn.operator syn.regex term:yellow
             carpYellow = yellow-700; # syn.identifier term:bright yellow
-            surimiOrange = yellow-800; # syn.constant term:ext1
+            surimiOrange = orange-300; # syn.constant term:ext1
 
             winterRed = red-100; # diff.delete
             autumnRed = red-200; # vcs.removed term:red
