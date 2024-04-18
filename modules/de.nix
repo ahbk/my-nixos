@@ -41,7 +41,7 @@ in {
 
     environment.systemPackages = with pkgs; [
       pavucontrol
-      transmission-qt
+      transmission_4-qt
       xdg-utils
     ];
 

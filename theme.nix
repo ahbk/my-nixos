@@ -45,7 +45,7 @@
     fg-success = white-400;
     fg-disabled = black-200;
     fg-error = white-400;
-    fg-warning = white-400;
+    fg-warning = black-700;
     fg-info = white-400;
 
     fg-match = red-500;

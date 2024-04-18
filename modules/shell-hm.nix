@@ -18,6 +18,7 @@ with theme.fonts;
     ll = "eza";
     cd = "z";
     grep = "grep --color=auto";
+    cat = "bat";
   };
 
   programs.bash = {
@@ -79,15 +80,16 @@ with theme.fonts;
   };
 
   home.packages = with pkgs; [ 
+    bat
     bitwarden-cli
-    ranger
-    lazygit
-    silver-searcher
-    ripgrep
-    fd
     eza
-    unzip
+    fd
     imagemagick
+    lazygit
     openssl
+    ranger
+    ripgrep
+    silver-searcher
+    unzip
   ];
 }

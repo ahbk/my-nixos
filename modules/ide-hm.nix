@@ -1,8 +1,8 @@
 ahbk: user: cfg: {
   config,
-  pkgs,
   inputs,
   lib,
+  pkgs,
   theme,
   ...
 }:
@@ -12,19 +12,20 @@ with theme.fonts;
   imports = [
     inputs.nixvim.homeManagerModules.nixvim
   ];
+
   home.packages = with pkgs; [ 
-    xh
+    gcc
+    hugo
     mkcert
-    (sqlite.override { interactive = true; })
-    pyright
     nil
+    node2nix
+    nodejs
     nodePackages.svelte-language-server
     nodePackages.typescript-language-server
-    nodejs
-    node2nix
-    hugo
     php
-    gcc
+    pyright
+    (sqlite.override { interactive = true; })
+    xh
   ];
 
   programs = {
@@ -40,7 +41,7 @@ with theme.fonts;
       colorschemes.kanagawa = {
         enable = true;
         settings = {
-          transparent = true;
+          transparent = false;
           colors.palette = {
             katanaGray = black-100; # deprecated
             fujiGray = black-200; # syn.comment term:bright black
@@ -68,9 +69,9 @@ with theme.fonts;
             autumnYellow = yellow-400; # vcs.changed
             roninYellow = yellow-500; # diag.warning
 
-            winterYellow = beige-300; # diff.text
+            winterYellow = beige-500; # diff.text
             boatYellow1 = beige-400;
-            boatYellow2 = beige-500; # syn.operator syn.regex term:yellow
+            boatYellow2 = beige-300; # syn.operator syn.regex term:yellow
 
             surimiOrange = orange-400; # syn.constant term:ext1
 
@@ -125,6 +126,7 @@ with theme.fonts;
           keymaps = {
             "<leader>ff" = "find_files";
             "<leader>fg" = "live_grep";
+            "<leader>fb" = "buffers";
           };
         };
 
@@ -135,6 +137,19 @@ with theme.fonts;
             svelte.enable = true;
             pyright.enable = true;
             nil_ls.enable = true;
+          };
+          keymaps = {
+            lspBuf = {
+              K = "hover";
+              gD = "references";
+              gd = "definition";
+              gi = "implementation";
+              gt = "type_definition";
+            };
+            diagnostic = {
+              "<leader>j" = "goto_next";
+              "<leader>k" = "goto_prev";
+            };
           };
         };
 

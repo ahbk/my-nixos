@@ -1,11 +1,10 @@
 ahbk: user: cfg: {
   config,
-  pkgs,
   lib,
+  pkgs,
   theme,
   ...
 }:
-
 with theme.colors;
 with theme.fonts;
 
@@ -79,7 +78,6 @@ in {
           default_family = [ monospace ];
           default_size = "11pt";
           hints = "default_size default_family";
-          contextmenu = monospace;
         };
         hints.border = "1px solid ${bg-400}";
         colors = {
@@ -207,6 +205,10 @@ in {
               odd.bg = bg-selected;
               odd.fg = fg-selected;
             };
+          };
+          tooltip = {
+            bg = bg-400;
+            fg = fg-400;
           };
         };
       };
@@ -356,12 +358,15 @@ in {
     };
 
     home.packages = with pkgs; [
+      chromium
+      feh
+      firefox
+      mpv
+      mupdf
       pinta
-      wl-clipboard
       signal-desktop
       thunderbird
-      firefox chromium
-      mpv mupdf feh
+      wl-clipboard
     ];
   };
 }
