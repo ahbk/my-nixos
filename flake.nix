@@ -163,7 +163,7 @@
               user = { inherit frans; };
               shell.frans.enable = true;
               ide.frans = {
-                enable =true;
+                enable = true;
                 postgresql = true;
                 mysql = true;
                 userAsTopDomain = false;
@@ -207,30 +207,34 @@
 
       glesys = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit nixpkgs inputs system lib'; };
-        modules = with edgechunks; [
+        specialArgs = { inherit nixpkgs inputs system lib' theme; };
+        modules = [
           ./hardware/glesys.nix
           ./modules/all.nix
           ({ config, ... }: {
             networking.hostName = "glesys";
             system.stateVersion = "23.11";
 
-            ahbk.user = { inherit alex frans; };
+            ahbk = with edgechunks; {
+              user = { inherit alex frans; };
+              shell.frans.enable = true;
+              ide.frans = {
+                enable = true;
+                postgresql = false;
+                mysql = false;
+                userAsTopDomain = false;
+              };
 
-            ahbk.ide.frans = mkForce { enable = true; };
-            ahbk.de.frans = mkForce {};
-            ahbk.vd.frans = mkForce {};
+              nginx = {
+                enable = true;
+                email = frans.email;
+              };
 
-            ahbk.nginx = {
-              enable = true;
-              email = frans.email;
+              mail.enable = true;
+
+              inherit chatddx sverigesval;
+              wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
             };
-
-            ahbk.mail.enable = true;
-
-            ahbk.chatddx = chatddx;
-            ahbk.sverigesval = sverigesval;
-            ahbk.wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
 
             boot.loader.grub = {
               enable = true;
