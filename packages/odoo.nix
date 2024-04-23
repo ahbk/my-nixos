@@ -22,6 +22,13 @@ let
           hash = "sha256-4D7xirzHXadBoKzBp3SSU0loh744zZiHvM4c7jk9pF4=";
         };
       });
+      flask = super.flask.overridePythonAttrs (old: rec {
+        version = "2.3.3";
+        src = old.src.override {
+          inherit version;
+          hash = "sha256-CcNHqSqn/0qOfzIGeV8w2CZlS684uHPQdEzVccpgnvw=";
+        };
+      });
     };
   };
 

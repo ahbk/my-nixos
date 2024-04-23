@@ -145,6 +145,66 @@
         ];
       };
 
+      stationary = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit nixpkgs inputs system lib' theme pkgs'; };
+        modules = [
+          ./hardware/stationary.nix
+          ./modules/all.nix
+          ({ config, pkgs', ... }: {
+            networking.hostName = "stationary";
+            system.stateVersion = "20.03";
+            boot.loader.grub = {
+              enable = true;
+              device = "/dev/sda";
+            };
+
+            ahbk = with edgechunks; {
+              user = { inherit frans; };
+              shell.frans.enable = true;
+              ide.frans = {
+                enable =true;
+                postgresql = true;
+                mysql = true;
+                userAsTopDomain = false;
+              };
+
+              nginx = {
+                enable = true;
+                email = frans.email;
+              };
+
+              odoo = {
+                enable = true;
+                package = pkgs'.odoo;
+                ssl = true;
+                domain = "ahbk.ddns.net";
+                settings = {
+                  options = {
+                    db_user = "odoo";
+                    db_name = "odoo";
+                  };
+                };
+              };
+
+              inadyn = {
+                enable = true;
+                providers."default@noip.com" = {
+                  username = "alexander.holmback@gmail.com";
+                  hostname = "ahbk.ddns.net";
+                  passwordFile = config.age.secrets."ddns-password".path;
+                };
+              };
+
+              wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
+            };
+
+            age.secrets."ddns-password".file = ./secrets/ddns-password.age;
+
+          })
+        ];
+      };
+
       glesys = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
@@ -187,58 +247,6 @@
         ];
       };
 
-      stationary = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit nixpkgs inputs system lib' pkgs'; };
-        modules = with edgechunks; [
-          ./hardware/stationary.nix
-          ./modules/all.nix
-          ({ config, pkgs', ... }: {
-            networking.hostName = "stationary";
-            system.stateVersion = "20.03";
-            boot.loader.grub = {
-              enable = true;
-              device = "/dev/sda";
-            };
-
-            ahbk.user = with edgechunks; { inherit frans; };
-            ahbk.de.frans = mkForce {};
-            ahbk.vd.frans = mkForce {};
-
-            ahbk.nginx = {
-              enable = true;
-              email = frans.email;
-            };
-
-            ahbk.odoo = {
-              enable = true;
-              package = pkgs'.odoo;
-              ssl = true;
-              domain = "ahbk.ddns.net";
-              settings = {
-                options = {
-                  db_user = "odoo";
-                  db_name = "odoo";
-                };
-              };
-            };
-
-            ahbk.inadyn = {
-              enable = true;
-              providers."default@noip.com" = {
-                username = "alexander.holmback@gmail.com";
-                hostname = "ahbk.ddns.net";
-                passwordFile = config.age.secrets."ddns-password".path;
-              };
-            };
-
-            ahbk.wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
-
-            age.secrets."ddns-password".file = ./secrets/ddns-password.age;
-
-          })
-        ];
-      };
     };
   };
 }
