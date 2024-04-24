@@ -66,6 +66,7 @@ with theme.fonts;
       set -g allow-passthrough on
       set -g status-bg "${bg-400}"
       set -g status-fg "${fg-500}"
+      bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'wl-copy'
     '';
   };
 

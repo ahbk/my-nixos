@@ -105,6 +105,10 @@ with theme.fonts;
       keymaps = [
         { key = "<F2>"; action = "<cmd>Neotree toggle<cr>"; }
         { key = "<space>e"; action = "vim.diagnostic.open_float"; lua = true; }
+        { key = "<leader>sh"; action = ":split<cr>"; }
+        { key = "<leader>sv"; action = ":vsplit<cr>"; }
+        { key = "<leader>c"; action = "\"+yy"; mode = [ "n" ]; }
+        { key = "<leader>c"; action = "\"+y"; mode = [ "v" ]; }
       ];
 
       plugins = {
@@ -157,6 +161,9 @@ with theme.fonts;
           enable = true;
           autoEnableSources = true;
           settings = {
+            completion = {
+              keyword_length = 2;
+            };
             sources = [
               { name = "nvim_lsp"; }
               { name = "luasnip"; }
