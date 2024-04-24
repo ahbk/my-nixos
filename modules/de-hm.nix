@@ -1,10 +1,11 @@
-ahbk: user: cfg: {
-  config,
-  lib,
-  pkgs,
-  theme,
-  ...
+ahbk: user: cfg:
+{ config
+, lib
+, pkgs
+, theme
+, ...
 }:
+
 with theme.colors;
 with theme.fonts;
 

@@ -1,5 +1,11 @@
-{ pkgs, config, lib, ... }:
+{ config
+, pkgs
+, lib
+, ...
+}:
+
 with lib;
+
 let
   cfg = config.ahbk.mysql;
   eachCfg = filterAttrs (user: cfg: cfg.ensure) cfg;

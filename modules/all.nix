@@ -1,4 +1,11 @@
-{ inputs, pkgs, config, lib, nixpkgs, theme, ... }: {
+{ inputs
+, lib
+, nixpkgs
+, pkgs
+, theme
+, ...
+}:
+{
   imports = [
     inputs.agenix.nixosModules.default
     inputs.home-manager.nixosModules.home-manager

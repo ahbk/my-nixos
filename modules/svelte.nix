@@ -1,5 +1,12 @@
-{ config, lib, lib', pkgs, ... }:
+{ config
+, lib
+, lib'
+, pkgs
+, ...
+}:
+
 with lib;
+
 let
   cfg = config.ahbk.svelte;
 

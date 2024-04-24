@@ -1,13 +1,15 @@
-ahbk: user: cfg: {
-  config,
-  inputs,
-  lib,
-  pkgs,
-  theme,
-  ...
+ahbk: user: cfg:
+{ config
+, inputs
+, lib
+, pkgs
+, theme
+, ...
 }:
+
 with theme.colors;
 with theme.fonts;
+
 {
   imports = [
     inputs.nixvim.homeManagerModules.nixvim

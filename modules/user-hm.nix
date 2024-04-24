@@ -1,4 +1,9 @@
-ahbk: user: cfg: { lib, ... }: {
+ahbk: user: cfg:
+{ lib
+, ...
+}:
+
+{
   programs.home-manager.enable = true;
 
   programs.ssh = {
@@ -12,4 +17,3 @@ ahbk: user: cfg: { lib, ... }: {
     homeDirectory = lib.mkDefault /home/${user};
   };
 }
-

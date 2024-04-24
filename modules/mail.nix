@@ -1,5 +1,10 @@
-{ config, lib, ... }:
+{ config
+, lib
+, ...
+}:
+
 with lib;
+
 let
   cfg = config.ahbk.mail;
 in {

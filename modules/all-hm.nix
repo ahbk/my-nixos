@@ -1,4 +1,9 @@
-ahbk: user: { inputs, lib, ... }: let
+ahbk: user:
+{ inputs
+, lib
+, ...
+}:
+let
   modules = [
     "user"
     "shell"

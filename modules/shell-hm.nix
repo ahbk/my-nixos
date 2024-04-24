@@ -1,8 +1,8 @@
-ahbk: user: cfg: {
-  config,
-  pkgs,
-  theme,
-  ...
+ahbk: user: cfg:
+{ config
+, pkgs
+, theme
+, ...
 }:
 
 with theme.colors;

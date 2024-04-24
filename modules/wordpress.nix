@@ -1,5 +1,12 @@
-{ pkgs, config, lib, lib', ... }:
+{ config
+, lib
+, lib'
+, pkgs
+, ...
+}:
+
 with lib;
+
 let
   cfg = config.ahbk.wordpress;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;

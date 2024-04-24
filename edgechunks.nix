@@ -1,5 +1,9 @@
 # edge chunks used on zero or more hosts
-{ inputs, system }: {
+{ inputs
+, system
+}:
+
+{
   testuser = {
     enable = true;
     uid = 1337;

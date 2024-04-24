@@ -1,6 +1,11 @@
-{ config, lib, ... }:
+{ config
+, lib
+, ...
+}:
+
 with lib;
 with builtins;
+
 let
   cfg = config.ahbk.laptop;
 in {

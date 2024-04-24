@@ -1,4 +1,13 @@
-{ pkgs, lib, config, inputs, system, ... }: with lib;
+{ config
+, inputs
+, lib
+, pkgs
+, system
+, ...
+}:
+
+with lib;
+
 let
   cfg = config.ahbk.shell;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;

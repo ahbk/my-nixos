@@ -1,4 +1,11 @@
-{ lib, lib', config, options, ... }: with lib;
+{ config
+, lib
+, lib'
+, ...
+}:
+
+with lib;
+
 let
   cfg = config.ahbk.user;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;

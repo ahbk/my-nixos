@@ -1,5 +1,11 @@
-{ pkgs, config, lib, ... }:
+{ config
+, lib
+, pkgs
+, ...
+}:
+
 with lib;
+
 let
   cfg = config.ahbk.postgresql;
   eachCfg = filterAttrs (user: cfg: cfg.ensure) cfg;

@@ -1,4 +1,11 @@
-{ lib, config, pkgs, ... }: with lib;
+{ config
+, lib
+, pkgs
+, ...
+}:
+
+with lib;
+
 let
   cfg = config.ahbk.de;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
@@ -72,4 +79,5 @@ in {
       "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
     };
   };
+
 }

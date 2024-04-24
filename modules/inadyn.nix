@@ -1,4 +1,8 @@
-{ config, pkgs, lib, ...}:
+{ config
+, lib
+, pkgs
+, ...
+}:
 let
   inherit (lib) mkOption types mkIf mdDoc;
   cfg = config.ahbk.inadyn;

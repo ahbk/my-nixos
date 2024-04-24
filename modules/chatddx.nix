@@ -1,6 +1,11 @@
-{ config, lib, ... }:
+{ config
+, lib
+, ...
+}:
+
 with lib;
 with builtins;
+
 let
   cfg = config.ahbk.chatddx;
 in {
@@ -26,8 +31,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable 
-  {
+  config = mkIf cfg.enable {
     ahbk.django.sites.${cfg.hostname} = {
       enable = cfg.enable;
       port = elemAt cfg.ports 0;
