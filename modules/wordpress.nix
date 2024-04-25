@@ -9,6 +9,7 @@ with lib;
 
 let
   cfg = config.ahbk.wordpress;
+  webserver = config.services.nginx;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   stateDir = hostname: "/var/lib/${hostname}/wordpress";
 
@@ -54,14 +55,14 @@ in {
       users.${hostname} = {
         isSystemUser = true;
         group = hostname;
+        extraGroups = [ webserver.group ];
       };
       groups.${hostname} = {};
     }) eachSite;
 
     systemd.tmpfiles.rules = flatten (mapAttrsToList (hostname: cfg: [
-      "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
-      "Z '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
-      "A '${stateDir hostname}' - - - - u:nginx:rX"
+      "d '${stateDir hostname}' 0750 ${hostname} ${webserver.group} - -"
+      "Z '${stateDir hostname}' 0750 ${hostname} ${webserver.group} - -"
     ]) eachSite);
 
     services.nginx.virtualHosts = lib'.mergeAttrs (hostname: cfg: let
@@ -113,7 +114,7 @@ in {
 
     services.phpfpm.pools = mapAttrs (hostname: cfg: {
       user = hostname;
-      group = hostname;
+      group = webserver.group;
       phpPackage = wpPhp;
       phpOptions = ''
         upload_max_filesize = 16M;
@@ -124,8 +125,8 @@ in {
         error_log = ${stateDir hostname}/error.log;
       '';
       settings = {
-        "listen.owner" = "nginx";
-        "listen.group" = "nginx";
+        "listen.owner" = webserver.user;
+        "listen.group" = webserver.group;
         "pm" = "dynamic";
         "pm.max_children" = 32;
         "pm.start_servers" = 2;
