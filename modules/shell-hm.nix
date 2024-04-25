@@ -9,9 +9,6 @@ with theme.colors;
 with theme.fonts;
 
 {
-  programs.bash.bashrcExtra = ''
-      export PATH="$PATH:$HOME/.local/bin"
-  '';
   home.shellAliases = {
     f = "fzf | xargs -r xdg-open";
     l = "eza -la --icons=auto";
@@ -21,8 +18,28 @@ with theme.fonts;
     cat = "bat";
   };
 
+  home.sessionVariables = {
+    PATH = "$PATH:$HOME/.local/bin";
+    PROMPT_COMMAND = "\${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -c; history -r";
+    HISTTIMEFORMAT = "%y-%m-%d %T ";
+  };
+
   programs.bash = {
     enable = true;
+
+    historyControl = [ "ignoredups" "erasedups" "ignorespace" ];
+
+    shellOptions = [
+      "histappend"
+      "histverify"
+      "checkwinsize"
+      "extglob"
+      "globstar"
+      "checkjobs"
+    ];
+
+    bashrcExtra = ''
+    '';
 
     initExtra = ''
       pwu() {
