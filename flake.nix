@@ -46,22 +46,27 @@
       inherit pkgs;
     };
 
-    # chunks of reusable configuration snippets
+    # chunks of reusable `ahbk.*` configuration snippets
     edgechunks = import ./edgechunks.nix { inherit inputs system; };
 
-  in with nixpkgs.lib; {
-    homeConfigurations = mapAttrs' (user: cfg: (
-      nameValuePair "${user}@debian" (inputs.home-manager.lib.homeManagerConfiguration {
+    # Makes a home-manager configuration out of ahbk.*.<user> confs and the *-hm.nix modules.
+    # This is for reusing NixOS's hm-config modules
+    mkHomeConfiguration = user: cfg: inputs.home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs = { inherit inputs system theme; };
       modules = [ (import ./modules/all-hm.nix cfg user) ];
-      }))) {
-        frans = {
-          user.frans = edgechunks.frans;
-          shell.frans.enable = true;
-          ide.frans.enable = true;
-        };
-      };
+    };
+
+  in
+
+  with nixpkgs.lib;
+
+  {
+    homeConfigurations."frans@debian" = mkHomeConfiguration "frans" {
+      user.frans = edgechunks.frans;
+      shell.frans.enable = true;
+      ide.frans.enable = true;
+    };
 
     nixosConfigurations = rec {
 
@@ -71,12 +76,11 @@
       test = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
-        modules = with edgechunks; [
+        modules = [
           ./hardware/container.nix
           ./modules/all.nix
           {
-            ahbk = { inherit testuser; };
-
+            ahbk.testuser = edgechunks.testuser;
             system.stateVersion = "23.11";
             networking.hostName = "test";
           }
@@ -86,11 +90,11 @@
       laptop = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' theme; };
-        modules = with edgechunks; [
+        modules = [
           ./hardware/laptop.nix
           ./modules/all.nix
           {
-            ahbk = {
+            ahbk = with edgechunks; {
               user = { inherit alex frans; };
               shell.frans.enable = true;
               ide.frans = {

@@ -1,4 +1,7 @@
-# edge chunks used on zero or more hosts
+# A library of ahbk.* configuration snippets that are
+# 1. Too compartmentalized to be duplicated in host configs
+# 2. Not general enough to be their own modules.
+
 { inputs
 , system
 }:
