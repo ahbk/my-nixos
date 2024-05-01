@@ -28,7 +28,6 @@
     # wkhtmltopdf is broken and unsafe, this is the context for running wkhtmltopdf as a nixpak
     nixpkgs-wkhtmltopdf.url = "github:NixOS/nixpkgs/c8d822252b86022a71dcc4f0f48bc869ef446401";
     nixpkgs-wkhtmltopdf.flake = false;
-
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -56,16 +55,17 @@
       extraSpecialArgs = { inherit inputs system theme; };
       modules = [ (import ./modules/all-hm.nix cfg user) ];
     };
-
   in
 
   with nixpkgs.lib;
 
   {
-    homeConfigurations."frans@debian" = mkHomeConfiguration "frans" {
-      user.frans = edgechunks.frans;
-      shell.frans.enable = true;
-      ide.frans.enable = true;
+    homeConfigurations = {
+      "frans@debian" = mkHomeConfiguration "frans" {
+        user.frans = edgechunks.frans;
+        shell.frans.enable = true;
+        ide.frans.enable = true;
+      };
     };
 
     nixosConfigurations = rec {
@@ -73,7 +73,7 @@
       # nixos@10.233.2.2 for testing
       # nixos-container create test --flake ~/Desktop/nixos
       container = test;
-      test = nixpkgs.lib.nixosSystem {
+      test = nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib'; };
         modules = [
@@ -87,7 +87,7 @@
         ];
       };
 
-      laptop = nixpkgs.lib.nixosSystem {
+      laptop = nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' theme; };
         modules = [
@@ -149,7 +149,7 @@
         ];
       };
 
-      stationary = nixpkgs.lib.nixosSystem {
+      stationary = nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' theme pkgs'; };
         modules = [
@@ -209,7 +209,7 @@
         ];
       };
 
-      glesys = nixpkgs.lib.nixosSystem {
+      glesys = nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' theme; };
         modules = [
