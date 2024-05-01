@@ -35,7 +35,9 @@ let
 
   wpPhp = pkgs.php.buildEnv {
     extensions = { enabled, all }: with all; enabled ++ [ imagick ];
-    extraConfig = "memory_limit=256M";
+    extraConfig = ''
+      memory_limit=256M
+    '';
   };
 
 in {
