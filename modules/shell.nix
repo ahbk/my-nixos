@@ -24,6 +24,9 @@ in {
   };
   config = mkIf (eachUser != {}) {
     home-manager.users = mapAttrs (hm config.ahbk) eachUser;
+
+    documentation.man.generateCaches = true;
+
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${system}.default
       w3m
