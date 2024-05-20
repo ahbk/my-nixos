@@ -163,6 +163,36 @@
               device = "/dev/sda";
             };
 
+            services.netdata.enable = true;
+            services.nginx.virtualHosts."10.0.0.1".locations."/netdata/" = {
+              proxyPass = "http://localhost:19999/";
+            };
+
+            environment.systemPackages = [ pkgs.wireguard-tools ];
+            boot.kernel.sysctl."net.ipv4.ip_forward" = "1";
+            networking.wireguard = {
+              enable = true;
+              interfaces.wg0 = {
+                ips = [ "10.0.0.1/24" ];
+                listenPort = 51820;
+                privateKeyFile = "/root/wireguard-keys/private";
+                peers = [
+                  {
+                    name = "laptop";
+                    publicKey = "tL/vwcSQQ9Nwi1Y0vyVXqnGK9NjBtcQN/1j//FH9DEQ=";
+                    allowedIPs = [ "10.0.0.2/32" ];
+                  }
+                  {
+                    name = "phone";
+                    publicKey = "YOYtjFRc71iStHnN2lV3WoiOA743ljfYep6IyVJGUWg=";
+                    allowedIPs = [ "10.0.0.4/32" ];
+                  }
+                ];
+              };
+            };
+
+            networking.firewall.allowedUDPPorts = [ 51820 ];
+
             ahbk = with edgechunks; {
               user = { inherit frans; };
               shell.frans.enable = true;
@@ -181,8 +211,7 @@
               odoo = {
                 enable = true;
                 package = pkgs'.odoo;
-                ssl = true;
-                domain = "ahbk.ddns.net";
+                domain = "10.0.0.1";
                 settings = {
                   options = {
                     db_user = "odoo";

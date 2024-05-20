@@ -43,6 +43,7 @@ in
 
       ssl = mkOption {
         type = types.bool;
+        default = false;
       };
 
       addons = mkOption {
