@@ -20,6 +20,15 @@ in {
     address = mkOption {
       type = str;
     };
+    endpoint = mkOption {
+      type = str;
+    };
+    keepalive = mkOption {
+      type = int;
+    };
+    allowedIPs = mkOption {
+      type = listOf str;
+    };
     device = mkOption {
       type = str;
       default = "wg0";
@@ -48,15 +57,15 @@ in {
             Name = cfg.device;
           };
           wireguardConfig = {
-            PrivateKeyFile = config.age.secrets."laptop-wg".path;
+            PrivateKeyFile = config.age.secrets."${cfg.host}-wg".path;
           };
           wireguardPeers = [
             {
               wireguardPeerConfig = {
                 PublicKey = cfg.publicKey;
-                AllowedIPs = [ "10.0.0.0/24" ];
-                Endpoint = "ahbk.ddns.net:51820";
-                PersistentKeepalive = 25;
+                AllowedIPs = cfg.allowedIPs;
+                Endpoint = cfg.endpoint;
+                PersistentKeepalive = cfg.keepalive;
               };
             }
           ];

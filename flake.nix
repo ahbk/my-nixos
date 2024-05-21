@@ -112,6 +112,9 @@
                 host = "laptop";
                 publicKey = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
                 address = "10.0.0.2/24";
+                allowedIPs = [ "10.0.0.0/24" ];
+                endpoint = "ahbk.ddns.net:51820";
+                keepalive = 25;
               };
             };
 
