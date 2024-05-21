@@ -19,4 +19,5 @@ in {
   "dev.sverigesval.org-secret-key.age".publicKeys = all;
   "sverigesval.org-secret-key.age".publicKeys = all;
   "laptop-wg.age".publicKeys = all;
+  "stationary-wg.age".publicKeys = all;
 }

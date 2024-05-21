@@ -28,6 +28,7 @@
     ./user.nix
     ./vd.nix
     ./wg-client.nix
+    ./wg-server.nix
     ./wordpress.nix
   ];
 

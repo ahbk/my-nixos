@@ -178,36 +178,6 @@
               proxyPass = "http://localhost:19999/";
             };
 
-            environment.systemPackages = [ pkgs.wireguard-tools ];
-            boot.kernel.sysctl."net.ipv4.ip_forward" = "1";
-            networking.wireguard = {
-              enable = true;
-              interfaces.wg0 = {
-                ips = [ "10.0.0.1/24" ];
-                listenPort = 51820;
-                privateKeyFile = "/root/wireguard-keys/private";
-                peers = [
-                  {
-                    name = "stationary";
-                    publicKey = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
-                    allowedIPs = [ "10.0.0.1/32" ];
-                  }
-                  {
-                    name = "laptop";
-                    publicKey = "lmckXsECjZUgmWclkXUU4wvb5Vh30XNGxC68ChEs+j8=";
-                    allowedIPs = [ "10.0.0.2/32" ];
-                  }
-                  {
-                    name = "phone";
-                    publicKey = "YOYtjFRc71iStHnN2lV3WoiOA743ljfYep6IyVJGUWg=";
-                    allowedIPs = [ "10.0.0.4/32" ];
-                  }
-                ];
-              };
-            };
-
-            networking.firewall.allowedUDPPorts = [ 51820 ];
-
             networking.dhcpcd.runHook = ''
             if [ "$interface" = "wg0" ] && [ -n "$new_ip_address" ]; then echo "$interface got new address: $new_ip_address"; fi
             '';
@@ -220,6 +190,26 @@
                 postgresql = true;
                 mysql = true;
                 userAsTopDomain = false;
+              };
+
+              wgServer = {
+                enable = true;
+                host = "stationary";
+                address = "10.0.0.1/24";
+                peers = {
+                  stationary = {
+                    key = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
+                    address = "10.0.0.1";
+                  };
+                  laptop = {
+                    key = "lmckXsECjZUgmWclkXUU4wvb5Vh30XNGxC68ChEs+j8=";
+                    address = "10.0.0.2";
+                  };
+                  phone = {
+                    key = "YOYtjFRc71iStHnN2lV3WoiOA743ljfYep6IyVJGUWg=";
+                    address = "10.0.0.4";
+                  };
+                };
               };
 
               nginx = {
