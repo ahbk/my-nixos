@@ -20,4 +20,5 @@ in {
   "sverigesval.org-secret-key.age".publicKeys = all;
   "laptop-wg.age".publicKeys = all;
   "stationary-wg.age".publicKeys = all;
+  "glesys-api-key.age".publicKeys = all;
 }
