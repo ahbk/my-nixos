@@ -18,4 +18,5 @@ in {
   "chatddx.com-secret-key.age".publicKeys = all;
   "dev.sverigesval.org-secret-key.age".publicKeys = all;
   "sverigesval.org-secret-key.age".publicKeys = all;
+  "laptop-wg.age".publicKeys = all;
 }

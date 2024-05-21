@@ -101,11 +101,18 @@
                 enable = true;
                 postgresql = true;
                 mysql = true;
-                userAsTopDomain = true;
+                userAsTopDomain = false;
               };
               de.frans.enable = true;
               vd.frans.enable = true;
               laptop.enable = true;
+
+              wgClient = {
+                enable = true;
+                host = "laptop";
+                publicKey = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
+                address = "10.0.0.2/24";
+              };
             };
 
             system.stateVersion = "23.11";
@@ -134,7 +141,7 @@
             ];
 
             services.dnsmasq = {
-              enable = true;
+              enable = false;
               settings.address = "/.test/10.233.1.2";
             };
 
@@ -178,8 +185,13 @@
                 privateKeyFile = "/root/wireguard-keys/private";
                 peers = [
                   {
+                    name = "stationary";
+                    publicKey = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
+                    allowedIPs = [ "10.0.0.1/32" ];
+                  }
+                  {
                     name = "laptop";
-                    publicKey = "tL/vwcSQQ9Nwi1Y0vyVXqnGK9NjBtcQN/1j//FH9DEQ=";
+                    publicKey = "lmckXsECjZUgmWclkXUU4wvb5Vh30XNGxC68ChEs+j8=";
                     allowedIPs = [ "10.0.0.2/32" ];
                   }
                   {

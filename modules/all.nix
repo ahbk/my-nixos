@@ -27,6 +27,7 @@
     ./sverigesval.nix
     ./user.nix
     ./vd.nix
+    ./wg-client.nix
     ./wordpress.nix
   ];
 
