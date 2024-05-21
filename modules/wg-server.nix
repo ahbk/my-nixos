@@ -14,6 +14,9 @@ in {
     host = mkOption {
       type = str;
     };
+    peers = mkOption {
+      type = attrsOf attrs;
+    };
     port = mkOption {
       type = port;
       default = 51820;
