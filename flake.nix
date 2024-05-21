@@ -205,6 +205,10 @@
 
             networking.firewall.allowedUDPPorts = [ 51820 ];
 
+            networking.dhcpcd.runHook = ''
+            if [ "$interface" = "wg0" ] && [ -n "$new_ip_address" ]; then echo "$interface got new address: $new_ip_address"; fi
+            '';
+
             ahbk = with edgechunks; {
               user = { inherit frans; };
               shell.frans.enable = true;
