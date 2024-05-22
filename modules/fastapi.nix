@@ -116,6 +116,36 @@ in {
           EnvironmentFile="${envs.${hostname}}";
         };
       };
+
+      "${hostname}-pgsql-dump" = {
+        description = "dump a snapshot of the postgresql database";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -U ${hostname} ${hostname} > ${stateDir hostname}/dbdump.sql'";
+          User = hostname;
+          Group = hostname;
+        };
+      };
+      "${hostname}-pgsql-restore" = {
+        description = "restore postgresql database from snapshot";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${hostname} ${hostname} < ${stateDir hostname}/dbdump.sql'";
+          User = hostname;
+          Group = hostname;
+        };
+      };
+    }) eachSite;
+
+    systemd.timers = lib'.mergeAttrs (hostname: cfg: {
+      "${hostname}-pgsql-dump" = {
+        description = "Scheduled PostgreSQL database dump";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "daily";
+          Unit = "${hostname}-pgsql-dump";
+        };
+      };
     }) eachSite;
 
     system.activationScripts = mapAttrs (hostname: cfg: {
