@@ -32,8 +32,8 @@ in {
 
   config = mkIf cfg.enable {
 
-    age.secrets."${cfg.host}-wg" = {
-      file = ../secrets/${cfg.host}-wg.age;
+    age.secrets."wg-key-${cfg.host}" = {
+      file = ../secrets/wg-key-${cfg.host}.age;
       owner = "systemd-network";
       group = "systemd-network";
     };
@@ -46,7 +46,7 @@ in {
       interfaces.${cfg.device} = {
         ips = [ cfg.address ];
         listenPort = cfg.port;
-        privateKeyFile = config.age.secrets."${cfg.host}-wg".path;
+        privateKeyFile = config.age.secrets."wg-key-${cfg.host}".path;
         peers = mapAttrsToList (host: cfg: {
           name = host;
           publicKey = cfg.key;

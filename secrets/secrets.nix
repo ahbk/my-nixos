@@ -8,16 +8,27 @@ let
   glesys = "${(readKey ../keys/glesys_ed25519_key.pub)}";
   test = "${(readKey ../keys/test_ed25519_key.pub)}";
   me = "${(readKey ../keys/me_ed25519_key.pub)}";
-  all = [ me stationary glesys test laptop ];
+
+  all = [ me stationary glesys laptop ];
+  all-test = all ++ [ test ];
+
 in {
-  "test-pw.age".publicKeys = all;
-  "frans-pw.age".publicKeys = all;
-  "alex-pw.age".publicKeys = all;
-  "dev.chatddx.com-secret-key.age".publicKeys = all;
-  "chatddx.com-secret-key.age".publicKeys = all;
-  "dev.sverigesval.org-secret-key.age".publicKeys = all;
-  "sverigesval.org-secret-key.age".publicKeys = all;
-  "laptop-wg.age".publicKeys = all;
-  "stationary-wg.age".publicKeys = all;
-  "glesys-api-key.age".publicKeys = all;
+  "linux-passwd-hashed-test.age".publicKeys = all-test;
+  "linux-passwd-hashed-frans.age".publicKeys = all;
+  "linux-passwd-hashed-alex.age".publicKeys = all;
+
+  "linux-passwd-plain-test.age".publicKeys = all-test;
+  "linux-passwd-plain-frans.age".publicKeys = all;
+  "linux-passwd-plain-alex.age".publicKeys = all;
+
+  "webapp-key-dev.chatddx.com.age".publicKeys = all;
+  "webapp-key-chatddx.com.age".publicKeys = all;
+  "webapp-key-dev.sverigesval.org.age".publicKeys = all;
+  "webapp-key-sverigesval.org.age".publicKeys = all;
+
+  "wg-key-laptop.age".publicKeys = laptop;
+  "wg-key-stationary.age".publicKeys = stationary;
+  "wg-key-glesys.age".publicKeys = stationary;
+
+  "api-key-glesys.age".publicKeys = all;
 }

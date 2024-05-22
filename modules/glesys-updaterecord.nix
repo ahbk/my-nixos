@@ -36,10 +36,10 @@ in {
       data = "recordid=${cfg.recordid}&data=$new_ip_address";
       endpoint = "https://api.glesys.com/domain/updaterecord";
     in ''
-    if [ "$interface" = "${cfg.device}" ] && [ -n "$new_ip_address" ]; then
-    ${getExe pkgs.curl} -X POST -d "${data}" -u ${user} ${endpoint} | ${pkgs.util-linux}/bin/logger -t dhcpcd
-    fi
-    '';
+      if [ "$interface" = "${cfg.device}" ] && [ -n "$new_ip_address" ]; then
+        ${getExe pkgs.curl} -X POST -d "${data}" -u ${user} ${endpoint} | ${pkgs.util-linux}/bin/logger -t dhcpcd
+      fi
+      '';
 
   };
 }

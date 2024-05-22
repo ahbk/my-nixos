@@ -63,7 +63,7 @@ in {
 
     age.secrets = mapAttrs' (hostname: cfg: (
       nameValuePair "${hostname}/secret-key" {
-      file = ../secrets/${hostname}-secret-key.age;
+      file = ../secrets/webapp-key-${hostname}.age;
       owner = hostname;
       group = hostname;
     })) eachSite;

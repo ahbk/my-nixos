@@ -42,8 +42,8 @@ in {
       networkmanager.unmanaged = [ "interface-name:${cfg.device}" ];
     };
 
-    age.secrets."${cfg.host}-wg" = {
-      file = ../secrets/${cfg.host}-wg.age;
+    age.secrets."wg-key-${cfg.host}" = {
+      file = ../secrets/wg-key-${cfg.host}.age;
       owner = "systemd-network";
       group = "systemd-network";
     };
@@ -57,7 +57,7 @@ in {
             Name = cfg.device;
           };
           wireguardConfig = {
-            PrivateKeyFile = config.age.secrets."${cfg.host}-wg".path;
+            PrivateKeyFile = config.age.secrets."wg-key-${cfg.host}".path;
           };
           wireguardPeers = [
             {

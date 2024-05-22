@@ -43,8 +43,8 @@ in {
 
   config = mkIf (cfg != {}) {
     age.secrets = mapAttrs' (user: cfg: (
-      nameValuePair "${user}-pw" {
-      file = ../secrets/${user}-pw.age;
+      nameValuePair "linux-passwd-hashed-${user}" {
+      file = ../secrets/linux-passwd-hashed-${user}.age;
       owner = user;
       group = user;
     })) eachUser;
@@ -55,7 +55,7 @@ in {
         isNormalUser = true;
         group = user;
         extraGroups = cfg.groups;
-        hashedPasswordFile = config.age.secrets."${user}-pw".path;
+        hashedPasswordFile = config.age.secrets."linux-passwd-hashed-${user}".path;
         openssh.authorizedKeys.keys = cfg.keys;
       };
       groups.${user}.gid = config.users.users.${user}.uid;
