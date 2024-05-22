@@ -23,6 +23,11 @@ in {
     default = {};
   };
   config = mkIf (eachUser != {}) {
+
+    ahbk.backup.paths = flatten (mapAttrsToList (user: cfg: [
+      "/home/${user}/.bash_history"
+    ]) eachUser);
+
     home-manager.users = mapAttrs (hm config.ahbk) eachUser;
 
     documentation.man.generateCaches = true;

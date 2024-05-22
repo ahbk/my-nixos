@@ -122,6 +122,12 @@
               mailClient."alex" = {
                 enable = true;
               };
+
+              backup = {
+                host = "laptop";
+                enable = true;
+                repository = "/var/lib/backup";
+              };
             };
 
             system.stateVersion = "23.11";
