@@ -17,7 +17,8 @@
     ./glesys-updaterecord.nix
     ./ide.nix
     ./laptop.nix
-    ./mail.nix
+    ./mail-client.nix
+    ./mail-server.nix
     ./mysql.nix
     ./nginx.nix
     ./odoo.nix

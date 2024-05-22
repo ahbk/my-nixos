@@ -35,18 +35,20 @@
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
     theme = import ./theme.nix;
+    lib = nixpkgs.lib;
 
     # custom packages not found in nixpkgs.pkgs
     pkgs' = import ./packages/all.nix { inherit pkgs; };
 
     # custom library functions not found in nixpkgs.lib
     lib' = import ./lib.nix {
-      inherit (nixpkgs) lib;
-      inherit pkgs;
+      inherit lib pkgs;
     };
 
     # chunks of reusable `ahbk.*` configuration snippets
-    edgechunks = import ./edgechunks.nix { inherit inputs system; };
+    edgechunks = import ./edgechunks.nix {
+      inherit inputs lib system;
+    };
 
     # Makes a home-manager configuration out of ahbk.*.<user> confs and the *-hm.nix modules.
     # This is for reusing NixOS's hm-config modules
@@ -57,7 +59,7 @@
     };
   in
 
-  with nixpkgs.lib;
+  with lib;
 
   {
     homeConfigurations = {
@@ -116,26 +118,13 @@
                 endpoint = "stationary.ahbk.se:51820";
                 keepalive = 25;
               };
+
+              mailClient."alex" = {
+                enable = true;
+              };
             };
 
             system.stateVersion = "23.11";
-
-            programs.msmtp = {
-              enable = false;
-              defaults = {
-                port = 587;
-                tls = true;
-              };
-              accounts = {
-                default = {
-                  host = "smtp.ahbk.se";
-                  auth = true;
-                  user = "alex";
-                  passwordeval = "cat ${config.users.users.alex.hashedPasswordFile}";
-                };
-              };
-            };
-
 
             networking = {
               hostName = "laptop";
@@ -224,6 +213,8 @@
                 email = frans.email;
               };
 
+              wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
+
               odoo = {
                 enable = true;
                 package = pkgs'.odoo;
@@ -235,10 +226,7 @@
                   };
                 };
               };
-
-              wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
             };
-
           })
         ];
       };
@@ -268,7 +256,7 @@
                 email = frans.email;
               };
 
-              mail.enable = true;
+              mailServer.enable = true;
 
               inherit chatddx sverigesval;
               wordpress.sites."esse.nu" = wordpress.sites."esse.nu";

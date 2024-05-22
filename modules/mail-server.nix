@@ -6,11 +6,11 @@
 with lib;
 
 let
-  cfg = config.ahbk.mail;
+  cfg = config.ahbk.mailServer;
 in {
 
   options = {
-    ahbk.mail = {
+    ahbk.mailServer = {
       enable = mkOption {
         default = false;
         type = types.bool;
