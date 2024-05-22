@@ -137,5 +137,17 @@ in {
         "pm.max_requests" = 500;
       };
     }) eachSite;
+
+    systemd.services = lib'.mergeAttrs (hostname: cfg: {
+      "${hostname}-mysql-dump" = {
+        description = "dump a snapshot of the mysql database";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.maria}/bin/mysqldump -u ${hostname} -p ${hostname} > ${stateDir hostname}/dbdump.sql";
+          User = hostname;
+          Group = hostname;
+        };
+      };
+    }) eachSite;
   };
 }
