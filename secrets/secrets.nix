@@ -10,7 +10,6 @@ let
   me = "${(readKey ../keys/me_ed25519_key.pub)}";
   all = [ me stationary glesys test laptop ];
 in {
-  "ddns-password.age".publicKeys = all;
   "test-pw.age".publicKeys = all;
   "frans-pw.age".publicKeys = all;
   "alex-pw.age".publicKeys = all;

@@ -16,7 +16,6 @@
     ./fastapi.nix
     ./glesys-updaterecord.nix
     ./ide.nix
-    ./inadyn.nix
     ./laptop.nix
     ./mail.nix
     ./mysql.nix

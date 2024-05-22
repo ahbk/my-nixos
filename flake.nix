@@ -113,7 +113,7 @@
                 publicKey = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
                 address = "10.0.0.2/24";
                 allowedIPs = [ "10.0.0.0/24" ];
-                endpoint = "ahbk.ddns.net:51820";
+                endpoint = "stationary.ahbk.se:51820";
                 keepalive = 25;
               };
             };
@@ -207,9 +207,9 @@
 
               glesys.updaterecord = {
                 enable = true;
-                recordid = 3357682;
+                recordid = "3357682";
                 cloudaccount = "cl44748";
-                device = "wg0";
+                device = "enp3s0";
               };
 
               wgServer = {
@@ -236,19 +236,8 @@
                 };
               };
 
-              inadyn = {
-                enable = true;
-                providers."default@noip.com" = {
-                  username = "alexander.holmback@gmail.com";
-                  hostname = "ahbk.ddns.net";
-                  passwordFile = config.age.secrets."ddns-password".path;
-                };
-              };
-
               wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
             };
-
-            age.secrets."ddns-password".file = ./secrets/ddns-password.age;
 
           })
         ];
