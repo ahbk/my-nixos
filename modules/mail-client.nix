@@ -12,7 +12,7 @@ let
 
   userOpts = with types; {
     options = {
-      enable = mkEnableOption (mdDoc "Configure this user") // {
+      enable = mkEnableOption (mdDoc "Configure a mail client for user") // {
         default = true;
       };
     };
@@ -20,9 +20,10 @@ let
 in {
   options.ahbk.mailClient = with types; mkOption {
     type = attrsOf (submodule userOpts);
+    default = {};
   };
 
-  config = mkIf (cfg != {}) {
+  config = mkIf (eachUser != {}) {
 
     age.secrets = mapAttrs' (user: cfg: (
       nameValuePair "linux-passwd-plain-${user}" {
