@@ -143,9 +143,29 @@ in {
         description = "dump a snapshot of the mysql database";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${pkgs.maria}/bin/mysqldump -u ${hostname} -p ${hostname} > ${stateDir hostname}/dbdump.sql";
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.mariadb}/bin/mysqldump -u ${hostname} ${hostname} > ${stateDir hostname}/dbdump.sql'";
           User = hostname;
           Group = hostname;
+        };
+      };
+      "${hostname}-mysql-restore" = {
+        description = "restore mysql database from snapshot";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.mariadb}/bin/mysql -u ${hostname} ${hostname} < ${stateDir hostname}/dbdump.sql'";
+          User = hostname;
+          Group = hostname;
+        };
+      };
+    }) eachSite;
+
+    systemd.timers = lib'.mergeAttrs (hostname: cfg: {
+      "${hostname}-mysql-dump" = {
+        description = "scheduled database dump";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "daily";
+          Unit = "${hostname}-mysql-dump";
         };
       };
     }) eachSite;
