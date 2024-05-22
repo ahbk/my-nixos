@@ -25,14 +25,14 @@ in {
 
   config = mkIf cfg.enable {
 
-    age.secrets."glesys-api-key" = {
-      file = ../secrets/glesys-api-key.age;
+    age.secrets."api-key-glesys" = {
+      file = ../secrets/api-key-glesys.age;
       owner = "root";
       group = "root";
     };
 
     networking.dhcpcd.runHook = let
-      user = "${cfg.cloudaccount}:$(<${config.age.secrets."glesys-api-key".path})";
+      user = "${cfg.cloudaccount}:$(<${config.age.secrets."api-key-glesys".path})";
       data = "recordid=${cfg.recordid}&data=$new_ip_address";
       endpoint = "https://api.glesys.com/domain/updaterecord";
     in ''
