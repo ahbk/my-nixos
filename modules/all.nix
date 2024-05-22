@@ -14,6 +14,7 @@
     ./django.nix
     ./de.nix
     ./fastapi.nix
+    ./glesys-updaterecord.nix
     ./ide.nix
     ./inadyn.nix
     ./laptop.nix

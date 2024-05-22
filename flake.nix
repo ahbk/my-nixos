@@ -120,6 +120,23 @@
 
             system.stateVersion = "23.11";
 
+            programs.msmtp = {
+              enable = false;
+              defaults = {
+                port = 587;
+                tls = true;
+              };
+              accounts = {
+                default = {
+                  host = "smtp.ahbk.se";
+                  auth = true;
+                  user = "alex";
+                  passwordeval = "cat ${config.users.users.alex.hashedPasswordFile}";
+                };
+              };
+            };
+
+
             networking = {
               hostName = "laptop";
               nat = {
@@ -178,10 +195,6 @@
               proxyPass = "http://localhost:19999/";
             };
 
-            networking.dhcpcd.runHook = ''
-            if [ "$interface" = "wg0" ] && [ -n "$new_ip_address" ]; then echo "$interface got new address: $new_ip_address"; fi
-            '';
-
             ahbk = with edgechunks; {
               user = { inherit frans; };
               shell.frans.enable = true;
@@ -190,6 +203,13 @@
                 postgresql = true;
                 mysql = true;
                 userAsTopDomain = false;
+              };
+
+              glesys.updaterecord = {
+                enable = true;
+                recordid = 3357682;
+                cloudaccount = "cl44748";
+                device = "wg0";
               };
 
               wgServer = {
