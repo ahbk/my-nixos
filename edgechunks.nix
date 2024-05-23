@@ -25,7 +25,7 @@
     keys = [
       (builtins.readFile ./keys/me_ed25519_key.pub)
       (builtins.readFile ./keys/backup_ed25519_key.pub)
-      (builtins.readFile ./keys/root@laptop.pub)
+      (builtins.readFile ./keys/root_laptop.pub)
     ];
   };
 
