@@ -40,6 +40,7 @@ in {
 
   options.ahbk.user = with types; mkOption {
     type = attrsOf (submodule userOpts);
+    default = {};
   };
 
   config = mkIf (cfg != {}) {

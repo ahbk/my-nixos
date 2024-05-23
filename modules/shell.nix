@@ -24,7 +24,7 @@ in {
   };
   config = mkIf (eachUser != {}) {
 
-    ahbk.backup.paths = flatten (mapAttrsToList (user: cfg: [
+    ahbk.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
       "/home/${user}/.bash_history"
     ]) eachUser);
 

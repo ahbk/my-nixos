@@ -30,11 +30,6 @@ in {
   config = mkIf (eachUser != {}) {
     home-manager.users = mapAttrs (hm config.ahbk) eachUser;
 
-    ahbk.backup.paths = flatten (mapAttrsToList (user: cfg: [
-      "/home/${user}/.psql_history"
-      "/home/${user}/.python_history"
-    ]) eachUser);
-
     programs.neovim = {
       enable = true;
       defaultEditor = true;

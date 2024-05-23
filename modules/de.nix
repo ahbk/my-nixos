@@ -25,6 +25,10 @@ in {
     home-manager.users = mapAttrs (hm config.ahbk) eachUser;
     users.users = mapAttrs (user: cfg: { extraGroups = [ "audio" "transmission" "networkmanager" ]; }) eachUser;
 
+    ahbk.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
+      "/home/${user}/.local/share/qutebrowser"
+    ]) eachUser);
+
     fonts.packages = with pkgs; [
       source-code-pro
       hackgen-nf-font

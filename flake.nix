@@ -123,9 +123,7 @@
                 enable = true;
               };
 
-              backup = {
-                host = "laptop";
-                user = "backup";
+              backup.stationary = {
                 enable = true;
                 repository = "sftp:backup@10.0.0.1:repository";
               };
