@@ -34,16 +34,21 @@ in {
   };
 
   config = mkIf (eachTarget != {}) {
+
     age.secrets."linux-passwd-plain-backup" = {
       file = ../secrets/linux-passwd-plain-backup.age;
       owner = "backup";
       group = "backup";
     };
+
     services.restic.backups = mapAttrs (target: cfg: {
       inherit (cfg) paths exclude repository;
       initialize = true;
       user = "root";
       passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
+      extraOptions = [
+        "sftp.command='ssh backup@10.0.0.1 -i /home/backup/.ssh/id_ed25519 -s sftp'"
+      ];
       timerConfig = {
         OnCalendar = "daily";
         Persistent = true;

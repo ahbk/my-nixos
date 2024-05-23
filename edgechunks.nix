@@ -15,7 +15,7 @@
     name = "test";
     email = "test@example.com";
     groups = [ "wheel" ];
-    keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
+    keys = [ ./keys/me_ed25519_key.pub ];
   };
 
   backup = {
@@ -23,9 +23,8 @@
     uid = 2001;
     name = "Mr. Backup";
     keys = [
-      (builtins.readFile ./keys/me_ed25519_key.pub)
-      (builtins.readFile ./keys/backup_ed25519_key.pub)
-      (builtins.readFile ./keys/root_laptop.pub)
+      ./keys/me_ed25519_key.pub
+      ./keys/backup_ed25519_key.pub
     ];
   };
 
@@ -35,7 +34,7 @@
     uid = 1001;
     email = "alex@ahbk.se";
     groups = [ "wheel" ];
-    keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
+    keys = [ ./keys/me_ed25519_key.pub ];
   };
 
   frans = {
@@ -44,7 +43,7 @@
     name = "Alexander Holmbäck";
     email = "alexander.holmback@gmail.com";
     groups = [ "wheel" ];
-    keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
+    keys = [ ./keys/me_ed25519_key.pub ];
   };
 
   wordpress.sites."test.esse.nu" = {

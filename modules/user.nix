@@ -22,7 +22,7 @@ let
         type = str;
       };
       keys = mkOption {
-        type = listOf str;
+        type = listOf path;
         default = [];
       };
       email = mkOption {
@@ -58,7 +58,7 @@ in {
         group = user;
         extraGroups = cfg.groups;
         hashedPasswordFile = config.age.secrets."linux-passwd-hashed-${user}".path;
-        openssh.authorizedKeys.keys = cfg.keys;
+        openssh.authorizedKeys.keyFiles = cfg.keys;
       };
       groups.${user}.gid = config.users.users.${user}.uid;
     }) eachUser) // {
