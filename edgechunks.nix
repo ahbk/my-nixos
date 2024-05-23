@@ -18,6 +18,16 @@
     keys = [ (builtins.readFile ./keys/me_ed25519_key.pub) ];
   };
 
+  backup = {
+    enable = true;
+    uid = 2001;
+    name = "Mr. Backup";
+    keys = [
+      (builtins.readFile ./keys/me_ed25519_key.pub)
+      (builtins.readFile ./keys/backup_ed25519_key.pub)
+    ];
+  };
+
   alex = {
     enable = true;
     name = "Alexander Holmbäck";

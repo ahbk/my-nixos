@@ -18,6 +18,9 @@ in {
         type = listOf str;
         default = [];
       };
+      user = mkOption {
+        type = str;
+      };
       exclude = mkOption {
         type = listOf str;
         default = [];
@@ -29,14 +32,15 @@ in {
   };
 
   config = mkIf cfg.enable {
-    age.secrets."linux-passwd-plain-frans" = {
-      file = ../secrets/linux-passwd-plain-frans.age;
-      owner = "root";
-      group = "root";
+    age.secrets."linux-passwd-plain-${cfg.user}" = {
+      file = ../secrets/linux-passwd-plain-${cfg.user}.age;
+      owner = cfg.user;
+      group = cfg.user;
     };
     services.restic.backups.${cfg.host} = {
       inherit (cfg) paths exclude repository;
       initialize = true;
+      user = cfg.user;
       passwordFile = config.age.secrets."linux-passwd-plain-frans".path;
       timerConfig = {
         OnCalendar = "daily";

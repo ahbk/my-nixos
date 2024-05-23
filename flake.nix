@@ -97,7 +97,7 @@
           ./modules/all.nix
           {
             ahbk = with edgechunks; {
-              user = { inherit alex frans; };
+              user = { inherit alex frans backup; };
               shell.frans.enable = true;
               ide.frans = {
                 enable = true;
@@ -125,8 +125,9 @@
 
               backup = {
                 host = "laptop";
+                user = "backup";
                 enable = true;
-                repository = "/var/lib/backup";
+                repository = "sftp:backup@10.0.0.1";
               };
             };
 
@@ -191,7 +192,7 @@
             };
 
             ahbk = with edgechunks; {
-              user = { inherit frans; };
+              user = { inherit frans backup; };
               shell.frans.enable = true;
               ide.frans = {
                 enable = true;
