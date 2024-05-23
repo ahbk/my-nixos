@@ -26,7 +26,7 @@ in {
         default = [];
       };
       repository = mkOption {
-        type = path;
+        type = str;
       };
     };
   };
@@ -40,8 +40,8 @@ in {
     services.restic.backups.${cfg.host} = {
       inherit (cfg) paths exclude repository;
       initialize = true;
-      user = cfg.user;
-      passwordFile = config.age.secrets."linux-passwd-plain-frans".path;
+      user = "backup";
+      passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
       timerConfig = {
         OnCalendar = "daily";
       };

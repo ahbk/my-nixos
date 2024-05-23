@@ -127,7 +127,7 @@
                 host = "laptop";
                 user = "backup";
                 enable = true;
-                repository = "sftp:backup@10.0.0.1";
+                repository = "sftp:backup@10.0.0.1:repository";
               };
             };
 
