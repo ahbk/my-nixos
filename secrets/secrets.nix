@@ -16,19 +16,21 @@ in {
   "linux-passwd-hashed-test.age".publicKeys = all-test;
   "linux-passwd-hashed-frans.age".publicKeys = all;
   "linux-passwd-hashed-alex.age".publicKeys = all;
+  "linux-passwd-hashed-backup.age".publicKeys = all;
 
   "linux-passwd-plain-test.age".publicKeys = all-test;
   "linux-passwd-plain-frans.age".publicKeys = all;
   "linux-passwd-plain-alex.age".publicKeys = all;
+  "linux-passwd-plain-backup.age".publicKeys = all;
 
   "webapp-key-dev.chatddx.com.age".publicKeys = all;
   "webapp-key-chatddx.com.age".publicKeys = all;
   "webapp-key-dev.sverigesval.org.age".publicKeys = all;
   "webapp-key-sverigesval.org.age".publicKeys = all;
 
-  "wg-key-laptop.age".publicKeys = laptop;
-  "wg-key-stationary.age".publicKeys = stationary;
-  "wg-key-glesys.age".publicKeys = stationary;
+  "wg-key-laptop.age".publicKeys = [ laptop me ];
+  "wg-key-stationary.age".publicKeys = [ stationary me ];
+  "wg-key-glesys.age".publicKeys = [ glesys me ];
 
   "api-key-glesys.age".publicKeys = all;
 }
