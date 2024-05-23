@@ -30,6 +30,7 @@ let
       };
       groups = mkOption {
         type = listOf str;
+        default = [];
       };
     };
   };
