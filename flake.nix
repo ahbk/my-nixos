@@ -109,7 +109,7 @@
               vd.frans.enable = true;
               laptop.enable = true;
 
-              wgClient = {
+              wg-client = {
                 enable = true;
                 host = "laptop";
                 publicKey = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
@@ -206,7 +206,7 @@
                 device = "enp3s0";
               };
 
-              wgServer = {
+              wg-server = {
                 enable = true;
                 host = "stationary";
                 address = "10.0.0.1/24";

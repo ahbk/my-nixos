@@ -6,10 +6,10 @@
 with lib;
 
 let
-  cfg = config.ahbk.wgClient;
+  cfg = config.ahbk.wg-client;
 in {
 
-  options.ahbk.wgClient = with types; {
+  options.ahbk.wg-client = with types; {
     enable = mkEnableOption (mdDoc "Configure a wireguard client for this host");
     host = mkOption {
       type = str;
