@@ -89,7 +89,10 @@
         ];
       };
 
-      laptop = nixosSystem {
+      laptop = let
+        hostname = "laptop";
+        host = edgechunks.hosts.${hostname};
+      in nixosSystem {
         inherit system;
         specialArgs = { inherit nixpkgs inputs system lib' theme; };
         modules = [
@@ -111,11 +114,11 @@
 
               wg-client = {
                 enable = true;
-                host = "laptop";
-                publicKey = "AiqJQGkt5f+jc70apQs3wcidw5QSXmzln2OzijpOUzY=";
+                host = host.name;
+                publicKey = hosts.stationary.wgKey;
                 address = "10.0.0.2/24";
                 allowedIPs = [ "10.0.0.0/24" ];
-                endpoint = "stationary.ahbk.se:51820";
+                endpoint = "${hosts.stationary.publicAddress}:51820";
                 keepalive = 25;
               };
 

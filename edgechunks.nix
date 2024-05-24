@@ -15,7 +15,7 @@
     name = "test";
     email = "test@example.com";
     groups = [ "wheel" ];
-    keys = [ ./keys/me_ed25519_key.pub ];
+    keys = [ ./keys/ssh-user-test.pub ];
   };
 
   backup = {
@@ -23,8 +23,8 @@
     uid = 2001;
     name = "Mr. Backup";
     keys = [
-      ./keys/me_ed25519_key.pub
-      ./keys/backup_ed25519_key.pub
+      ./keys/ssh-user-backup.pub
+      ./keys/ssh-user-alex.pub
     ];
   };
 
@@ -34,7 +34,9 @@
     uid = 1001;
     email = "alex@ahbk.se";
     groups = [ "wheel" ];
-    keys = [ ./keys/me_ed25519_key.pub ];
+    keys = [
+      ./keys/ssh-user-alex.pub
+    ];
   };
 
   frans = {
@@ -43,7 +45,9 @@
     name = "Alexander Holmbäck";
     email = "alexander.holmback@gmail.com";
     groups = [ "wheel" ];
-    keys = [ ./keys/me_ed25519_key.pub ];
+    keys = [
+      ./keys/ssh-user-alex.pub
+    ];
   };
 
   wordpress.sites."test.esse.nu" = {

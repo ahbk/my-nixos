@@ -1,15 +1,15 @@
 let
   # strip last row break
-  readKey = f: builtins.replaceStrings ["\n"] [""] (builtins.readFile f);
+  key = name: builtins.replaceStrings ["\n"] [""] (builtins.readFile ../keys/ssh-${name}.pub);
 
   # keys
-  laptop = "${(readKey ../keys/laptop_ed25519_key.pub)}";
-  stationary = "${(readKey ../keys/stationary_ed25519_key.pub)}";
-  glesys = "${(readKey ../keys/glesys_ed25519_key.pub)}";
-  test = "${(readKey ../keys/test_ed25519_key.pub)}";
-  me = "${(readKey ../keys/me_ed25519_key.pub)}";
+  laptop = key "host-laptop";
+  stationary = key "host-stationary";
+  glesys = key "host-glesys";
+  test = key "user-test";
+  alex = key "user-alex";
 
-  all = [ me stationary glesys laptop ];
+  all = [ alex stationary glesys laptop ];
   all-test = all ++ [ test ];
 
 in {
@@ -28,9 +28,9 @@ in {
   "webapp-key-dev.sverigesval.org.age".publicKeys = all;
   "webapp-key-sverigesval.org.age".publicKeys = all;
 
-  "wg-key-laptop.age".publicKeys = [ laptop me ];
-  "wg-key-stationary.age".publicKeys = [ stationary me ];
-  "wg-key-glesys.age".publicKeys = [ glesys me ];
+  "wg-key-laptop.age".publicKeys = [ laptop alex ];
+  "wg-key-stationary.age".publicKeys = [ stationary alex ];
+  "wg-key-glesys.age".publicKeys = [ glesys alex ];
 
   "api-key-glesys.age".publicKeys = all;
 }
