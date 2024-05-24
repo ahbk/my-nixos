@@ -48,8 +48,8 @@ in {
         listenPort = cfg.port;
         privateKeyFile = config.age.secrets."wg-key-${cfg.host}".path;
         peers = mapAttrsToList (host: cfg: {
-          name = host;
-          publicKey = cfg.key;
+          name = cfg.name;
+          publicKey = cfg.wgKey;
           allowedIPs = [ "${cfg.address}/32" ];
         }) cfg.peers;
       };
