@@ -6,10 +6,11 @@ let
   laptop = key "host-laptop";
   stationary = key "host-stationary";
   glesys = key "host-glesys";
+  container = key "host-container";
   test = key "user-test";
   alex = key "user-alex";
 
-  all = [ alex stationary glesys laptop ];
+  all = [ alex stationary glesys laptop container ];
   all-test = all ++ [ test ];
 
 in {

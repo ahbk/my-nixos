@@ -8,7 +8,7 @@ in {
     address = "10.0.0.1";
     publicAddress = "stationary.ahbk.se";
     system = "x86_64-linux";
-    stateVersion ="20.03";
+    stateVersion = "20.03";
   };
 
   laptop = rec {
@@ -36,4 +36,14 @@ in {
     system = "aarch64-linux";
     address = "10.0.0.4";
   };
+
+  container = rec {
+    name = "container";
+    wgKey = key "wg" name;
+    sshKey = key "ssh-host" name;
+    address = "10.0.0.5";
+    system = "x86_64-linux";
+    stateVersion = "24.05";
+  };
+
 }
