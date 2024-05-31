@@ -1,8 +1,15 @@
-{ config, ... }: {
-  networking.hostName = "glesys";
-  system.stateVersion = "23.11";
+{ config
+, inputs
+, ...
+}:
 
-  ahbk = with edgechunks; {
+let
+  users = import ../users.nix;
+  sites = (import ../sites.nix) inputs config;
+in
+
+{
+  ahbk = with users; {
     user = { inherit alex frans; };
     shell.frans.enable = true;
     ide.frans = {
@@ -19,8 +26,8 @@
 
     mailServer.enable = true;
 
-    inherit chatddx sverigesval;
-    wordpress.sites."esse.nu" = wordpress.sites."esse.nu";
+    inherit (sites) chatddx sverigesval;
+    wordpress.sites."esse.nu" = sites.wordpress.sites."esse.nu";
   };
 
   boot.loader.grub = {

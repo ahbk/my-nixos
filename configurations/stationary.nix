@@ -1,26 +1,23 @@
 { config
+, host
 , inputs
 , pkgs
 , ...
 }:
 
 let
-  hostname = "stationary";
   hosts = import ../hosts.nix;
-  host = hosts.${hostname};
-
   users = import ../users.nix;
   sites = import ../sites.nix { inherit inputs config; };
   pkgs' = import ../packages/all.nix { inherit pkgs; };
 in {
-  networking.hostName = host.name;
-  system.stateVersion = "20.03";
   boot.loader.grub = {
     enable = true;
     device = "/dev/sda";
   };
 
   services.netdata.enable = true;
+
   services.nginx.virtualHosts."10.0.0.1".locations."/netdata/" = {
     proxyPass = "http://localhost:19999/";
   };

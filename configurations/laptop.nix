@@ -38,10 +38,7 @@ in {
     };
   };
 
-  system.stateVersion = "23.11";
-
   networking = {
-    hostName = "laptop";
     nat = {
       enable = true;
       internalInterfaces = ["ve-+"];

@@ -43,10 +43,10 @@
         ./hm-modules/all.nix
         { inherit (cfg) ahbk-hm; }
       ];
-      }) (import ./hm-hosts.nix);
+    }) (import ./hm-hosts.nix);
 
-    nixosConfigurations = mapAttrs (hostname: cfg: nixosSystem {
-      specialArgs = { inherit inputs; };
+    nixosConfigurations = mapAttrs (hostname: host: nixosSystem {
+      specialArgs = { inherit inputs host; };
       modules = [
         ./configurations/${hostname}-hardware.nix
         ./modules/all.nix
