@@ -1,5 +1,4 @@
-{ config
-, host
+{ host
 , inputs
 , pkgs
 , lib
@@ -11,7 +10,10 @@ with lib;
 let
   hosts = import ../hosts.nix;
   users = import ../users.nix;
-  sites = import ../sites.nix { inherit inputs config; };
+  sites = import ../sites.nix {
+    inherit inputs;
+    system = "x86_64-linux";
+  };
   pkgs' = import ../packages/all.nix { inherit pkgs; };
 in {
   boot.loader.grub = {
@@ -45,7 +47,7 @@ in {
     wg-server = {
       enable = true;
       host = host.name;
-      address = "10.0.0.1/24";
+      address = "${host.address}/24";
       peers = filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts;
     };
 

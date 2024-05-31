@@ -47,10 +47,11 @@ in {
         ips = [ cfg.address ];
         listenPort = cfg.port;
         privateKeyFile = config.age.secrets."wg-key-${cfg.host}".path;
-        peers = mapAttrsToList (host: cfg: {
-          name = cfg.name;
-          publicKey = cfg.wgKey;
-          allowedIPs = [ "${cfg.address}/32" ];
+        peers = mapAttrsToList (host: peerCfg: {
+          name = peerCfg.name;
+          publicKey = peerCfg.wgKey;
+          allowedIPs = [ "${peerCfg.address}/32" ];
+          endpoint = if builtins.hasAttr "publicAddress" peerCfg then "${peerCfg.publicAddress}:${builtins.toString cfg.port}" else null;
         }) cfg.peers;
       };
     };

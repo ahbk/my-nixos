@@ -1,11 +1,18 @@
-{ config
+{ host
 , inputs
+, lib
 , ...
 }:
 
+with lib;
+
 let
   users = import ../users.nix;
-  sites = (import ../sites.nix) inputs config;
+  hosts = import ../hosts.nix;
+  sites = (import ../sites.nix) {
+    inherit inputs;
+    system = "x86_64-linux";
+  };
 in
 
 {
@@ -19,6 +26,13 @@ in
       userAsTopDomain = false;
     };
 
+    wg-server = {
+      enable = true;
+      host = host.name;
+      address = "${host.address}/24";
+      peers = filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts;
+    };
+
     nginx = {
       enable = true;
       email = frans.email;
@@ -26,7 +40,8 @@ in
 
     mailServer.enable = true;
 
-    inherit (sites) chatddx sverigesval;
+    chatddx = sites.chatddx;
+    sverigesval = sites.sverigesval;
     wordpress.sites."esse.nu" = sites.wordpress.sites."esse.nu";
   };
 

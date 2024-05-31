@@ -72,7 +72,7 @@ in {
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
-        ListenAddress = host.address;
+        #ListenAddress = host.address;
       };
     };
 
