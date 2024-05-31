@@ -30,31 +30,20 @@
     nixpkgs-wkhtmltopdf.flake = false;
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
-  let
-    system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
-    lib = nixpkgs.lib;
+  outputs = { self, ... }@inputs:
 
-    # Makes a home-manager configuration out of ahbk.*.<user> confs and the *-hm.nix modules.
-    # This is for reusing NixOS's hm-config modules
-    mkHomeConfiguration = user: cfg: inputs.home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      extraSpecialArgs = { inherit inputs; };
-      modules = [ (import ./modules/all-hm.nix cfg user) ];
-    };
-  in
-
-  with lib;
+  with inputs.nixpkgs.lib;
+  with inputs.home-manager.lib;
 
   {
-    homeConfigurations = {
-      "frans@debian" = mkHomeConfiguration "frans" {
-        user.frans = edgechunks.frans;
-        shell.frans.enable = true;
-        ide.frans.enable = true;
-      };
-    };
+    homeConfigurations = mapAttrs (target: cfg: homeManagerConfiguration {
+      pkgs = inputs.nixpkgs.legacyPackages.${cfg.system};
+      extraSpecialArgs = { inherit inputs; };
+      modules = [
+        ./hm-modules/all.nix
+        { inherit (cfg) ahbk-hm; }
+      ];
+      }) (import ./hm-hosts.nix);
 
     nixosConfigurations = mapAttrs (hostname: cfg: nixosSystem {
       specialArgs = { inherit inputs; };
