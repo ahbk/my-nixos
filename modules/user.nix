@@ -10,6 +10,7 @@ let
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.ahbk.user;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
+
   hosts = import ../hosts.nix;
   host = hosts.${config.system.name};
 
@@ -37,8 +38,6 @@ let
       };
     };
   };
-
-  hm = import ./user-hm.nix;  
 in {
 
   options.ahbk.user = with types; mkOption {
@@ -77,6 +76,11 @@ in {
       };
     };
 
-    home-manager.users = mapAttrs (hm config.ahbk) eachUser;
+    home-manager.users = mapAttrs (user: cfg: {
+      ahbk-hm.user = {
+        enable = true;
+        name = user;
+      };
+    }) eachUser;
   };
 }

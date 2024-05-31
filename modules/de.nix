@@ -11,10 +11,8 @@ let
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure IDE for this user");
+    options.enable = mkEnableOption (mdDoc "Configure Desktop Environment for this user");
   };
-
-  hm = import ./de-hm.nix;
 in {
   options.ahbk.de = with types; mkOption {
     type = attrsOf (submodule userOpts);
@@ -22,7 +20,11 @@ in {
   };
 
   config = mkIf (eachUser != {}) {
-    home-manager.users = mapAttrs (hm config.ahbk) eachUser;
+
+    home-manager.users = mapAttrs (user: cfg: {
+      ahbk-hm.de.enable = true;
+    }) eachUser;
+
     users.users = mapAttrs (user: cfg: { extraGroups = [ "audio" "transmission" "networkmanager" ]; }) eachUser;
 
     ahbk.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [

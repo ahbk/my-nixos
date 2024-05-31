@@ -15,7 +15,6 @@ let
     options.enable = mkEnableOption (mdDoc "Configure shell for this user");
   };
 
-  hm = import ./shell-hm.nix;
   hosts = import ../hosts.nix;
   system = hosts.${config.system.name}.system;
 in {
@@ -29,7 +28,9 @@ in {
       "/home/${user}/.bash_history"
     ]) eachUser);
 
-    home-manager.users = mapAttrs (hm config.ahbk) eachUser;
+    home-manager.users = mapAttrs (user: cfg: {
+      ahbk-hm.shell.enable = true;
+    }) eachUser;
 
     documentation.man.generateCaches = true;
 

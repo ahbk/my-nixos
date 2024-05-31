@@ -13,8 +13,6 @@ let
   userOpts = with types; {
     options.enable = mkEnableOption (mdDoc "Configure IDE for this user");
   };
-
-  hm = import ./vd-hm.nix;
 in {
   options.ahbk.vd = with types; mkOption {
     type = attrsOf (submodule userOpts);
@@ -22,7 +20,9 @@ in {
   };
 
   config = mkIf (eachUser != {}) {
-    home-manager.users = mapAttrs (hm config.ahbk) eachUser;
+    home-manager.users = mapAttrs (user: cfg: {
+      ahbk-hm.vd.enable = true;
+    }) eachUser;
 
     nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
       "helvetica-neue-lt-std"

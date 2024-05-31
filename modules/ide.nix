@@ -19,8 +19,6 @@ let
       userAsTopDomain = mkEnableOption (mdDoc "Make username a top domain name in local network");
     };
   };
-
-  hm = import ./ide-hm.nix;
 in {
   options.ahbk.ide = with types; mkOption {
     type = attrsOf (submodule userOpts);
@@ -28,7 +26,12 @@ in {
   };
 
   config = mkIf (eachUser != {}) {
-    home-manager.users = mapAttrs (hm config.ahbk) eachUser;
+    home-manager.users = mapAttrs (user: cfg: {
+      ahbk-hm.ide = {
+        enable = true;
+        inherit (config.ahbk.user.${user}) name email;
+      };
+    }) eachUser;
 
     programs.neovim = {
       enable = true;
