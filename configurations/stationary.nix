@@ -1,5 +1,19 @@
-{ config, pkgs', ... }: {
-  networking.hostName = "stationary";
+{ config
+, inputs
+, pkgs
+, ...
+}:
+
+let
+  hostname = "stationary";
+  hosts = import ../hosts.nix;
+  host = hosts.${hostname};
+
+  users = import ../users.nix;
+  sites = import ../sites.nix { inherit inputs config; };
+  pkgs' = import ../packages/all.nix { inherit pkgs; };
+in {
+  networking.hostName = host.name;
   system.stateVersion = "20.03";
   boot.loader.grub = {
     enable = true;
@@ -11,7 +25,7 @@
     proxyPass = "http://localhost:19999/";
   };
 
-  ahbk = with edgechunks; {
+  ahbk = with users; {
     user = { inherit frans backup; };
     shell.frans.enable = true;
     ide.frans = {
@@ -30,7 +44,7 @@
 
     wg-server = {
       enable = true;
-      host = "stationary";
+      host = host.name;
       address = "10.0.0.1/24";
       peers = hosts;
     };
@@ -40,7 +54,7 @@
       email = frans.email;
     };
 
-    wordpress.sites."test.esse.nu" = wordpress.sites."test.esse.nu";
+    wordpress.sites."test.esse.nu" = sites.wordpress.sites."test.esse.nu";
 
     odoo = {
       enable = true;

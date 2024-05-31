@@ -2,7 +2,6 @@
 , inputs
 , lib
 , pkgs
-, system
 , ...
 }:
 
@@ -11,6 +10,8 @@ with lib;
 let
   cfg = config.ahbk.odoo;
   format = pkgs.formats.ini {};
+  hosts = import ../hosts.nix;
+  system = hosts.${config.system.name}.system;
 
   pkgs-wkhtmltopdf = import inputs.nixpkgs-wkhtmltopdf { inherit system; };
 

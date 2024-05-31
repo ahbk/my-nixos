@@ -1,8 +1,10 @@
 { inputs
-, system
+, config
 }:
 
-{
+let
+  system = config.system.name;
+in {
   wordpress.sites."test.esse.nu" = {
     enable = true;
     ssl = true;
