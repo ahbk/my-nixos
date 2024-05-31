@@ -1,8 +1,6 @@
 { inputs
 , lib
-, nixpkgs
 , pkgs
-, theme
 , ...
 }:
 {
@@ -40,17 +38,17 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = { inherit inputs theme; };
+    extraSpecialArgs = { inherit inputs; };
   };
 
   nix = {
     package = pkgs.nixFlakes;
-    registry.nixpkgs.flake = nixpkgs;
+    registry.nixpkgs.flake = inputs.nixpkgs;
     channel.enable = false;
     settings = {
       nix-path = lib.mkForce "nixpkgs=/etc/nix/inputs/nixpkgs";
       experimental-features = [ "nix-command" "flakes" ];
     };
   };
-  environment.etc."nix/inputs/nixpkgs".source = "${nixpkgs}";
+  environment.etc."nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
 }

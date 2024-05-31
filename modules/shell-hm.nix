@@ -1,9 +1,12 @@
 ahbk: user: cfg:
 { config
 , pkgs
-, theme
 , ...
 }:
+
+let
+  theme = import ../theme.nix;
+in
 
 with theme.colors;
 with theme.fonts;

@@ -2,16 +2,18 @@ ahbk: user: cfg:
 { config
 , lib
 , pkgs
-, theme
 , ...
 }:
+
+let
+  theme = import ../theme.nix;
+  unhashedHexes = lib.mapAttrs (n: c: builtins.substring 1 6 c) theme.colors;
+in
 
 with theme.colors;
 with theme.fonts;
 
-let
-  unhashedHexes = lib.mapAttrs (n: c: builtins.substring 1 6 c) theme.colors;
-in {
+{
   config = lib.mkIf cfg.enable {
     programs.foot = {
       enable = true;

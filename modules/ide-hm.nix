@@ -3,9 +3,12 @@ ahbk: user: cfg:
 , inputs
 , lib
 , pkgs
-, theme
 , ...
 }:
+
+let
+  theme = import ../theme.nix;
+in
 
 with theme.colors;
 with theme.fonts;

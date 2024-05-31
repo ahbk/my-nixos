@@ -1,6 +1,5 @@
 { config
 , lib
-, lib'
 , pkgs
 , ...
 }:
@@ -8,6 +7,7 @@
 with lib;
 
 let
+  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.ahbk.fastapi;
 
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;

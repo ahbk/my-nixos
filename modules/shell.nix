@@ -2,7 +2,6 @@
 , inputs
 , lib
 , pkgs
-, system
 , ...
 }:
 
@@ -17,6 +16,8 @@ let
   };
 
   hm = import ./shell-hm.nix;
+  hosts = import ../hosts.nix;
+  system = hosts.${config.system.name}.system;
 in {
   options.ahbk.shell = with types; mkOption {
     type = attrsOf (submodule userOpts);
