@@ -39,7 +39,6 @@ in {
 
   container = rec {
     name = "container";
-    wgKey = key "wg" name;
     sshKey = key "ssh-host" name;
     address = "10.0.0.5";
     system = "x86_64-linux";

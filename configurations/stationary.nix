@@ -2,8 +2,11 @@
 , host
 , inputs
 , pkgs
+, lib
 , ...
 }:
+
+with lib;
 
 let
   hosts = import ../hosts.nix;
@@ -43,7 +46,7 @@ in {
       enable = true;
       host = host.name;
       address = "10.0.0.1/24";
-      peers = hosts;
+      peers = filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts;
     };
 
     nginx = {
