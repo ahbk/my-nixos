@@ -10,6 +10,8 @@ let
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.ahbk.user;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
+  hosts = import ../hosts.nix;
+  host = hosts.${config.system.name};
 
   userOpts = with types; {
     options = {
@@ -71,6 +73,7 @@ in {
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
+        ListenAddress = host.address;
       };
     };
 
