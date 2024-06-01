@@ -26,7 +26,6 @@ with theme.fonts;
       ll = "eza";
       cd = "z";
       grep = "grep --color=auto";
-      cat = "bat";
     };
 
     home.sessionVariables = {
