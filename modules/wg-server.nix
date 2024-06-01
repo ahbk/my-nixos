@@ -50,9 +50,12 @@ in {
         peers = mapAttrsToList (host: peerCfg: {
           name = peerCfg.name;
           publicKey = peerCfg.wgKey;
+        } // (if builtins.hasAttr "publicAddress" peerCfg then {
+          allowedIPs = [ "10.0.0.0/24" ];
+          endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.port}";
+        } else {
           allowedIPs = [ "${peerCfg.address}/32" ];
-          endpoint = if builtins.hasAttr "publicAddress" peerCfg then "${peerCfg.publicAddress}:${builtins.toString cfg.port}" else null;
-        }) cfg.peers;
+        })) cfg.peers;
       };
     };
   };
