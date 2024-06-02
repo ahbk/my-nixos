@@ -51,11 +51,10 @@ in {
           name = peerCfg.name;
           publicKey = peerCfg.wgKey;
           persistentKeepalive = 25;
+          allowedIPs = [ "${peerCfg.address}/32" ];
         } // (if builtins.hasAttr "publicAddress" peerCfg then {
-          allowedIPs = [ "10.0.0.0/24" ];
           endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.port}";
         } else {
-          allowedIPs = [ "${peerCfg.address}/32" ];
         })) cfg.peers;
       };
     };
