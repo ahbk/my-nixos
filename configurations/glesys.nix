@@ -14,6 +14,11 @@ let
 in
 
 {
+  networking = {
+    useDHCP = false;
+    interfaces.ens1.useDHCP = true;
+  };
+
   ahbk = with users; {
     user = { inherit alex frans; };
     shell.frans.enable = true;
@@ -24,7 +29,7 @@ in
       userAsTopDomain = false;
     };
 
-    wireguard.enable = true;
+    wireguard.wg0.enable = true;
 
     nginx = {
       enable = true;
