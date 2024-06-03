@@ -1,8 +1,5 @@
 let
-  hostname = "laptop";
   hosts = import ../hosts.nix;
-  host = hosts.${hostname};
-
   users = import ../users.nix;
 in {
   ahbk = {
@@ -18,15 +15,7 @@ in {
     vd.frans.enable = true;
     laptop.enable = true;
 
-    wg-client = {
-      enable = true;
-      host = host.name;
-      address = "${host.address}/24";
-      allowedIPs = [ "10.0.0.0/24" ];
-      publicKey = hosts.stationary.wgKey;
-      endpoint = "${hosts.stationary.publicAddress}:51820";
-      keepalive = 25;
-    };
+    wireguard.enable = true;
 
     mailClient."alex" = {
       enable = true;

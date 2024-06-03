@@ -1,5 +1,4 @@
-{ host
-, inputs
+{ inputs
 , pkgs
 , lib
 , ...
@@ -8,7 +7,6 @@
 with lib;
 
 let
-  hosts = import ../hosts.nix;
   users = import ../users.nix;
   sites = import ../sites.nix {
     inherit inputs;
@@ -44,12 +42,7 @@ in {
       device = "enp3s0";
     };
 
-    wg-server = {
-      enable = true;
-      host = host.name;
-      address = "${host.address}/24";
-      peers = filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts;
-    };
+    wireguard.enable = true;
 
     nginx = {
       enable = true;
