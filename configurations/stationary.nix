@@ -47,7 +47,7 @@ in {
       device = "enp3s0";
     };
 
-    wireguard.enable = true;
+    wireguard.wg0.enable = true;
 
     nginx = {
       enable = true;
