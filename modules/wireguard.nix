@@ -38,6 +38,7 @@ in {
     networking = {
       wireguard.enable = true;
       networkmanager.unmanaged = [ "interface-name:${cfg.device}" ];
+      interfaces.${cfg.device}.useDHCP = false;
     } // (if builtins.hasAttr "publicAddress" host then {
       firewall.allowedUDPPorts = [ cfg.port ];
     } else { });
@@ -47,6 +48,7 @@ in {
       owner = "systemd-network";
       group = "systemd-network";
     };
+
 
     systemd.network = {
       enable = true;
@@ -58,11 +60,11 @@ in {
             Name = cfg.device;
           };
 
-          wireguardConfig = {
+          wireguardConfig = ({
             PrivateKeyFile = config.age.secrets."wg-key-${host.name}".path;
           } // (if builtins.hasAttr "publicAddress" host then {
-            Endpoint = "${host.publicAddress}:${builtins.toString cfg.port}";
-          } else { });
+            ListenPort = cfg.port;
+          } else { }));
 
           wireguardPeers = mapAttrsToList (peerName: peerCfg: {
             wireguardPeerConfig = {

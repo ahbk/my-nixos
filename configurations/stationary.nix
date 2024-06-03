@@ -25,6 +25,11 @@ in {
     proxyPass = "http://localhost:19999/";
   };
 
+  networking = {
+    useDHCP = false;
+    interfaces.enp3s0.useDHCP = true;
+  };
+
   ahbk = with users; {
     user = { inherit frans backup; };
     shell.frans.enable = true;
