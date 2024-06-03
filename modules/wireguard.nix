@@ -69,7 +69,8 @@ in {
           wireguardPeers = mapAttrsToList (peerName: peerCfg: {
             wireguardPeerConfig = {
               PublicKey = peerCfg.wgKey;
-              AllowedIPs = [ "${peerCfg.address}/32" ];
+              AllowedIPs = [ "10.0.0.0/24" ];
+              #AllowedIPs = [ "${peerCfg.address}/32" ];
             } // (if builtins.hasAttr "publicAddress" peerCfg then {
               Endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.port}";
             } else {
