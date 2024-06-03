@@ -50,7 +50,7 @@ in {
         "sftp.command='ssh backup@10.0.0.1 -i /home/backup/.ssh/id_ed25519 -s sftp'"
       ];
       timerConfig = {
-        OnCalendar = "daily";
+        OnCalendar = "*-*-* 01:00:00";
         Persistent = true;
       };
     }) eachTarget;

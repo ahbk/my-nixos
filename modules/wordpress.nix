@@ -159,6 +159,10 @@ in {
       };
     }) eachSite;
 
+    ahbk.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
+      (stateDir hostname)
+    ]) eachSite);
+
     systemd.timers = lib'.mergeAttrs (hostname: cfg: {
       "${hostname}-mysql-dump" = {
         description = "scheduled database dump";

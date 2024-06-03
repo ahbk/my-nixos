@@ -28,7 +28,7 @@ in {
     users.users = mapAttrs (user: cfg: { extraGroups = [ "audio" "transmission" "networkmanager" ]; }) eachUser;
 
     ahbk.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
-      "/home/${user}/.local/share/qutebrowser"
+      "/home/${user}/.local/share/qutebrowser/history.sqlite"
     ]) eachUser);
 
     fonts.packages = with pkgs; [

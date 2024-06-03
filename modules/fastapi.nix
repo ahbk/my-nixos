@@ -148,6 +148,10 @@ in {
       };
     }) eachSite;
 
+    ahbk.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
+      (stateDir hostname)
+    ]) eachSite);
+
     system.activationScripts = mapAttrs (hostname: cfg: {
       text = ''
         ${pkgs.systemd}/bin/systemctl start ${hostname}-fastapi-migrate

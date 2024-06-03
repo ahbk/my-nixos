@@ -7,6 +7,7 @@ with lib;
 
 let
   users = import ../users.nix;
+  hosts = import ../hosts.nix;
   sites = (import ../sites.nix) {
     inherit inputs;
     system = "x86_64-linux";
@@ -20,13 +21,18 @@ in
   };
 
   ahbk = with users; {
-    user = { inherit alex frans; };
+    user = { inherit alex frans backup; };
     shell.frans.enable = true;
     ide.frans = {
       enable = true;
       postgresql = false;
       mysql = false;
       userAsTopDomain = false;
+    };
+
+    backup.stationary = {
+      enable = true;
+      repository = "sftp:backup@${hosts.stationary.address}:repository";
     };
 
     wireguard.wg0.enable = true;

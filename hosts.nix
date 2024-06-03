@@ -1,6 +1,7 @@
 let
   key = protocol: hostname: builtins.readFile ./keys/${protocol}-${hostname}.pub;
 in {
+
   stationary = rec {
     name = "stationary";
     wgKey = key "wg" name;
