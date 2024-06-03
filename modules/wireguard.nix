@@ -11,7 +11,7 @@ let
   hosts = import ../hosts.nix;
 in {
 
-  options.ahbk.wireguard = with types; {
+  options.ahbk.wireguard.wg0 = with types; {
     enable = mkEnableOption (mdDoc "Configure this host to be part of 10.0.0.0/24");
     keepalive = mkOption {
       type = int;
@@ -21,69 +21,61 @@ in {
       type = port;
       default = 51820;
     };
-    device = mkOption {
-      type = str;
-      default = "wg0";
-    };
-    ipForward = mkOption {
-      type = bool;
-      default = false;
-    };
   };
 
-  config = mkIf cfg.enable {
+  config = mkMerge [
+    (mkIf cfg.wg0.enable {
 
-    boot.kernel.sysctl."net.ipv4.ip_forward" = mkDefault (if cfg.ipForward then "1" else "0");
+      networking = {
+        wireguard.enable = true;
+        networkmanager.unmanaged = [ "interface-name:wg0" ];
+        interfaces.wg0.useDHCP = false;
+      } // (if builtins.hasAttr "publicAddress" host then {
+        firewall.allowedUDPPorts = [ cfg.wg0.port ];
+      } else { });
 
-    networking = {
-      wireguard.enable = true;
-      networkmanager.unmanaged = [ "interface-name:${cfg.device}" ];
-      interfaces.${cfg.device}.useDHCP = false;
-    } // (if builtins.hasAttr "publicAddress" host then {
-      firewall.allowedUDPPorts = [ cfg.port ];
-    } else { });
-
-    age.secrets."wg-key-${host.name}" = {
-      file = ../secrets/wg-key-${host.name}.age;
-      owner = "systemd-network";
-      group = "systemd-network";
-    };
+      age.secrets."wg-key-${host.name}" = {
+        file = ../secrets/wg-key-${host.name}.age;
+        owner = "systemd-network";
+        group = "systemd-network";
+      };
 
 
-    systemd.network = {
-      enable = true;
-      netdevs = {
+      systemd.network = {
+        enable = true;
+        netdevs = {
 
-        "10-${cfg.device}" = {
-          netdevConfig = {
-            Kind = "wireguard";
-            Name = cfg.device;
+          "10-wg0" = {
+            netdevConfig = {
+              Kind = "wireguard";
+              Name = "wg0";
+            };
+
+            wireguardConfig = ({
+              PrivateKeyFile = config.age.secrets."wg-key-${host.name}".path;
+            } // (if builtins.hasAttr "publicAddress" host then {
+              ListenPort = cfg.wg0.port;
+            } else { }));
+
+            wireguardPeers = mapAttrsToList (peerName: peerCfg: {
+              wireguardPeerConfig = {
+                PublicKey = peerCfg.wgKey;
+                AllowedIPs = [ "${peerCfg.address}/32" ];
+              } // (if builtins.hasAttr "publicAddress" peerCfg then {
+                Endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.wg0.port}";
+              } else {
+                PersistentKeepalive = cfg.wg0.keepalive;
+              });
+            }) (filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts);
           };
+        };
 
-          wireguardConfig = ({
-            PrivateKeyFile = config.age.secrets."wg-key-${host.name}".path;
-          } // (if builtins.hasAttr "publicAddress" host then {
-            ListenPort = cfg.port;
-          } else { }));
-
-          wireguardPeers = mapAttrsToList (peerName: peerCfg: {
-            wireguardPeerConfig = {
-              PublicKey = peerCfg.wgKey;
-              AllowedIPs = [ "${peerCfg.address}/32" ];
-            } // (if builtins.hasAttr "publicAddress" peerCfg then {
-              Endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.port}";
-            } else {
-              PersistentKeepalive = cfg.keepalive;
-            });
-          }) (filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts);
+        networks.wg0 = {
+          matchConfig.Name = "wg0";
+          address = [ "${host.address}/24" ];
         };
       };
 
-      networks.${cfg.device} = {
-        matchConfig.Name = cfg.device;
-        address = [ "${host.address}/24" ];
-      };
-    };
-
-  };
+    })
+  ];
 }

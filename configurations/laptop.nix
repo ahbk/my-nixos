@@ -15,7 +15,7 @@ in {
     vd.frans.enable = true;
     laptop.enable = true;
 
-    wireguard.enable = true;
+    wireguard.wg0.enable = true;
 
     mailClient."alex" = {
       enable = true;
