@@ -119,6 +119,8 @@ with theme.fonts;
       ripgrep
       silver-searcher
       unzip
+      tcpdump
+      traceroute
     ];
   };
 }
