@@ -49,6 +49,12 @@ in {
       extraOptions = [
         "sftp.command='ssh backup@10.0.0.1 -i /home/backup/.ssh/id_ed25519 -s sftp'"
       ];
+      pruneOpts = [
+        "--keep-daily 7"
+        "--keep-weekly 5"
+        "--keep-monthly 12"
+        "--keep-yearly 75"
+      ];
       timerConfig = {
         OnCalendar = "*-*-* 01:00:00";
         Persistent = true;
