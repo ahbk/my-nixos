@@ -1,4 +1,5 @@
 { config
+, host
 , inputs
 , lib
 , pkgs
@@ -15,8 +16,6 @@ let
     options.enable = mkEnableOption (mdDoc "Configure shell for this user");
   };
 
-  hosts = import ../hosts.nix;
-  system = hosts.${config.system.name}.system;
 in {
   options.ahbk.shell = with types; mkOption {
     type = attrsOf (submodule userOpts);
@@ -35,7 +34,7 @@ in {
     documentation.man.generateCaches = true;
 
     environment.systemPackages = with pkgs; [
-      inputs.agenix.packages.${system}.default
+      inputs.agenix.packages.${host.system}.default
       w3m
     ];
   };

@@ -11,9 +11,6 @@ let
   cfg = config.ahbk.user;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
-  hosts = import ../hosts.nix;
-  host = hosts.${config.system.name};
-
   userOpts = with types; {
     options = {
       enable = mkEnableOption (mdDoc "Configure this user") // {
@@ -75,12 +72,5 @@ in {
         #ListenAddress = host.address;
       };
     };
-
-    home-manager.users = mapAttrs (user: cfg: {
-      ahbk-hm.user = {
-        enable = true;
-        name = user;
-      };
-    }) eachUser;
   };
 }

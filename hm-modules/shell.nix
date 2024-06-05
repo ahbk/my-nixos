@@ -34,6 +34,10 @@ with theme.fonts;
       HISTTIMEFORMAT = "%y-%m-%d %T ";
     };
 
+    programs.ssh = {
+      enable = true;
+    };
+
     programs.bash = {
       enable = true;
 
