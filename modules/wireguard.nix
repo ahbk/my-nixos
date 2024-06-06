@@ -58,15 +58,13 @@ in {
             } else { }));
 
             wireguardPeers = mapAttrsToList (peerName: peerCfg: {
-              wireguardPeerConfig = {
-                PublicKey = peerCfg.wgKey;
-                AllowedIPs = [ "${peerCfg.address}/32" ];
-              } // (if builtins.hasAttr "publicAddress" peerCfg then {
-                Endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.wg0.port}";
-              } else {
-                PersistentKeepalive = cfg.wg0.keepalive;
-              });
-            }) (filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts);
+              PublicKey = peerCfg.wgKey;
+              AllowedIPs = [ "${peerCfg.address}/32" ];
+            } // (if builtins.hasAttr "publicAddress" peerCfg then {
+              Endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.wg0.port}";
+            } else {
+              PersistentKeepalive = cfg.wg0.keepalive;
+            })) (filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts);
           };
         };
 

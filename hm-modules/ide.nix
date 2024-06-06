@@ -119,7 +119,7 @@ with theme.fonts;
         };
         keymaps = [
           { key = "<F2>"; action = "<cmd>Neotree toggle<cr>"; }
-          { key = "<space>e"; action = "vim.diagnostic.open_float"; lua = true; }
+          { key = "<space>e"; action.__raw = "vim.diagnostic.open_float"; }
           { key = "<leader>sh"; action = ":split<cr>"; }
           { key = "<leader>sv"; action = ":vsplit<cr>"; }
           { key = "<leader>c"; action = "\"+yy"; mode = [ "n" ]; }
@@ -134,6 +134,7 @@ with theme.fonts;
           nix.enable = true;
           nvim-colorizer.enable = true;
           fugitive.enable = true;
+          gitignore.enable = false;
 
           treesitter = {
             enable = true;
@@ -155,7 +156,7 @@ with theme.fonts;
               tsserver.enable = true;
               svelte.enable = true;
               pyright.enable = true;
-              nil_ls.enable = true;
+              nil-ls.enable = true;
             };
             keymaps = {
               lspBuf = {
