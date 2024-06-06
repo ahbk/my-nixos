@@ -21,8 +21,40 @@ in {
 
   services.netdata.enable = true;
 
-  services.nginx.virtualHosts."10.0.0.1".locations."/netdata/" = {
+  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
+
+  services.nginx.virtualHosts."stationary.ahbk".locations."/netdata/" = {
     proxyPass = "http://localhost:19999/";
+  };
+
+  services.invoiceplane = {
+    webserver = "nginx";
+    sites."invoiceplane.ahbk" = {
+      enable = true;
+      settings = {
+        DISABLE_SETUP = true;
+      };
+    };
+  };
+
+  services.kresd = {
+    enable = true;
+    listenPlain = [
+      "10.0.0.1:53"
+    ];
+    extraConfig = ''
+    modules = { 'hints > iterate' }
+    hints['invoiceplane.ahbk'] = '10.0.0.1'
+    hints['stationary.ahbk'] = '10.0.0.1'
+    hints['glesys.ahbk'] = '10.0.0.3'
+    hints['laptop.ahbk'] = '10.0.0.2'
+    hints['phone.ahbk'] = '10.0.0.4'
+    '';
+  };
+
+  networking.firewall.interfaces.wg0 = {
+    allowedTCPPorts = [ 53 ];
+    allowedUDPPorts = [ 53 ];
   };
 
   networking = {
@@ -33,6 +65,7 @@ in {
   ahbk = with users; {
     user = { inherit frans backup; };
     shell.frans.enable = true;
+    hm.frans.enable = true;
     ide.frans = {
       enable = true;
       postgresql = true;
@@ -56,16 +89,5 @@ in {
 
     wordpress.sites."test.esse.nu" = sites.wordpress.sites."test.esse.nu";
 
-    odoo = {
-      enable = true;
-      package = pkgs'.odoo;
-      domain = "10.0.0.1";
-      settings = {
-        options = {
-          db_user = "odoo";
-          db_name = "odoo";
-        };
-      };
-    };
   };
 }

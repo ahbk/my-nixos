@@ -25,9 +25,6 @@
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
 
-    # wkhtmltopdf is broken and unsafe, this is the context for running wkhtmltopdf as a nixpak
-    nixpkgs-wkhtmltopdf.url = "github:NixOS/nixpkgs/c8d822252b86022a71dcc4f0f48bc869ef446401";
-    nixpkgs-wkhtmltopdf.flake = false;
   };
 
   outputs = { self, ... }@inputs:

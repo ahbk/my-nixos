@@ -59,7 +59,9 @@ in {
 
             wireguardPeers = mapAttrsToList (peerName: peerCfg: {
               PublicKey = peerCfg.wgKey;
-              AllowedIPs = [ "${peerCfg.address}/32" ];
+              AllowedIPs = [
+                (if peerCfg.name == "stationary" then "10.0.0.0/24" else "${peerCfg.address}/32")
+              ];
             } // (if builtins.hasAttr "publicAddress" peerCfg then {
               Endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.wg0.port}";
             } else {
@@ -71,6 +73,7 @@ in {
         networks.wg0 = {
           matchConfig.Name = "wg0";
           address = [ "${host.address}/24" ];
+          dns = [ "10.0.0.1" ];
         };
       };
 

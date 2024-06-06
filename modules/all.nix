@@ -20,7 +20,6 @@
     ./mysql.nix
     ./nginx.nix
     ./nix.nix
-    ./odoo.nix
     ./postgresql.nix
     ./shell.nix
     ./svelte.nix

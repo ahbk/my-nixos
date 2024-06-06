@@ -551,23 +551,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-wkhtmltopdf": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1512035474,
-        "narHash": "sha256-xtgs9WSP5Dhs6bGbuhSBRay7sLzePSQO9X7WHGJd8gU=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "c8d822252b86022a71dcc4f0f48bc869ef446401",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "c8d822252b86022a71dcc4f0f48bc869ef446401",
-        "type": "github"
-      }
-    },
     "nixvim": {
       "inputs": {
         "devshell": "devshell",
@@ -653,7 +636,6 @@
         "nixos-mailserver": "nixos-mailserver",
         "nixpak": "nixpak",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-wkhtmltopdf": "nixpkgs-wkhtmltopdf",
         "nixvim": "nixvim",
         "sverigesval": "sverigesval"
       }
