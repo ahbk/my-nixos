@@ -5,10 +5,14 @@
 }:
 
 with lib;
+with builtins;
 
 let
   cfg = config.ahbk.wireguard;
   hosts = import ../hosts.nix;
+  isGateway = cfg: cfg.name == "stationary";
+  isServer = cfg: hasAttr "publicAddress" cfg;
+  isPeer = cfg: hasAttr "wgKey" cfg;
 in {
 
   options.ahbk.wireguard.wg0 = with types; {
@@ -30,7 +34,7 @@ in {
         wireguard.enable = true;
         networkmanager.unmanaged = [ "interface-name:wg0" ];
         interfaces.wg0.useDHCP = false;
-      } // (if builtins.hasAttr "publicAddress" host then {
+      } // (if isServer host then {
         firewall.allowedUDPPorts = [ cfg.wg0.port ];
       } else { });
 
@@ -53,20 +57,20 @@ in {
 
             wireguardConfig = ({
               PrivateKeyFile = config.age.secrets."wg-key-${host.name}".path;
-            } // (if builtins.hasAttr "publicAddress" host then {
+            } // (if isServer host then {
               ListenPort = cfg.wg0.port;
             } else { }));
 
             wireguardPeers = mapAttrsToList (peerName: peerCfg: {
               PublicKey = peerCfg.wgKey;
               AllowedIPs = [
-                (if peerCfg.name == "stationary" then "10.0.0.0/24" else "${peerCfg.address}/32")
+                (if isGateway peerCfg then "10.0.0.0/24" else "${peerCfg.address}/32")
               ];
-            } // (if builtins.hasAttr "publicAddress" peerCfg then {
-              Endpoint = "${peerCfg.publicAddress}:${builtins.toString cfg.wg0.port}";
+            } // (if isServer peerCfg then {
+              Endpoint = "${peerCfg.publicAddress}:${toString cfg.wg0.port}";
             } else {
               PersistentKeepalive = cfg.wg0.keepalive;
-            })) (filterAttrs (host: cfg: builtins.hasAttr "wgKey" cfg) hosts);
+            })) (filterAttrs (_: cfg: (isPeer cfg) && ((isServer cfg) || (isServer host))) hosts);
           };
         };
 
