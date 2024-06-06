@@ -53,5 +53,11 @@
         ./configurations/${hostname}.nix
       ];
     }) (import ./hosts.nix);
+
+    packages."x86_64-linux".options-doc = let
+      pkgs' = import ./packages/all.nix {
+        pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
+      };
+    in pkgs'.options-doc;
   };
 }

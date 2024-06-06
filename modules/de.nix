@@ -16,6 +16,7 @@ let
 in {
   options.ahbk.de = with types; mkOption {
     type = attrsOf (submodule userOpts);
+    description = mdDoc "Definition of per-user desktop environment";
     default = {};
   };
 

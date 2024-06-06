@@ -10,16 +10,19 @@ let
   eachTarget = filterAttrs (user: cfg: cfg.enable) cfg;
   targetOpts = {
     options = with types; {
-      enable = mkEnableOption (mdDoc "Configure backup for this host");
+      enable = mkEnableOption "backup target";
       paths = mkOption {
+        description = "List of paths to backup";
         type = listOf str;
         default = [];
       };
       exclude = mkOption {
+        description = "List of paths to not backup";
         type = listOf str;
         default = [];
       };
       repository = mkOption {
+        description = "Target repository";
         type = str;
       };
     };
