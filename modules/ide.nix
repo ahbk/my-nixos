@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -19,14 +20,17 @@ let
       userAsTopDomain = mkEnableOption "username a top domain name in local network";
     };
   };
-in {
-  options.my-nixos.ide = with types; mkOption {
-    description = "Set of users to be configured with IDE.";
-    type = attrsOf (submodule userOpts);
-    default = {};
-  };
+in
+{
+  options.my-nixos.ide =
+    with types;
+    mkOption {
+      description = "Set of users to be configured with IDE.";
+      type = attrsOf (submodule userOpts);
+      default = { };
+    };
 
-  config = mkIf (eachUser != {}) {
+  config = mkIf (eachUser != { }) {
     home-manager.users = mapAttrs (user: cfg: {
       my-nixos-hm.ide = {
         enable = true;
@@ -48,11 +52,11 @@ in {
 
     programs.adb.enable = true;
 
-    users.users = mapAttrs (user: cfg: { extraGroups = ["adbusers"]; }) eachUser;
+    users.users = mapAttrs (user: cfg: { extraGroups = [ "adbusers" ]; }) eachUser;
 
     networking.hosts."127.0.0.2" = mapAttrsToList (user: cfg: user) eachUser;
 
-    services.dnsmasq = mkIf (eachUserAsTopDomain != {}) {
+    services.dnsmasq = mkIf (eachUserAsTopDomain != { }) {
       enable = true;
       settings.address = mapAttrsToList (user: cfg: "/.${user}/127.0.0.2") eachUserAsTopDomain;
     };

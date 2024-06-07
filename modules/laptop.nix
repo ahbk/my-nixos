@@ -1,14 +1,12 @@
-{ config
-, lib
-, ...
-}:
+{ config, lib, ... }:
 
 with lib;
 with builtins;
 
 let
   cfg = config.my-nixos.laptop;
-in {
+in
+{
   options.my-nixos.laptop = with types; {
     enable = mkEnableOption "Enable power management on the host";
   };
@@ -20,7 +18,7 @@ in {
     };
 
     powerManagement.enable = true;
-    
+
     services.thermald.enable = true;
   };
 }

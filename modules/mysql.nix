@@ -1,7 +1,8 @@
-{ config
-, pkgs
-, lib
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  ...
 }:
 
 with lib;
@@ -18,16 +19,17 @@ let
       };
     };
   };
-in {
+in
+{
   options = {
     my-nixos.mysql = mkOption {
       type = types.attrsOf (types.submodule userOpts);
-      default = {};
+      default = { };
       description = "Specification of one or more mysql user/database pair to setup";
     };
   };
 
-  config = mkIf (eachCfg != {}) {
+  config = mkIf (eachCfg != { }) {
     services.mysql = {
       enable = true;
       package = pkgs.mariadb;
@@ -35,9 +37,10 @@ in {
       ensureDatabases = mapAttrsToList (user: cfg: user) eachCfg;
       ensureUsers = mapAttrsToList (user: cfg: {
         name = user;
-        ensurePermissions = { "\\`${user}\\`.*" = "ALL PRIVILEGES"; };
+        ensurePermissions = {
+          "\\`${user}\\`.*" = "ALL PRIVILEGES";
+        };
       }) eachCfg;
     };
-
   };
 }

@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -17,21 +18,26 @@ let
       };
     };
   };
-in {
-  options.my-nixos.mailClient = with types; mkOption {
-    description = "Set of users to be configured with mail client.";
-    type = attrsOf (submodule userOpts);
-    default = {};
-  };
+in
+{
+  options.my-nixos.mailClient =
+    with types;
+    mkOption {
+      description = "Set of users to be configured with mail client.";
+      type = attrsOf (submodule userOpts);
+      default = { };
+    };
 
-  config = mkIf (eachUser != {}) {
+  config = mkIf (eachUser != { }) {
 
-    age.secrets = mapAttrs' (user: cfg: (
-      nameValuePair "linux-passwd-plain-${user}" {
+    age.secrets = mapAttrs' (
+      user: cfg:
+      (nameValuePair "linux-passwd-plain-${user}" {
         file = ../secrets/linux-passwd-plain-${user}.age;
         owner = user;
         group = user;
-      })) eachUser;
+      })
+    ) eachUser;
 
     programs.msmtp = {
       enable = true;

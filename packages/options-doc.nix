@@ -1,15 +1,13 @@
-{ lib
-, runCommand
-, nixosOptionsDoc
-, pkgs
-, ...
+{
+  lib,
+  runCommand,
+  nixosOptionsDoc,
+  pkgs,
+  ...
 }:
 
 let
-  inherit (pkgs.lib)
-    hasPrefix
-    removePrefix
-    ;
+  inherit (pkgs.lib) hasPrefix removePrefix;
 
   eval = lib.evalModules {
     check = false;
@@ -38,15 +36,23 @@ let
   };
   optionsDoc = nixosOptionsDoc {
     inherit (eval) options;
-    transformOptions = opt: opt // {
-      declarations =
-        map (decl:
-          let subpath = removePrefix "/" (removePrefix (toString ./..) (toString decl));
-          in { url = "https://github.com/ahbk/my-nixos/blob/master/${subpath}"; name = subpath; }
-          ) opt.declarations;
+    transformOptions =
+      opt:
+      opt
+      // {
+        declarations = map (
+          decl:
+          let
+            subpath = removePrefix "/" (removePrefix (toString ./..) (toString decl));
+          in
+          {
+            url = "https://github.com/ahbk/my-nixos/blob/master/${subpath}";
+            name = subpath;
+          }
+        ) opt.declarations;
       };
-    };
+  };
 in
-  runCommand "options-doc.md" {} ''
+runCommand "options-doc.md" { } ''
   cat ${optionsDoc.optionsCommonMark} >> $out
-  ''
+''

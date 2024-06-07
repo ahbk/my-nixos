@@ -1,6 +1,4 @@
-{ host
-, ...
-}:
+{ host, ... }:
 
 {
   time.timeZone = "Europe/Stockholm";

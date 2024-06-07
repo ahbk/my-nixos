@@ -1,6 +1,7 @@
 let
   users = import ../users.nix;
-in {
+in
+{
   my-nixos = {
     user.frans = users.frans;
     shell.frans.enable = true;

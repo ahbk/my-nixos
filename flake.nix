@@ -23,35 +23,46 @@
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, ... }@inputs:
+  outputs =
+    { self, ... }@inputs:
 
-  with inputs.nixpkgs.lib;
-  with inputs.home-manager.lib;
+    with inputs.nixpkgs.lib;
+    with inputs.home-manager.lib;
 
-  {
-    homeConfigurations = mapAttrs (target: cfg: homeManagerConfiguration {
-      pkgs = inputs.nixpkgs.legacyPackages.${cfg.system};
-      extraSpecialArgs = { inherit inputs; };
-      modules = [
-        { home.stateVersion = cfg.stateVersion; }
-        ./hm-modules/all.nix
-        { inherit (cfg) my-nixos-hm; }
-      ];
-    }) (import ./hm-hosts.nix);
+    {
+      homeConfigurations = mapAttrs (
+        target: cfg:
+        homeManagerConfiguration {
+          pkgs = inputs.nixpkgs.legacyPackages.${cfg.system};
+          extraSpecialArgs = {
+            inherit inputs;
+          };
+          modules = [
+            { home.stateVersion = cfg.stateVersion; }
+            ./hm-modules/all.nix
+            { inherit (cfg) my-nixos-hm; }
+          ];
+        }
+      ) (import ./hm-hosts.nix);
 
-    nixosConfigurations = mapAttrs (hostname: host: nixosSystem {
-      specialArgs = { inherit inputs host; };
-      modules = [
-        ./configurations/${hostname}-hardware.nix
-        ./modules/all.nix
-        ./configurations/${hostname}.nix
-      ];
-    }) (import ./hosts.nix);
+      nixosConfigurations = mapAttrs (
+        hostname: host:
+        nixosSystem {
+          specialArgs = {
+            inherit inputs host;
+          };
+          modules = [
+            ./configurations/${hostname}-hardware.nix
+            ./modules/all.nix
+            ./configurations/${hostname}.nix
+          ];
+        }
+      ) (import ./hosts.nix);
 
-    packages."x86_64-linux".options-doc = let
-      pkgs' = import ./packages/all.nix {
-        pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
-      };
-    in pkgs'.options-doc;
-  };
+      packages."x86_64-linux".options-doc =
+        let
+          pkgs' = import ./packages/all.nix { pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux"; };
+        in
+        pkgs'.options-doc;
+    };
 }

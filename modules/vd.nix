@@ -1,7 +1,8 @@
-{ lib
-, config
-, pkgs
-, ...
+{
+  lib,
+  config,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -13,21 +14,21 @@ let
   userOpts = with types; {
     options.enable = mkEnableOption "Visual design tools for this user";
   };
-in {
-  options.my-nixos.vd = with types; mkOption {
-    description = "Set of users to be configured with visual design tools.";
-    type = attrsOf (submodule userOpts);
-    default = {};
-  };
+in
+{
+  options.my-nixos.vd =
+    with types;
+    mkOption {
+      description = "Set of users to be configured with visual design tools.";
+      type = attrsOf (submodule userOpts);
+      default = { };
+    };
 
-  config = mkIf (eachUser != {}) {
-    home-manager.users = mapAttrs (user: cfg: {
-      my-nixos-hm.vd.enable = true;
-    }) eachUser;
+  config = mkIf (eachUser != { }) {
+    home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.vd.enable = true; }) eachUser;
 
-    nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-      "helvetica-neue-lt-std"
-    ];
+    nixpkgs.config.allowUnfreePredicate =
+      pkg: builtins.elem (lib.getName pkg) [ "helvetica-neue-lt-std" ];
 
     fonts.packages = with pkgs; [
       aileron
@@ -68,5 +69,4 @@ in {
       ubuntu_font_family
     ];
   };
-
 }

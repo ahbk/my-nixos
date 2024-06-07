@@ -1,7 +1,8 @@
-{ inputs
-, lib
-, pkgs
-, ...
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
 }:
 
 {
@@ -11,7 +12,10 @@
     channel.enable = false;
     settings = {
       nix-path = lib.mkForce "nixpkgs=/etc/nix/inputs/nixpkgs";
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
     };
   };
   environment.etc."nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";

@@ -24,9 +24,7 @@
     uid = 1001;
     email = "alex@ahbk.se";
     groups = [ "wheel" ];
-    keys = [
-      ./keys/ssh-user-alex.pub
-    ];
+    keys = [ ./keys/ssh-user-alex.pub ];
   };
 
   frans = {
@@ -35,8 +33,6 @@
     name = "Alexander Holmbäck";
     email = "alexander.holmback@gmail.com";
     groups = [ "wheel" ];
-    keys = [
-      ./keys/ssh-user-alex.pub
-    ];
+    keys = [ ./keys/ssh-user-alex.pub ];
   };
 }

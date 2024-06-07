@@ -1,7 +1,4 @@
-{ inputs
-, lib
-, ...
-}:
+{ inputs, lib, ... }:
 
 with lib;
 
@@ -13,7 +10,6 @@ let
     system = "x86_64-linux";
   };
 in
-
 {
   networking = {
     useDHCP = false;
@@ -21,7 +17,9 @@ in
   };
 
   my-nixos = with users; {
-    user = { inherit alex frans backup; };
+    user = {
+      inherit alex frans backup;
+    };
     shell.frans.enable = true;
     hm.frans.enable = true;
     ide.frans = {

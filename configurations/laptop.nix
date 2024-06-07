@@ -1,9 +1,12 @@
 let
   hosts = import ../hosts.nix;
   users = import ../users.nix;
-in {
+in
+{
   my-nixos = {
-    user = with users; { inherit alex frans backup; };
+    user = with users; {
+      inherit alex frans backup;
+    };
     shell.frans.enable = true;
     ide.frans = {
       enable = true;
@@ -31,11 +34,15 @@ in {
   networking = {
     nat = {
       enable = true;
-      internalInterfaces = ["ve-+"];
+      internalInterfaces = [ "ve-+" ];
       externalInterface = "wlp1s0";
     };
     networkmanager.unmanaged = [ "interface-name:ve-*" ];
-    firewall.allowedTCPPorts = [ 3000 5173 8000 ];
+    firewall.allowedTCPPorts = [
+      3000
+      5173
+      8000
+    ];
   };
 
   boot.loader.grub = {
@@ -61,6 +68,6 @@ in {
     wantedBy = [ "multi-user.target" ];
     after = [ "nix-daemon.socket" ];
     before = [ "systemd-user-sessions.service" ];
-    script = ''/run/current-system/sw/bin/setkeycodes 56 43'';
+    script = "/run/current-system/sw/bin/setkeycodes 56 43";
   };
 }

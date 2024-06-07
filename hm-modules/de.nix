@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -11,7 +12,6 @@ let
   unhashedHexes = lib.mapAttrs (n: c: builtins.substring 1 6 c) theme.colors;
   cfg = config.my-nixos-hm.de;
 in
-
 with theme.colors;
 with theme.fonts;
 
@@ -19,7 +19,7 @@ with theme.fonts;
   options.my-nixos-hm.de = with types; {
     enable = mkEnableOption "Desktop Environment for this user";
   };
-  
+
   config = lib.mkIf cfg.enable {
     programs.foot = {
       enable = true;
@@ -28,7 +28,7 @@ with theme.fonts;
         main.dpi-aware = "no";
         mouse.hide-when-typing = "yes";
         colors = with unhashedHexes; {
-          alpha = .8;
+          alpha = 0.8;
           background = base00;
           foreground = base07;
 
@@ -228,7 +228,7 @@ with theme.fonts;
       settings = {
         mainBar = {
           layer = "top";
-          position  = "top";
+          position = "top";
           height = 30;
           spacing = 4;
           output = [
@@ -238,7 +238,7 @@ with theme.fonts;
           modules-right = [ "battery" ];
           modules-center = [ "clock" ];
           clock = {
-            tooltip-format =  "<tt><small>{calendar}</small></tt>";
+            tooltip-format = "<tt><small>{calendar}</small></tt>";
             format-alt = "{:%A %Y-%m-%d}";
             calendar = {
               mode = "year";
@@ -256,20 +256,20 @@ with theme.fonts;
         };
       };
       style = ''
-      * {
-        font-family: ${monospace};
-        background-color: ${bg-400};
-      }
-      #battery {
-        padding: 0 10px;
-        border-radius: 10px;
-        background-color: ${blue-400};
-      }
-      #clock {
-        padding: 0 10px;
-        background-color: ${bg-300};
-        color: ${fg-300};
-      }
+        * {
+          font-family: ${monospace};
+          background-color: ${bg-400};
+        }
+        #battery {
+          padding: 0 10px;
+          border-radius: 10px;
+          background-color: ${blue-400};
+        }
+        #clock {
+          padding: 0 10px;
+          background-color: ${bg-300};
+          color: ${fg-300};
+        }
       '';
     };
 
@@ -322,8 +322,15 @@ with theme.fonts;
         };
 
         device = [
-          { name = "epic-mouse-v1"; sensitivity = -0.5; }
-          { name = "wacom-intuos-pt-m-pen"; transform = 0; output = "HDMI-A-1"; }
+          {
+            name = "epic-mouse-v1";
+            sensitivity = -0.5;
+          }
+          {
+            name = "wacom-intuos-pt-m-pen";
+            transform = 0;
+            output = "HDMI-A-1";
+          }
         ];
 
         windowrule = [
@@ -333,26 +340,47 @@ with theme.fonts;
         ];
         "$mainMod" = "SUPER";
 
-        bind = [
-          "$mainMod, i, exec, ${lib.getExe pkgs.foot}"
-          "$mainMod, o, exec, ${lib.getExe pkgs.qutebrowser}"
-          "$mainMod, r, exec, ${lib.getExe pkgs.fuzzel}"
-          "$mainMod, p, exec, ${lib.getExe pkgs.grim} -g \"$(${lib.getExe pkgs.slurp})\" - | ${lib.getExe pkgs.swappy} -f -"
-          ", PRINT, exec, ${lib.getExe pkgs.grim} - | ${pkgs.wl-clipboard}/bin/wl-copy"
-          "$mainMod, return, togglefloating,"
-          "$mainMod, c, killactive,"
-          "$mainMod, q, exit,"
-          "$mainMod, d, pseudo,"
-          "$mainMod, s, togglesplit,"
-          "$mainMod, h, movefocus, l"
-          "$mainMod, l, movefocus, r"
-          "$mainMod, k, movefocus, u"
-          "$mainMod, j, movefocus, d"
-          "$mainMod, mouse_down, workspace, e+1"
-          "$mainMod, mouse_up, workspace, e-1"
-        ]
-        ++ map (i: "$mainMod, ${toString i}, workspace, ${toString i}") [ 1 2 3 4 5 6 7 8 9 ]
-        ++ map (i: "$mainMod SHIFT, ${toString i}, movetoworkspacesilent, ${toString i}") [ 1 2 3 4 5 6 7 8 9 ];
+        bind =
+          [
+            "$mainMod, i, exec, ${lib.getExe pkgs.foot}"
+            "$mainMod, o, exec, ${lib.getExe pkgs.qutebrowser}"
+            "$mainMod, r, exec, ${lib.getExe pkgs.fuzzel}"
+            ''$mainMod, p, exec, ${lib.getExe pkgs.grim} -g "$(${lib.getExe pkgs.slurp})" - | ${lib.getExe pkgs.swappy} -f -''
+            ", PRINT, exec, ${lib.getExe pkgs.grim} - | ${pkgs.wl-clipboard}/bin/wl-copy"
+            "$mainMod, return, togglefloating,"
+            "$mainMod, c, killactive,"
+            "$mainMod, q, exit,"
+            "$mainMod, d, pseudo,"
+            "$mainMod, s, togglesplit,"
+            "$mainMod, h, movefocus, l"
+            "$mainMod, l, movefocus, r"
+            "$mainMod, k, movefocus, u"
+            "$mainMod, j, movefocus, d"
+            "$mainMod, mouse_down, workspace, e+1"
+            "$mainMod, mouse_up, workspace, e-1"
+          ]
+          ++ map (i: "$mainMod, ${toString i}, workspace, ${toString i}") [
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+          ]
+          ++ map (i: "$mainMod SHIFT, ${toString i}, movetoworkspacesilent, ${toString i}") [
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+          ];
 
         bindm = [
           "$mainMod, mouse:272, movewindow"

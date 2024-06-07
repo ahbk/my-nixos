@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -18,16 +19,17 @@ let
       };
     };
   };
-in {
+in
+{
   options = {
     my-nixos.postgresql = mkOption {
       type = types.attrsOf (types.submodule userOpts);
-      default = {};
+      default = { };
       description = "Specification of one or more postgresql user/database pair to setup";
     };
   };
 
-  config = mkIf (eachCfg != {}) {
+  config = mkIf (eachCfg != { }) {
     services.postgresql = {
       enable = true;
       package = pkgs.postgresql_14;

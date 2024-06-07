@@ -1,6 +1,4 @@
-{ inputs
-, ...
-}:
+{ inputs, ... }:
 {
   imports = [
     inputs.agenix.nixosModules.default
@@ -30,5 +28,4 @@
     ./wireguard.nix
     ./wordpress.nix
   ];
-
 }

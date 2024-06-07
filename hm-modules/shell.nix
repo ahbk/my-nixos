@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -10,7 +11,6 @@ let
   cfg = config.my-nixos-hm.shell;
   theme = import ../theme.nix;
 in
-
 with theme.colors;
 with theme.fonts;
 
@@ -41,7 +41,11 @@ with theme.fonts;
     programs.bash = {
       enable = true;
 
-      historyControl = [ "ignoredups" "erasedups" "ignorespace" ];
+      historyControl = [
+        "ignoredups"
+        "erasedups"
+        "ignorespace"
+      ];
 
       shellOptions = [
         "histappend"
@@ -52,16 +56,15 @@ with theme.fonts;
         "checkjobs"
       ];
 
-      bashrcExtra = ''
-      '';
+      bashrcExtra = "";
 
       initExtra = ''
-      pwu() {
-        bw unlock --raw > ~/.bwsession
-      }
-      pw() {
-        BW_SESSION=$(<~/.bwsession) bw get password $@ | wl-copy
-      }
+        pwu() {
+          bw unlock --raw > ~/.bwsession
+        }
+        pw() {
+          BW_SESSION=$(<~/.bwsession) bw get password $@ | wl-copy
+        }
       '';
 
       shellAliases = {
@@ -89,15 +92,15 @@ with theme.fonts;
       escapeTime = 10;
       baseIndex = 1;
       extraConfig = ''
-      set-option -ga terminal-features ',foot:RGB'
-      set-option -g status-right "#{user}@#{host}"
-      set -ga terminal-overrides ",256col:Tc"
-      set -ga update-environment TERM
-      set -ga update-environment TERM_PROGRAM
-      set -g allow-passthrough on
-      set -g status-bg "${bg-400}"
-      set -g status-fg "${fg-500}"
-      bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'wl-copy'
+        set-option -ga terminal-features ',foot:RGB'
+        set-option -g status-right "#{user}@#{host}"
+        set -ga terminal-overrides ",256col:Tc"
+        set -ga update-environment TERM
+        set -ga update-environment TERM_PROGRAM
+        set -g allow-passthrough on
+        set -g status-bg "${bg-400}"
+        set -g status-fg "${fg-500}"
+        bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'wl-copy'
       '';
     };
 
@@ -111,7 +114,7 @@ with theme.fonts;
       };
     };
 
-    home.packages = with pkgs; [ 
+    home.packages = with pkgs; [
       bat
       bitwarden-cli
       eza

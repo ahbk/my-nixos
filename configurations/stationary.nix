@@ -1,7 +1,4 @@
-{ inputs
-, lib
-, ...
-}:
+{ inputs, lib, ... }:
 
 with lib;
 
@@ -11,7 +8,8 @@ let
     inherit inputs;
     system = "x86_64-linux";
   };
-in {
+in
+{
   boot.loader.grub = {
     enable = true;
     device = "/dev/sda";
@@ -37,17 +35,15 @@ in {
 
   services.kresd = {
     enable = true;
-    listenPlain = [
-      "10.0.0.1:53"
-    ];
+    listenPlain = [ "10.0.0.1:53" ];
     extraConfig = ''
-    modules = { 'hints > iterate' }
-    hints['invoiceplane.ahbk'] = '10.0.0.1'
-    hints['stationary.ahbk'] = '10.0.0.1'
-    hints['glesys.ahbk'] = '10.0.0.3'
-    hints['laptop.ahbk'] = '10.0.0.2'
-    hints['phone.ahbk'] = '10.0.0.4'
-    hints['backup.ahbk'] = '10.0.0.1'
+      modules = { 'hints > iterate' }
+      hints['invoiceplane.ahbk'] = '10.0.0.1'
+      hints['stationary.ahbk'] = '10.0.0.1'
+      hints['glesys.ahbk'] = '10.0.0.3'
+      hints['laptop.ahbk'] = '10.0.0.2'
+      hints['phone.ahbk'] = '10.0.0.4'
+      hints['backup.ahbk'] = '10.0.0.1'
     '';
   };
 
@@ -63,7 +59,9 @@ in {
   };
 
   my-nixos = with users; {
-    user = { inherit frans backup; };
+    user = {
+      inherit frans backup;
+    };
     shell.frans.enable = true;
     hm.frans.enable = true;
     ide.frans = {
@@ -88,6 +86,5 @@ in {
     };
 
     wordpress.sites."test.esse.nu" = sites.wordpress.sites."test.esse.nu";
-
   };
 }

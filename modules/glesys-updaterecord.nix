@@ -1,14 +1,16 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
 
 let
   cfg = config.my-nixos.glesys.updaterecord;
-in {
+in
+{
 
   options.my-nixos.glesys.updaterecord = with types; {
     enable = mkEnableOption "DNS-record on glesys";
@@ -34,15 +36,16 @@ in {
       group = "root";
     };
 
-    networking.dhcpcd.runHook = let
-      user = "${cfg.cloudaccount}:$(<${config.age.secrets."api-key-glesys".path})";
-      data = "recordid=${cfg.recordid}&data=$new_ip_address";
-      endpoint = "https://api.glesys.com/domain/updaterecord";
-    in ''
-      if [ "$interface" = "${cfg.device}" ] && [ -n "$new_ip_address" ]; then
-        ${getExe pkgs.curl} -X POST -d "${data}" -u ${user} ${endpoint} | ${pkgs.util-linux}/bin/logger -t dhcpcd
-      fi
+    networking.dhcpcd.runHook =
+      let
+        user = "${cfg.cloudaccount}:$(<${config.age.secrets."api-key-glesys".path})";
+        data = "recordid=${cfg.recordid}&data=$new_ip_address";
+        endpoint = "https://api.glesys.com/domain/updaterecord";
+      in
+      ''
+        if [ "$interface" = "${cfg.device}" ] && [ -n "$new_ip_address" ]; then
+          ${getExe pkgs.curl} -X POST -d "${data}" -u ${user} ${endpoint} | ${pkgs.util-linux}/bin/logger -t dhcpcd
+        fi
       '';
-
   };
 }

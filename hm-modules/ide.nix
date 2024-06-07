@@ -1,8 +1,9 @@
-{ config
-, inputs
-, lib
-, pkgs
-, ...
+{
+  config,
+  inputs,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -11,14 +12,11 @@ let
   cfg = config.my-nixos-hm.ide;
   theme = import ../theme.nix;
 in
-
 with theme.colors;
 with theme.fonts;
 
 {
-  imports = [
-    inputs.nixvim.homeManagerModules.nixvim
-  ];
+  imports = [ inputs.nixvim.homeManagerModules.nixvim ];
 
   options.my-nixos-hm.ide = with types; {
     enable = mkEnableOption (mcDoc "Configure IDE for this user");
@@ -28,7 +26,7 @@ with theme.fonts;
 
   config = mkIf cfg.enable {
 
-    home.packages = with pkgs; [ 
+    home.packages = with pkgs; [
       gcc
       hugo
       mkcert
@@ -118,12 +116,32 @@ with theme.fonts;
           wildmode = "longest:full,full";
         };
         keymaps = [
-          { key = "<F2>"; action = "<cmd>Neotree toggle<cr>"; }
-          { key = "<space>e"; action.__raw = "vim.diagnostic.open_float"; }
-          { key = "<leader>sh"; action = ":split<cr>"; }
-          { key = "<leader>sv"; action = ":vsplit<cr>"; }
-          { key = "<leader>c"; action = "\"+yy"; mode = [ "n" ]; }
-          { key = "<leader>c"; action = "\"+y"; mode = [ "v" ]; }
+          {
+            key = "<F2>";
+            action = "<cmd>Neotree toggle<cr>";
+          }
+          {
+            key = "<space>e";
+            action.__raw = "vim.diagnostic.open_float";
+          }
+          {
+            key = "<leader>sh";
+            action = ":split<cr>";
+          }
+          {
+            key = "<leader>sv";
+            action = ":vsplit<cr>";
+          }
+          {
+            key = "<leader>c";
+            action = ''"+yy'';
+            mode = [ "n" ];
+          }
+          {
+            key = "<leader>c";
+            action = ''"+y'';
+            mode = [ "v" ];
+          }
         ];
 
         plugins = {
@@ -195,9 +213,7 @@ with theme.fonts;
               };
             };
           };
-
         };
-
       };
     };
   };

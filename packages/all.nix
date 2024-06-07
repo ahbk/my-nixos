@@ -1,6 +1,5 @@
-{ pkgs
-}:
+{ pkgs }:
 
 {
-  options-doc = pkgs.callPackage ./options-doc.nix {};
+  options-doc = pkgs.callPackage ./options-doc.nix { };
 }

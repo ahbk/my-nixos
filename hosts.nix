@@ -1,6 +1,7 @@
 let
   key = protocol: hostname: builtins.readFile ./keys/${protocol}-${hostname}.pub;
-in {
+in
+{
 
   stationary = rec {
     name = "stationary";
@@ -18,9 +19,9 @@ in {
     sshKey = key "ssh-host" name;
     address = "10.0.0.2";
     system = "x86_64-linux";
-    stateVersion ="23.11";
+    stateVersion = "23.11";
   };
-  
+
   glesys = rec {
     name = "glesys";
     wgKey = key "wg" name;
@@ -28,7 +29,7 @@ in {
     address = "10.0.0.3";
     publicAddress = "ahbk.se";
     system = "x86_64-linux";
-    stateVersion ="23.11";
+    stateVersion = "23.11";
   };
 
   phone = rec {
@@ -45,5 +46,4 @@ in {
     system = "x86_64-linux";
     stateVersion = "24.05";
   };
-
 }

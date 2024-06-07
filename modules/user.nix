@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -27,7 +28,7 @@ let
       keys = mkOption {
         description = "Public SSH keys.";
         type = listOf path;
-        default = [];
+        default = [ ];
       };
       email = mkOption {
         description = "User email.";
@@ -36,46 +37,60 @@ let
       groups = mkOption {
         description = "User groups.";
         type = listOf str;
-        default = [];
+        default = [ ];
       };
     };
   };
-in {
+in
+{
 
-  options.my-nixos.user = with types; mkOption {
-    description = "Set of users to be configured.";
-    type = attrsOf (submodule userOpts);
-    default = {};
-  };
+  options.my-nixos.user =
+    with types;
+    mkOption {
+      description = "Set of users to be configured.";
+      type = attrsOf (submodule userOpts);
+      default = { };
+    };
 
-  config = mkIf (cfg != {}) {
-    home-manager.users = mapAttrs (user: cfg: {
-      my-nixos-hm.user = {
-        enable = true;
-        name = user;
-      };
-    }) (filterAttrs (user: cfg: hasAttr user config.my-nixos.hm && config.my-nixos.hm.${user}.enable) eachUser);
+  config = mkIf (cfg != { }) {
+    home-manager.users =
+      mapAttrs
+        (user: cfg: {
+          my-nixos-hm.user = {
+            enable = true;
+            name = user;
+          };
+        })
+        (
+          filterAttrs (
+            user: cfg: hasAttr user config.my-nixos.hm && config.my-nixos.hm.${user}.enable
+          ) eachUser
+        );
 
-    age.secrets = mapAttrs' (user: cfg: (
-      nameValuePair "linux-passwd-hashed-${user}" {
-      file = ../secrets/linux-passwd-hashed-${user}.age;
-      owner = user;
-      group = user;
-    })) eachUser;
-
-    users = (lib'.mergeAttrs (user: cfg: {
-      users.${user} = {
-        uid = cfg.uid;
-        isNormalUser = true;
+    age.secrets = mapAttrs' (
+      user: cfg:
+      (nameValuePair "linux-passwd-hashed-${user}" {
+        file = ../secrets/linux-passwd-hashed-${user}.age;
+        owner = user;
         group = user;
-        extraGroups = cfg.groups;
-        hashedPasswordFile = config.age.secrets."linux-passwd-hashed-${user}".path;
-        openssh.authorizedKeys.keyFiles = cfg.keys;
+      })
+    ) eachUser;
+
+    users =
+      (lib'.mergeAttrs (user: cfg: {
+        users.${user} = {
+          uid = cfg.uid;
+          isNormalUser = true;
+          group = user;
+          extraGroups = cfg.groups;
+          hashedPasswordFile = config.age.secrets."linux-passwd-hashed-${user}".path;
+          openssh.authorizedKeys.keyFiles = cfg.keys;
+        };
+        groups.${user}.gid = config.users.users.${user}.uid;
+      }) eachUser)
+      // {
+        mutableUsers = false;
       };
-      groups.${user}.gid = config.users.users.${user}.uid;
-    }) eachUser) // {
-      mutableUsers = false;
-    };
 
     services.openssh = {
       enable = true;

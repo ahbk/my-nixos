@@ -1,13 +1,11 @@
-{ config
-, lib
-, ...
-}:
+{ config, lib, ... }:
 
 with lib;
 
 let
   cfg = config.my-nixos.nginx;
-in {
+in
+{
   options.my-nixos.nginx = {
     enable = mkEnableOption "nginx web server.";
     email = mkOption {
@@ -16,7 +14,10 @@ in {
     };
   };
   config = mkIf cfg.enable {
-    networking.firewall.allowedTCPPorts = [ 80 443 ];
+    networking.firewall.allowedTCPPorts = [
+      80
+      443
+    ];
     security.acme = {
       acceptTerms = true;
       defaults.email = cfg.email;

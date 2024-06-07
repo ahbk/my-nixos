@@ -1,13 +1,11 @@
-{ config
-, lib
-, ...
-}:
+{ config, lib, ... }:
 
 with lib;
 
 let
   cfg = config.my-nixos.mailServer;
-in {
+in
+{
 
   options = {
     my-nixos.mailServer = {
@@ -37,4 +35,3 @@ in {
     };
   };
 }
-

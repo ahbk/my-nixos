@@ -1,7 +1,4 @@
-{ config
-, lib
-, ...
-}:
+{ config, lib, ... }:
 
 with lib;
 
@@ -18,28 +15,29 @@ let
           /home/alex/.local/share/qutebrowser/history.sqlite
         ];
         type = listOf str;
-        default = [];
+        default = [ ];
       };
       exclude = mkOption {
         description = "List of paths to not backup";
-        example = [
-          /home/alex/.cache
-        ];
+        example = [ /home/alex/.cache ];
         type = listOf str;
-        default = [];
+        default = [ ];
       };
     };
   };
-in {
+in
+{
   options = {
-    my-nixos.backup = with types; mkOption {
-      type = attrsOf (submodule targetOpts);
-      default = {};
-      description = "Specification of one or more backup targets";
-    };
+    my-nixos.backup =
+      with types;
+      mkOption {
+        type = attrsOf (submodule targetOpts);
+        default = { };
+        description = "Specification of one or more backup targets";
+      };
   };
 
-  config = mkIf (eachTarget != {}) {
+  config = mkIf (eachTarget != { }) {
 
     age.secrets."linux-passwd-plain-backup" = {
       file = ../secrets/linux-passwd-plain-backup.age;
@@ -57,9 +55,7 @@ in {
       initialize = true;
       user = "root";
       passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
-      extraOptions = [
-        "sftp.command='ssh backup@${target} -i /home/backup/.ssh/id_ed25519 -s sftp'"
-      ];
+      extraOptions = [ "sftp.command='ssh backup@${target} -i /home/backup/.ssh/id_ed25519 -s sftp'" ];
       pruneOpts = [
         "--keep-daily 7"
         "--keep-weekly 5"

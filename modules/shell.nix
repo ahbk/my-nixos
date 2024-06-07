@@ -1,9 +1,10 @@
-{ config
-, host
-, inputs
-, lib
-, pkgs
-, ...
+{
+  config,
+  host,
+  inputs,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;
@@ -15,22 +16,22 @@ let
   userOpts = with types; {
     options.enable = mkEnableOption "shell for this user";
   };
+in
+{
+  options.my-nixos.shell =
+    with types;
+    mkOption {
+      description = "Set of users to be configured with shell";
+      type = attrsOf (submodule userOpts);
+      default = { };
+    };
+  config = mkIf (eachUser != { }) {
 
-in {
-  options.my-nixos.shell = with types; mkOption {
-    description = "Set of users to be configured with shell";
-    type = attrsOf (submodule userOpts);
-    default = {};
-  };
-  config = mkIf (eachUser != {}) {
+    my-nixos.backup."backup.ahbk".paths = flatten (
+      mapAttrsToList (user: cfg: [ "/home/${user}/.bash_history" ]) eachUser
+    );
 
-    my-nixos.backup."backup.ahbk".paths = flatten (mapAttrsToList (user: cfg: [
-      "/home/${user}/.bash_history"
-    ]) eachUser);
-
-    home-manager.users = mapAttrs (user: cfg: {
-      my-nixos-hm.shell.enable = true;
-    }) eachUser;
+    home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.shell.enable = true; }) eachUser;
 
     documentation.man.generateCaches = true;
 

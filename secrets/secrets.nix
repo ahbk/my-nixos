@@ -1,6 +1,6 @@
 let
   # strip last row break
-  key = name: builtins.replaceStrings ["\n"] [""] (builtins.readFile ../keys/ssh-${name}.pub);
+  key = name: builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile ../keys/ssh-${name}.pub);
 
   # keys
   laptop = key "host-laptop";
@@ -10,10 +10,16 @@ let
   test = key "user-test";
   alex = key "user-alex";
 
-  all = [ alex stationary glesys laptop container ];
+  all = [
+    alex
+    stationary
+    glesys
+    laptop
+    container
+  ];
   all-test = all ++ [ test ];
-
-in {
+in
+{
   "linux-passwd-hashed-test.age".publicKeys = all-test;
   "linux-passwd-hashed-frans.age".publicKeys = all;
   "linux-passwd-hashed-alex.age".publicKeys = all;
@@ -29,9 +35,18 @@ in {
   "webapp-key-dev.sverigesval.org.age".publicKeys = all;
   "webapp-key-sverigesval.org.age".publicKeys = all;
 
-  "wg-key-laptop.age".publicKeys = [ laptop alex ];
-  "wg-key-stationary.age".publicKeys = [ stationary alex ];
-  "wg-key-glesys.age".publicKeys = [ glesys alex ];
+  "wg-key-laptop.age".publicKeys = [
+    laptop
+    alex
+  ];
+  "wg-key-stationary.age".publicKeys = [
+    stationary
+    alex
+  ];
+  "wg-key-glesys.age".publicKeys = [
+    glesys
+    alex
+  ];
 
   "api-key-glesys.age".publicKeys = all;
 }
