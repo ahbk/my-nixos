@@ -15,18 +15,18 @@ let
 
   siteOpts = { lib, name, config, ... }: {
     options = {
-      enable = mkOption {
-        default = true;
-        type = types.bool;
-      };
+      enable = mkEnableOption "wordpress on this host.";
       ssl = mkOption {
+        description = "Enable HTTPS.";
         type = types.bool;
       };
       www = mkOption {
+        description = "Prefix the url with www.";
         default = false;
         type = types.bool;
       };
       basicAuth = mkOption {
+        description = "Protect the site with basic auth.";
         type = types.attrsOf types.str;
         default = {};
       };

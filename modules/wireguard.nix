@@ -18,10 +18,12 @@ in {
   options.my-nixos.wireguard.wg0 = with types; {
     enable = mkEnableOption "this host to be part of 10.0.0.0/24";
     keepalive = mkOption {
+      description = "Keepalive interval.";
       type = int;
       default = 25;
     };
     port = mkOption {
+      description = "Listening port for establishing a connection.";
       type = port;
       default = 51820;
     };

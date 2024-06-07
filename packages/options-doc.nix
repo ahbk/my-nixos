@@ -16,6 +16,23 @@ let
     modules = [
       ../modules/backup.nix
       ../modules/de.nix
+      ../modules/django.nix
+      ../modules/fastapi.nix
+      ../modules/glesys-updaterecord.nix
+      ../modules/hm.nix
+      ../modules/ide.nix
+      ../modules/laptop.nix
+      ../modules/mail-client.nix
+      ../modules/mail-server.nix
+      ../modules/mysql.nix
+      ../modules/nginx.nix
+      ../modules/postgresql.nix
+      ../modules/shell.nix
+      ../modules/svelte.nix
+      ../modules/user.nix
+      ../modules/vd.nix
+      ../modules/wireguard.nix
+      ../modules/wordpress.nix
       ../hm-modules/de.nix
     ];
   };

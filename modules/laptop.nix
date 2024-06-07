@@ -10,10 +10,7 @@ let
   cfg = config.my-nixos.laptop;
 in {
   options.my-nixos.laptop = with types; {
-    enable = mkOption {
-      type = bool;
-      default = false;
-    };
+    enable = mkEnableOption "Enable power management on the host";
   };
   config = mkIf cfg.enable {
     programs.light = {

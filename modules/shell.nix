@@ -18,6 +18,7 @@ let
 
 in {
   options.my-nixos.shell = with types; mkOption {
+    description = "Set of users to be configured with shell";
     type = attrsOf (submodule userOpts);
     default = {};
   };

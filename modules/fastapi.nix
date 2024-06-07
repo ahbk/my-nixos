@@ -15,17 +15,18 @@ let
 
   siteOpts = { lib, name, config, ... }: {
     options = {
-      enable = mkOption {
-        default = true;
-        type = types.bool;
-      };
+      enable = mkEnableOption "a fastapi-app for this host";
       port = mkOption {
+        description = "The port to serve the fastapi-app.";
+        example = 8000;
         type = types.port;
       };
       ssl = mkOption {
+        description = "Whether the fastapi-app can assume https or not.";
         type = types.bool;
       };
       pkgs = mkOption {
+        description = "The expected fastapi-app packages.";
         type = types.attrsOf types.package;
       };
     };

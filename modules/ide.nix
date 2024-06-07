@@ -21,6 +21,7 @@ let
   };
 in {
   options.my-nixos.ide = with types; mkOption {
+    description = "Set of users to be configured with IDE.";
     type = attrsOf (submodule userOpts);
     default = {};
   };

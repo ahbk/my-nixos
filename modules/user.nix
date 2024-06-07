@@ -17,19 +17,24 @@ let
         default = true;
       };
       uid = mkOption {
+        description = "User id.";
         type = int;
       };
       name = mkOption {
+        description = "User name.";
         type = str;
       };
       keys = mkOption {
+        description = "Public SSH keys.";
         type = listOf path;
         default = [];
       };
       email = mkOption {
+        description = "User email.";
         type = str;
       };
       groups = mkOption {
+        description = "User groups.";
         type = listOf str;
         default = [];
       };
@@ -38,6 +43,7 @@ let
 in {
 
   options.my-nixos.user = with types; mkOption {
+    description = "Set of users to be configured.";
     type = attrsOf (submodule userOpts);
     default = {};
   };

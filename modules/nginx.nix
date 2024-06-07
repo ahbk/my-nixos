@@ -9,11 +9,9 @@ let
   cfg = config.my-nixos.nginx;
 in {
   options.my-nixos.nginx = {
-    enable = mkOption {
-      type = types.bool;
-      default = false;
-    };
+    enable = mkEnableOption "nginx web server.";
     email = mkOption {
+      description = "Email for ACME certificate updates";
       type = types.str;
     };
   };

@@ -13,12 +13,15 @@ in {
   options.my-nixos.glesys.updaterecord = with types; {
     enable = mkEnableOption "DNS-record on glesys";
     recordid = mkOption {
+      description = "The glesys id of the record";
       type = str;
     };
     cloudaccount = mkOption {
+      description = "The glesys account id";
       type = str;
     };
     device = mkOption {
+      description = "The device that should be watched.";
       type = str;
     };
   };

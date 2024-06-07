@@ -11,10 +11,11 @@ let
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption "IDE for this user";
+    options.enable = mkEnableOption "Visual design tools for this user";
   };
 in {
   options.my-nixos.vd = with types; mkOption {
+    description = "Set of users to be configured with visual design tools.";
     type = attrsOf (submodule userOpts);
     default = {};
   };

@@ -12,6 +12,7 @@ let
   userOpts = {
     options = {
       ensure = mkOption {
+        description = "Ensure a postgresql database for the user.";
         default = true;
         type = types.bool;
       };

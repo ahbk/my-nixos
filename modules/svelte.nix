@@ -14,34 +14,31 @@ let
 
   siteOpts = {
     options = {
-      enable = mkOption {
-        default = true;
-        type = types.bool;
-      };
+      enable = mkEnableOption "svelte-app for this host.";
       location = mkOption {
+        description = "URL path to serve the application.";
         default = "";
         type = types.str;
       };
       port = mkOption {
+        description = "Port to serve the application.";
         type = types.port;
       };
       ssl = mkOption {
+        description = "Whether the svelte-app can assume https or not.";
         type = types.bool;
       };
       api = mkOption {
+        description = "URL for the API endpoint";
         type = types.str;
       };
       api_ssr = mkOption {
+        description = "Server side URL for the API endpoint";
         type = types.str;
       };
       pkgs = mkOption {
-        type = types.submodule {
-          options = {
-            app = mkOption {
-              type = types.package;
-            };
-          };
-        };
+        description = "The expected svelte app packages.";
+        type = types.attrsOf types.package;
       };
     };
   };

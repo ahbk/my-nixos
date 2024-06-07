@@ -11,10 +11,7 @@ in {
 
   options = {
     my-nixos.mailServer = {
-      enable = mkOption {
-        default = false;
-        type = types.bool;
-      };
+      enable = mkEnableOption "mail server.";
     };
   };
 

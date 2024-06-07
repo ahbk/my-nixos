@@ -12,13 +12,14 @@ let
 
   userOpts = with types; {
     options = {
-      enable = mkEnableOption "a mail client for user" // {
+      enable = mkEnableOption "a mail client for user." // {
         default = true;
       };
     };
   };
 in {
   options.my-nixos.mailClient = with types; mkOption {
+    description = "Set of users to be configured with mail client.";
     type = attrsOf (submodule userOpts);
     default = {};
   };
