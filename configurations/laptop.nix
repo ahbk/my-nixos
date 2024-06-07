@@ -23,9 +23,8 @@ in {
       enable = true;
     };
 
-    backup.stationary = {
+    backup."backup.ahbk" = {
       enable = true;
-      repository = "sftp:backup@${hosts.stationary.address}:repository";
     };
   };
 

@@ -13,17 +13,20 @@ let
       enable = mkEnableOption "backup target";
       paths = mkOption {
         description = "List of paths to backup";
+        example = [
+          /home/alex/.bash_history
+          /home/alex/.local/share/qutebrowser/history.sqlite
+        ];
         type = listOf str;
         default = [];
       };
       exclude = mkOption {
         description = "List of paths to not backup";
+        example = [
+          /home/alex/.cache
+        ];
         type = listOf str;
         default = [];
-      };
-      repository = mkOption {
-        description = "Target repository";
-        type = str;
       };
     };
   };
@@ -44,13 +47,15 @@ in {
       group = "backup";
     };
 
+    services.openssh.knownHosts.${target}.publicKeyFile = ../keys/ssh-host-backup.pub;
     services.restic.backups = mapAttrs (target: cfg: {
-      inherit (cfg) paths exclude repository;
+      inherit (cfg) paths exclude;
+      repository = "sftp:backup@${target}:repository";
       initialize = true;
       user = "root";
       passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
       extraOptions = [
-        "sftp.command='ssh backup@10.0.0.1 -i /home/backup/.ssh/id_ed25519 -s sftp'"
+        "sftp.command='ssh backup@${target} -i /home/backup/.ssh/id_ed25519 -s sftp'"
       ];
       pruneOpts = [
         "--keep-daily 7"

@@ -31,9 +31,8 @@ in
       userAsTopDomain = false;
     };
 
-    backup.stationary = {
+    backup."backup.ahbk" = {
       enable = true;
-      repository = "sftp:backup@${hosts.stationary.address}:repository";
     };
 
     wireguard.wg0.enable = true;

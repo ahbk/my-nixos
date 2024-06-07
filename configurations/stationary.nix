@@ -1,5 +1,4 @@
 { inputs
-, pkgs
 , lib
 , ...
 }:
@@ -12,7 +11,6 @@ let
     inherit inputs;
     system = "x86_64-linux";
   };
-  pkgs' = import ../packages/all.nix { inherit pkgs; };
 in {
   boot.loader.grub = {
     enable = true;
