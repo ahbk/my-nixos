@@ -28,7 +28,7 @@ in {
 
     users.users = mapAttrs (user: cfg: { extraGroups = [ "audio" "transmission" "networkmanager" ]; }) eachUser;
 
-    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
+    my-nixos.backup."backup.ahbk".paths = flatten (mapAttrsToList (user: cfg: [
       "/home/${user}/.local/share/qutebrowser/history.sqlite"
     ]) eachUser);
 

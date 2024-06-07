@@ -24,7 +24,7 @@ in {
   };
   config = mkIf (eachUser != {}) {
 
-    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
+    my-nixos.backup."backup.ahbk".paths = flatten (mapAttrsToList (user: cfg: [
       "/home/${user}/.bash_history"
     ]) eachUser);
 

@@ -149,7 +149,7 @@ in {
       };
     }) eachSite;
 
-    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
+    my-nixos.backup."backup.ahbk".paths = flatten (mapAttrsToList (hostname: cfg: [
       (stateDir hostname)
     ]) eachSite);
 
