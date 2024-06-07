@@ -59,6 +59,7 @@ in {
 
   networking = {
     useDHCP = false;
+    enableIPv6 = false;
     interfaces.enp3s0.useDHCP = true;
   };
 
