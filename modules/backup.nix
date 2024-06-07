@@ -47,7 +47,10 @@ in {
       group = "backup";
     };
 
-    services.openssh.knownHosts.${target}.publicKeyFile = ../keys/ssh-host-backup.pub;
+    services.openssh.knownHosts = mapAttrs (target: cfg: {
+      publicKeyFile = ../keys/ssh-host-${target}.pub;
+    }) eachTarget;
+
     services.restic.backups = mapAttrs (target: cfg: {
       inherit (cfg) paths exclude;
       repository = "sftp:backup@${target}:repository";

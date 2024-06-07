@@ -47,6 +47,7 @@ in {
     hints['glesys.ahbk'] = '10.0.0.3'
     hints['laptop.ahbk'] = '10.0.0.2'
     hints['phone.ahbk'] = '10.0.0.4'
+    hints['backup.ahbk'] = '10.0.0.1'
     '';
   };
 
