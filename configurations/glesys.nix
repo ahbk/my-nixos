@@ -23,6 +23,7 @@ in
   my-nixos = with users; {
     user = { inherit alex frans backup; };
     shell.frans.enable = true;
+    hm.frans.enable = true;
     ide.frans = {
       enable = true;
       postgresql = false;
