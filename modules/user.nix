@@ -43,6 +43,13 @@ in {
   };
 
   config = mkIf (cfg != {}) {
+    home-manager.users = mapAttrs (user: cfg: {
+      my-nixos-hm.user = {
+        enable = true;
+        name = user;
+      };
+    }) (filterAttrs (user: cfg: hasAttr user config.my-nixos.hm && config.my-nixos.hm.${user}.enable) eachUser);
+
     age.secrets = mapAttrs' (user: cfg: (
       nameValuePair "linux-passwd-hashed-${user}" {
       file = ../secrets/linux-passwd-hashed-${user}.age;

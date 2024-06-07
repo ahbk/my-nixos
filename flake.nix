@@ -33,6 +33,7 @@
       pkgs = inputs.nixpkgs.legacyPackages.${cfg.system};
       extraSpecialArgs = { inherit inputs; };
       modules = [
+        { home.stateVersion = cfg.stateVersion; }
         ./hm-modules/all.nix
         { inherit (cfg) my-nixos-hm; }
       ];

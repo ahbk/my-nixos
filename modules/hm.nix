@@ -28,11 +28,7 @@ in {
       extraSpecialArgs = { inherit inputs; };
       sharedModules = [ ../hm-modules/all.nix ];
       users = mapAttrs (user: cfg: {
-        programs.home-manager.enable = true;
-        home = {
-          enableNixpkgsReleaseCheck = true;
-          stateVersion = host.stateVersion;
-        };
+        home.stateVersion = host.stateVersion;
       }) eachUser;
     };
   };
