@@ -7,28 +7,28 @@
 with lib;
 
 let
-  cfg = config.ahbk.de;
+  cfg = config.my-nixos.de;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure Desktop Environment for this user");
+    options.enable = mkEnableOption "Desktop Environment for this user";
   };
 in {
-  options.ahbk.de = with types; mkOption {
+  options.my-nixos.de = with types; mkOption {
     type = attrsOf (submodule userOpts);
-    description = mdDoc "Definition of per-user desktop environment";
+    description = "Definition of per-user desktop environment";
     default = {};
   };
 
   config = mkIf (eachUser != {}) {
 
     home-manager.users = mapAttrs (user: cfg: {
-      ahbk-hm.de.enable = true;
+      my-nixos-hm.de.enable = true;
     }) eachUser;
 
     users.users = mapAttrs (user: cfg: { extraGroups = [ "audio" "transmission" "networkmanager" ]; }) eachUser;
 
-    ahbk.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
+    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
       "/home/${user}/.local/share/qutebrowser/history.sqlite"
     ]) eachUser);
 

@@ -8,7 +8,7 @@ with lib;
 
 let
   lib' = (import ../lib.nix) { inherit lib pkgs; };
-  cfg = config.ahbk.fastapi;
+  cfg = config.my-nixos.fastapi;
 
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   stateDir = hostname: "/var/lib/${hostname}/fastapi";
@@ -48,11 +48,11 @@ let
 in {
 
   options = {
-    ahbk.fastapi = {
+    my-nixos.fastapi = {
       sites = mkOption {
         type = types.attrsOf (types.submodule siteOpts);
         default = {};
-        description = mdDoc "Specification of one or more FastAPI sites to serve";
+        description = "Specification of one or more FastAPI sites to serve";
       };
     };
   };
@@ -76,7 +76,7 @@ in {
       groups.${hostname} = {};
     }) eachSite;
 
-    ahbk.postgresql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
+    my-nixos.postgresql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
 
     systemd.tmpfiles.rules = flatten (mapAttrsToList (hostname: cfg: [
       "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
@@ -148,7 +148,7 @@ in {
       };
     }) eachSite;
 
-    ahbk.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
+    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
       (stateDir hostname)
     ]) eachSite);
 

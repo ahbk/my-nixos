@@ -7,21 +7,21 @@
 with lib;
 
 let
-  cfg = config.ahbk.vd;
+  cfg = config.my-nixos.vd;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure IDE for this user");
+    options.enable = mkEnableOption "IDE for this user";
   };
 in {
-  options.ahbk.vd = with types; mkOption {
+  options.my-nixos.vd = with types; mkOption {
     type = attrsOf (submodule userOpts);
     default = {};
   };
 
   config = mkIf (eachUser != {}) {
     home-manager.users = mapAttrs (user: cfg: {
-      ahbk-hm.vd.enable = true;
+      my-nixos-hm.vd.enable = true;
     }) eachUser;
 
     nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [

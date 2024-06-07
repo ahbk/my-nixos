@@ -8,7 +8,7 @@ with lib;
 
 let
   lib' = (import ../lib.nix) { inherit lib pkgs; };
-  cfg = config.ahbk.django;
+  cfg = config.my-nixos.django;
 
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   stateDir = hostname: "/var/lib/${hostname}/django";
@@ -48,11 +48,11 @@ let
 in {
 
   options = {
-    ahbk.django = {
+    my-nixos.django = {
       sites = mkOption {
         type = types.attrsOf (types.submodule siteOpts);
         default = {};
-        description = mdDoc "Specification of one or more Django sites to serve";
+        description = "Specification of one or more Django sites to serve";
       };
     };
   };
@@ -118,7 +118,7 @@ in {
       };
     }) eachSite;
 
-    ahbk.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
+    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
       (stateDir hostname)
     ]) eachSite);
 

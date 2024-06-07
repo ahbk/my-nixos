@@ -7,18 +7,18 @@
 with lib;
 
 let
-  cfg = config.ahbk.mailClient;
+  cfg = config.my-nixos.mailClient;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
     options = {
-      enable = mkEnableOption (mdDoc "Configure a mail client for user") // {
+      enable = mkEnableOption "a mail client for user" // {
         default = true;
       };
     };
   };
 in {
-  options.ahbk.mailClient = with types; mkOption {
+  options.my-nixos.mailClient = with types; mkOption {
     type = attrsOf (submodule userOpts);
     default = {};
   };

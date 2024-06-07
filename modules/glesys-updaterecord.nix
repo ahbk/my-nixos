@@ -7,11 +7,11 @@
 with lib;
 
 let
-  cfg = config.ahbk.glesys.updaterecord;
+  cfg = config.my-nixos.glesys.updaterecord;
 in {
 
-  options.ahbk.glesys.updaterecord = with types; {
-    enable = mkEnableOption (mdDoc "Update DNS-record on glesys");
+  options.my-nixos.glesys.updaterecord = with types; {
+    enable = mkEnableOption "DNS-record on glesys";
     recordid = mkOption {
       type = str;
     };

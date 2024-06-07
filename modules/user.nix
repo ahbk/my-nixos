@@ -8,12 +8,12 @@ with lib;
 
 let
   lib' = (import ../lib.nix) { inherit lib pkgs; };
-  cfg = config.ahbk.user;
+  cfg = config.my-nixos.user;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
     options = {
-      enable = mkEnableOption (mdDoc "Configure this user") // {
+      enable = mkEnableOption "this user" // {
         default = true;
       };
       uid = mkOption {
@@ -37,7 +37,7 @@ let
   };
 in {
 
-  options.ahbk.user = with types; mkOption {
+  options.my-nixos.user = with types; mkOption {
     type = attrsOf (submodule userOpts);
     default = {};
   };

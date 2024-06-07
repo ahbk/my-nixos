@@ -8,15 +8,15 @@ with lib;
 with builtins;
 
 let
-  cfg = config.ahbk.wireguard;
+  cfg = config.my-nixos.wireguard;
   hosts = import ../hosts.nix;
   isGateway = cfg: cfg.name == "stationary";
   isServer = cfg: hasAttr "publicAddress" cfg;
   isPeer = cfg: hasAttr "wgKey" cfg;
 in {
 
-  options.ahbk.wireguard.wg0 = with types; {
-    enable = mkEnableOption (mdDoc "Configure this host to be part of 10.0.0.0/24");
+  options.my-nixos.wireguard.wg0 = with types; {
+    enable = mkEnableOption "this host to be part of 10.0.0.0/24";
     keepalive = mkOption {
       type = int;
       default = 25;

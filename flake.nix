@@ -1,5 +1,5 @@
 {
-  description = "my system";
+  description = "my nixos";
 
   inputs = {
     nixpkgs.url = "github:ahbk/nixpkgs/nixos-unstable";
@@ -13,9 +13,6 @@
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixpak.url = "github:nixpak/nixpak";
-    nixpak.inputs.nixpkgs.follows = "nixpkgs";
-
     sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
     sverigesval.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -24,7 +21,6 @@
 
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
-
   };
 
   outputs = { self, ... }@inputs:
@@ -38,7 +34,7 @@
       extraSpecialArgs = { inherit inputs; };
       modules = [
         ./hm-modules/all.nix
-        { inherit (cfg) ahbk-hm; }
+        { inherit (cfg) my-nixos-hm; }
       ];
     }) (import ./hm-hosts.nix);
 

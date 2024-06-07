@@ -7,29 +7,29 @@
 with lib;
 
 let
-  cfg = config.ahbk.ide;
+  cfg = config.my-nixos.ide;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
   eachUserAsTopDomain = filterAttrs (user: cfg: cfg.userAsTopDomain) eachUser;
 
   userOpts = with types; {
     options = {
-      enable = mkEnableOption (mdDoc "Configure IDE for this user");
-      postgresql = mkEnableOption (mdDoc "Ensure user has a postgres db with same name");
-      mysql = mkEnableOption (mdDoc "Ensure user has a mysql db with same name");
-      userAsTopDomain = mkEnableOption (mdDoc "Make username a top domain name in local network");
+      enable = mkEnableOption "IDE for this user";
+      postgresql = mkEnableOption "a postgres db with same name";
+      mysql = mkEnableOption "a mysql db with same name";
+      userAsTopDomain = mkEnableOption "username a top domain name in local network";
     };
   };
 in {
-  options.ahbk.ide = with types; mkOption {
+  options.my-nixos.ide = with types; mkOption {
     type = attrsOf (submodule userOpts);
     default = {};
   };
 
   config = mkIf (eachUser != {}) {
     home-manager.users = mapAttrs (user: cfg: {
-      ahbk-hm.ide = {
+      my-nixos-hm.ide = {
         enable = true;
-        inherit (config.ahbk.user.${user}) name email;
+        inherit (config.my-nixos.user.${user}) name email;
       };
     }) eachUser;
 
@@ -56,7 +56,7 @@ in {
       settings.address = mapAttrsToList (user: cfg: "/.${user}/127.0.0.2") eachUserAsTopDomain;
     };
 
-    ahbk.postgresql = mapAttrs (user: cfg: { ensure = cfg.postgresql; }) eachUser;
-    ahbk.mysql = mapAttrs (user: cfg: { ensure = cfg.mysql; }) eachUser;
+    my-nixos.postgresql = mapAttrs (user: cfg: { ensure = cfg.postgresql; }) eachUser;
+    my-nixos.mysql = mapAttrs (user: cfg: { ensure = cfg.mysql; }) eachUser;
   };
 }

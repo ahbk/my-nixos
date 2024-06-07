@@ -8,7 +8,7 @@ with lib;
 
 let
   lib' = (import ../lib.nix) { inherit lib pkgs; };
-  cfg = config.ahbk.wordpress;
+  cfg = config.my-nixos.wordpress;
   webserver = config.services.nginx;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   stateDir = hostname: "/var/lib/${hostname}/wordpress";
@@ -42,11 +42,11 @@ let
 
 in {
   options = {
-    ahbk.wordpress = {
+    my-nixos.wordpress = {
       sites = mkOption {
         type = types.attrsOf (types.submodule siteOpts);
         default = {};
-        description = mdDoc "Specification of one or more wordpress sites to serve";
+        description = "Specification of one or more wordpress sites to serve";
       };
     };
   };
@@ -112,7 +112,7 @@ in {
       };
     }) eachSite;
 
-    ahbk.mysql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
+    my-nixos.mysql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
 
     services.phpfpm.pools = mapAttrs (hostname: cfg: {
       user = hostname;
@@ -159,7 +159,7 @@ in {
       };
     }) eachSite;
 
-    ahbk.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
+    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (hostname: cfg: [
       (stateDir hostname)
     ]) eachSite);
 

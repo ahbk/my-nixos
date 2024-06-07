@@ -9,15 +9,15 @@ with lib;
 let
   theme = import ../theme.nix;
   unhashedHexes = lib.mapAttrs (n: c: builtins.substring 1 6 c) theme.colors;
-  cfg = config.ahbk-hm.de;
+  cfg = config.my-nixos-hm.de;
 in
 
 with theme.colors;
 with theme.fonts;
 
 {
-  options.ahbk-hm.de = with types; {
-    enable = mkEnableOption (mdDoc "Configure Desktop Environment for this user");
+  options.my-nixos-hm.de = with types; {
+    enable = mkEnableOption "Desktop Environment for this user";
   };
   
   config = lib.mkIf cfg.enable {

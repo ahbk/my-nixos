@@ -2,7 +2,7 @@ let
   hosts = import ../hosts.nix;
   users = import ../users.nix;
 in {
-  ahbk = {
+  my-nixos = {
     user = with users; { inherit alex frans backup; };
     shell.frans.enable = true;
     ide.frans = {

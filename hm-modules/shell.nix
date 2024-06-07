@@ -7,7 +7,7 @@
 with lib;
 
 let
-  cfg = config.ahbk-hm.shell;
+  cfg = config.my-nixos-hm.shell;
   theme = import ../theme.nix;
 in
 
@@ -15,7 +15,7 @@ with theme.colors;
 with theme.fonts;
 
 {
-  options.ahbk-hm.shell = with types; {
+  options.my-nixos-hm.shell = with types; {
     enable = mkEnableOption (mkDoc "Enable shell for this user");
   };
 

@@ -20,7 +20,7 @@ in
     interfaces.ens1.useDHCP = true;
   };
 
-  ahbk = with users; {
+  my-nixos = with users; {
     user = { inherit alex frans backup; };
     shell.frans.enable = true;
     ide.frans = {

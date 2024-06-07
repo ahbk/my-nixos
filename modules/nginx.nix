@@ -6,9 +6,9 @@
 with lib;
 
 let
-  cfg = config.ahbk.nginx;
+  cfg = config.my-nixos.nginx;
 in {
-  options.ahbk.nginx = {
+  options.my-nixos.nginx = {
     enable = mkOption {
       type = types.bool;
       default = false;

@@ -6,11 +6,11 @@
 with lib;
 
 let
-  cfg = config.ahbk.mailServer;
+  cfg = config.my-nixos.mailServer;
 in {
 
   options = {
-    ahbk.mailServer = {
+    my-nixos.mailServer = {
       enable = mkOption {
         default = false;
         type = types.bool;

@@ -8,15 +8,15 @@
 with lib;
 
 let
-  cfg = config.ahbk.hm;
+  cfg = config.my-nixos.hm;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure home-manager for this user");
+    options.enable = mkEnableOption "home-manager for this user";
   };
 
 in {
-  options.ahbk.hm = with types; mkOption {
+  options.my-nixos.hm = with types; mkOption {
     type = attrsOf (submodule userOpts);
     default = {};
   };

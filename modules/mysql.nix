@@ -7,7 +7,7 @@
 with lib;
 
 let
-  cfg = config.ahbk.mysql;
+  cfg = config.my-nixos.mysql;
   eachCfg = filterAttrs (user: cfg: cfg.ensure) cfg;
   userOpts = {
     options = {
@@ -19,10 +19,10 @@ let
   };
 in {
   options = {
-    ahbk.mysql = mkOption {
+    my-nixos.mysql = mkOption {
       type = types.attrsOf (types.submodule userOpts);
       default = {};
-      description = mdDoc "Specification of one or more mysql user/database pair to setup";
+      description = "Specification of one or more mysql user/database pair to setup";
     };
   };
 

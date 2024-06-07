@@ -8,7 +8,7 @@
 with lib;
 
 let
-  cfg = config.ahbk-hm.ide;
+  cfg = config.my-nixos-hm.ide;
   theme = import ../theme.nix;
 in
 
@@ -20,7 +20,7 @@ with theme.fonts;
     inputs.nixvim.homeManagerModules.nixvim
   ];
 
-  options.ahbk-hm.ide = with types; {
+  options.my-nixos-hm.ide = with types; {
     enable = mkEnableOption (mcDoc "Configure IDE for this user");
     name = mkOption { type = str; };
     email = mkOption { type = str; };

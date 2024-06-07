@@ -8,7 +8,7 @@ with lib;
 
 let
   lib' = (import ../lib.nix) { inherit lib pkgs; };
-  cfg = config.ahbk.svelte;
+  cfg = config.my-nixos.svelte;
 
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
 
@@ -55,11 +55,11 @@ let
 in {
 
   options = {
-    ahbk.svelte = {
+    my-nixos.svelte = {
       sites = mkOption {
         type = types.attrsOf (types.submodule siteOpts);
         default = {};
-        description = mdDoc "Specification of one or more Svelte sites to serve";
+        description = "Specification of one or more Svelte sites to serve";
       };
     };
   };

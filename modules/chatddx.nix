@@ -7,9 +7,9 @@ with lib;
 with builtins;
 
 let
-  cfg = config.ahbk.chatddx;
+  cfg = config.my-nixos.chatddx;
 in {
-  options.ahbk.chatddx = with types; {
+  options.my-nixos.chatddx = with types; {
     enable = mkOption {
       type = bool;
       default = false;
@@ -32,14 +32,14 @@ in {
   };
 
   config = mkIf cfg.enable {
-    ahbk.django.sites.${cfg.hostname} = {
+    my-nixos.django.sites.${cfg.hostname} = {
       enable = cfg.enable;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
       pkgs = cfg.pkgs.django;
     };
 
-    ahbk.svelte.sites.${cfg.hostname} = {
+    my-nixos.svelte.sites.${cfg.hostname} = {
       enable = cfg.enable;
       port = elemAt cfg.ports 1;
       ssl = cfg.ssl;

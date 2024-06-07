@@ -7,7 +7,7 @@
 with lib;
 
 let
-  cfg = config.ahbk.postgresql;
+  cfg = config.my-nixos.postgresql;
   eachCfg = filterAttrs (user: cfg: cfg.ensure) cfg;
   userOpts = {
     options = {
@@ -19,10 +19,10 @@ let
   };
 in {
   options = {
-    ahbk.postgresql = mkOption {
+    my-nixos.postgresql = mkOption {
       type = types.attrsOf (types.submodule userOpts);
       default = {};
-      description = mdDoc "Specification of one or more postgresql user/database pair to setup";
+      description = "Specification of one or more postgresql user/database pair to setup";
     };
   };
 

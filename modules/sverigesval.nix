@@ -7,9 +7,9 @@ with lib;
 with builtins;
 
 let
-  cfg = config.ahbk.sverigesval;
+  cfg = config.my-nixos.sverigesval;
 in {
-  options.ahbk.sverigesval = with types; {
+  options.my-nixos.sverigesval = with types; {
     enable = mkOption {
       type = bool;
       default = false;
@@ -32,14 +32,14 @@ in {
   };
 
   config = mkIf cfg.enable {
-    ahbk.fastapi.sites.${cfg.hostname} = {
+    my-nixos.fastapi.sites.${cfg.hostname} = {
       enable = cfg.enable;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
       pkgs = cfg.pkgs.fastapi;
     };
 
-    ahbk.svelte.sites.${cfg.hostname} = {
+    my-nixos.svelte.sites.${cfg.hostname} = {
       enable = cfg.enable;
       port = elemAt cfg.ports 1;
       ssl = cfg.ssl;

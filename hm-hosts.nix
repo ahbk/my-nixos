@@ -1,7 +1,7 @@
 {
   "frans@debian" = {
     system = "x86_64-linux";
-    ahbk-hm = {
+    my-nixos-hm = {
       ide = {
         enable = true;
         name = "Alexander Holmbäck";

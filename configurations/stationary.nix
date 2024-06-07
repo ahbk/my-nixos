@@ -62,7 +62,7 @@ in {
     interfaces.enp3s0.useDHCP = true;
   };
 
-  ahbk = with users; {
+  my-nixos = with users; {
     user = { inherit frans backup; };
     shell.frans.enable = true;
     hm.frans.enable = true;

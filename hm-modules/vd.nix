@@ -7,9 +7,9 @@
 with lib;
 
 let
-  cfg = config.ahbk-hm.vd;
+  cfg = config.my-nixos-hm.vd;
 in {
-  options.ahbk-hm.vd = {
+  options.my-nixos-hm.vd = {
     enable = mkEnableOption (mkDoc "Enable visual design tools for this user");
   };
 

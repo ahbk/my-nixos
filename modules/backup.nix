@@ -6,7 +6,7 @@
 with lib;
 
 let
-  cfg = config.ahbk.backup;
+  cfg = config.my-nixos.backup;
   eachTarget = filterAttrs (user: cfg: cfg.enable) cfg;
   targetOpts = {
     options = with types; {
@@ -29,10 +29,10 @@ let
   };
 in {
   options = {
-    ahbk.backup = with types; mkOption {
+    my-nixos.backup = with types; mkOption {
       type = attrsOf (submodule targetOpts);
       default = {};
-      description = mdDoc "Specification of one or more backup targets";
+      description = "Specification of one or more backup targets";
     };
   };
 

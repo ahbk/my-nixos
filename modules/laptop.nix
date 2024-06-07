@@ -7,9 +7,9 @@ with lib;
 with builtins;
 
 let
-  cfg = config.ahbk.laptop;
+  cfg = config.my-nixos.laptop;
 in {
-  options.ahbk.laptop = with types; {
+  options.my-nixos.laptop = with types; {
     enable = mkOption {
       type = bool;
       default = false;

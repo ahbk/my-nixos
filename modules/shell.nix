@@ -9,26 +9,26 @@
 with lib;
 
 let
-  cfg = config.ahbk.shell;
+  cfg = config.my-nixos.shell;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
-    options.enable = mkEnableOption (mdDoc "Configure shell for this user");
+    options.enable = mkEnableOption "shell for this user";
   };
 
 in {
-  options.ahbk.shell = with types; mkOption {
+  options.my-nixos.shell = with types; mkOption {
     type = attrsOf (submodule userOpts);
     default = {};
   };
   config = mkIf (eachUser != {}) {
 
-    ahbk.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
+    my-nixos.backup."stationary".paths = flatten (mapAttrsToList (user: cfg: [
       "/home/${user}/.bash_history"
     ]) eachUser);
 
     home-manager.users = mapAttrs (user: cfg: {
-      ahbk-hm.shell.enable = true;
+      my-nixos-hm.shell.enable = true;
     }) eachUser;
 
     documentation.man.generateCaches = true;
