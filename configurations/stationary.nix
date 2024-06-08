@@ -1,13 +1,10 @@
-{ inputs, lib, ... }:
+{ lib, ... }:
 
 with lib;
 
 let
   users = import ../users.nix;
-  sites = import ../sites.nix {
-    inherit inputs;
-    system = "x86_64-linux";
-  };
+  sites = import ../sites.nix;
 in
 {
   boot.loader.grub = {
@@ -84,6 +81,6 @@ in
       email = frans.email;
     };
 
-    wordpress.sites."test.esse.nu" = sites.wordpress.sites."test.esse.nu";
+    wordpress.sites."test.esse.nu" = sites."test.esse.nu";
   };
 }
