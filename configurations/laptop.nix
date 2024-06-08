@@ -14,7 +14,7 @@ in
       userAsTopDomain = false;
     };
     hm.frans.enable = true;
-    de.frans.enable = true;
+    desktop-env.frans.enable = true;
     vd.frans.enable = true;
 
     laptop.enable = true;

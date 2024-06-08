@@ -31,7 +31,6 @@ let
       };
     };
   };
-
 in
 {
   options.my-nixos.fastapi-svelte = with types; {

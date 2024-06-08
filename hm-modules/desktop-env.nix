@@ -10,13 +10,13 @@ with lib;
 let
   theme = import ../theme.nix;
   unhashedHexes = lib.mapAttrs (n: c: builtins.substring 1 6 c) theme.colors;
-  cfg = config.my-nixos-hm.de;
+  cfg = config.my-nixos-hm.desktop-env;
 in
 with theme.colors;
 with theme.fonts;
 
 {
-  options.my-nixos-hm.de = with types; {
+  options.my-nixos-hm.desktop-env = with types; {
     enable = mkEnableOption "Desktop Environment for this user";
   };
 

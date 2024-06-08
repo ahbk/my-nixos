@@ -1,8 +1,9 @@
+# Options
 ## my-nixos\.backup
 
 
 
-Specification of one or more backup targets
+Definition of backup targets\.
 
 
 
@@ -23,7 +24,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable backup target\.
+Whether to enable this backup target\.
 
 
 
@@ -49,7 +50,7 @@ boolean
 
 
 
-List of paths to not backup
+Paths to exclude from backup
 
 
 
@@ -60,6 +61,16 @@ list of string
 
 *Default:*
 ` [ ] `
+
+
+
+*Example:*
+
+```
+[
+  /home/alex/.cache
+]
+```
 
 *Declared by:*
  - [modules/backup\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/backup.nix)
@@ -70,7 +81,7 @@ list of string
 
 
 
-List of paths to backup
+Paths to backup\.
 
 
 
@@ -82,32 +93,27 @@ list of string
 *Default:*
 ` [ ] `
 
-*Declared by:*
- - [modules/backup\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/backup.nix)
 
 
+*Example:*
 
-## my-nixos\.backup\.\<name>\.repository
-
-
-
-Target repository
-
-
-
-*Type:*
-string
+```
+[
+  /home/alex/.bash_history
+  /home/alex/.local/share/qutebrowser/history.sqlite
+]
+```
 
 *Declared by:*
  - [modules/backup\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/backup.nix)
 
 
 
-## my-nixos\.de
+## my-nixos\.desktop-env
 
 
 
-Definition of per-user desktop environment
+Definition of per-user desktop environment\.
 
 
 
@@ -120,15 +126,15 @@ attribute set of (submodule)
 ` { } `
 
 *Declared by:*
- - [modules/de\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/de.nix)
+ - [modules/desktop-env\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/desktop-env.nix)
 
 
 
-## my-nixos\.de\.\<name>\.enable
+## my-nixos\.desktop-env\.\<name>\.enable
 
 
 
-Whether to enable Desktop Environment for this user\.
+Whether to enable desktop environment for this user\.
 
 
 
@@ -146,7 +152,7 @@ boolean
 ` true `
 
 *Declared by:*
- - [modules/de\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/de.nix)
+ - [modules/desktop-env\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/desktop-env.nix)
 
 
 
@@ -250,6 +256,128 @@ boolean
 
 
 
+## my-nixos\.django-svelte\.sites
+
+
+
+Specification of one or more Django+SvelteKit sites to serve
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
+
+
+
+## my-nixos\.django-svelte\.sites\.\<name>\.enable
+
+
+
+Whether to enable Django+SvelteKit site…
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
+
+
+
+## my-nixos\.django-svelte\.sites\.\<name>\.pkgs\.django
+
+
+
+Django packages
+
+
+
+*Type:*
+attribute set of package
+
+*Declared by:*
+ - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
+
+
+
+## my-nixos\.django-svelte\.sites\.\<name>\.pkgs\.svelte
+
+
+
+Svelte packages
+
+
+
+*Type:*
+attribute set of package
+
+*Declared by:*
+ - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
+
+
+
+## my-nixos\.django-svelte\.sites\.\<name>\.ports
+
+
+
+Two ports
+
+
+
+*Type:*
+list of 16 bit unsigned integer; between 0 and 65535 (both inclusive)
+
+
+
+*Example:*
+
+```
+[
+  8000
+  8001
+]
+```
+
+*Declared by:*
+ - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
+
+
+
+## my-nixos\.django-svelte\.sites\.\<name>\.ssl
+
+
+
+HTTPS
+
+
+
+*Type:*
+boolean
+
+*Declared by:*
+ - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
+
+
+
 ## my-nixos\.fastapi\.sites
 
 
@@ -347,6 +475,128 @@ boolean
 
 *Declared by:*
  - [modules/fastapi\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi.nix)
+
+
+
+## my-nixos\.fastapi-svelte\.sites
+
+
+
+Specification of one or more FastAPI+SvelteKit sites to serve
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
+
+
+
+## my-nixos\.fastapi-svelte\.sites\.\<name>\.enable
+
+
+
+Whether to enable fastapi-svelte\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
+
+
+
+## my-nixos\.fastapi-svelte\.sites\.\<name>\.pkgs\.fastapi
+
+
+
+fastapi packages
+
+
+
+*Type:*
+attribute set of package
+
+*Declared by:*
+ - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
+
+
+
+## my-nixos\.fastapi-svelte\.sites\.\<name>\.pkgs\.svelte
+
+
+
+svelte packages
+
+
+
+*Type:*
+attribute set of package
+
+*Declared by:*
+ - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
+
+
+
+## my-nixos\.fastapi-svelte\.sites\.\<name>\.ports
+
+
+
+two ports
+
+
+
+*Type:*
+list of 16 bit unsigned integer; between 0 and 65535 (both inclusive)
+
+
+
+*Example:*
+
+```
+[
+  8000
+  8001
+]
+```
+
+*Declared by:*
+ - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
+
+
+
+## my-nixos\.fastapi-svelte\.sites\.\<name>\.ssl
+
+
+
+HTTPS
+
+
+
+*Type:*
+boolean
+
+*Declared by:*
+ - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
 
 
 
@@ -1373,7 +1623,7 @@ boolean
 
 
 
-## my-nixos-hm\.de\.enable
+## my-nixos-hm\.desktop-env\.enable
 
 
 
@@ -1395,6 +1645,6 @@ boolean
 ` true `
 
 *Declared by:*
- - [hm-modules/de\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/de.nix)
+ - [hm-modules/desktop-env\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/desktop-env.nix)
 
 

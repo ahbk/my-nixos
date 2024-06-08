@@ -14,31 +14,24 @@ let
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   stateDir = hostname: "/var/lib/${hostname}/fastapi";
 
-  siteOpts =
-    {
-      lib,
-      name,
-      config,
-      ...
-    }:
-    {
-      options = {
-        enable = mkEnableOption "a fastapi-app for this host";
-        port = mkOption {
-          description = "The port to serve the fastapi-app.";
-          example = 8000;
-          type = types.port;
-        };
-        ssl = mkOption {
-          description = "Whether the fastapi-app can assume https or not.";
-          type = types.bool;
-        };
-        pkgs = mkOption {
-          description = "The expected fastapi-app packages.";
-          type = types.attrsOf types.package;
-        };
+  siteOpts = {
+    options = with types; {
+      enable = mkEnableOption "a fastapi-app for this host";
+      port = mkOption {
+        description = "The port to serve the fastapi-app.";
+        example = 8000;
+        type = port;
+      };
+      ssl = mkOption {
+        description = "Whether the fastapi-app can assume https or not.";
+        type = bool;
+      };
+      pkgs = mkOption {
+        description = "The expected fastapi-app packages.";
+        type = attrsOf package;
       };
     };
+  };
 
   envs = mapAttrs (
     hostname: cfg:
@@ -62,13 +55,11 @@ let
 in
 {
 
-  options = {
-    my-nixos.fastapi = {
-      sites = mkOption {
-        type = types.attrsOf (types.submodule siteOpts);
-        default = { };
-        description = "Specification of one or more FastAPI sites to serve";
-      };
+  options.my-nixos.fastapi = with types; {
+    sites = mkOption {
+      type = attrsOf (submodule siteOpts);
+      default = { };
+      description = "Specification of one or more FastAPI sites to serve";
     };
   };
 

@@ -5,9 +5,9 @@
     inputs.home-manager.nixosModules.home-manager
     inputs.nixos-mailserver.nixosModules.default
     ./backup.nix
+    ./desktop-env.nix
     ./django.nix
     ./django-svelte.nix
-    ./de.nix
     ./fastapi.nix
     ./fastapi-svelte.nix
     ./glesys-updaterecord.nix

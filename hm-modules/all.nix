@@ -1,6 +1,6 @@
 {
   imports = [
-    ./de.nix
+    ./desktop-env.nix
     ./ide.nix
     ./shell.nix
     ./user.nix

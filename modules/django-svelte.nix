@@ -9,7 +9,7 @@ let
 
   siteOpts = {
     options = with types; {
-      enable = mkEnableOption "Django+SvelteKit site for this host.";
+      enable = mkEnableOption "Django+SvelteKit site.";
       ssl = mkOption {
         description = "HTTPS";
         type = bool;

@@ -8,25 +8,28 @@
 with lib;
 
 let
-  cfg = config.my-nixos.de;
+  cfg = config.my-nixos.desktop-env;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
+  eachHMUser = filterAttrs (user: cfg: config.my-nixos.hm.${user}.enable) eachUser;
 
   userOpts = with types; {
-    options.enable = mkEnableOption "Desktop Environment for this user";
+    options.enable = mkEnableOption "desktop environment for this user";
   };
 in
 {
-  options.my-nixos.de =
-    with types;
-    mkOption {
-      type = attrsOf (submodule userOpts);
-      description = "Definition of per-user desktop environment";
-      default = { };
-    };
+  options.my-nixos.desktop-env = mkOption {
+    type = types.attrsOf (types.submodule userOpts);
+    description = "Definition of per-user desktop environment.";
+    default = { };
+  };
 
   config = mkIf (eachUser != { }) {
 
-    home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.de.enable = true; }) eachUser;
+    home-manager.users = mapAttrs (user: cfg: {
+      my-nixos-hm.desktop-env = {
+        enable = true;
+      };
+    }) eachHMUser;
 
     users.users = mapAttrs (user: cfg: {
       extraGroups = [
@@ -52,7 +55,10 @@ in
       xwayland.enable = false;
     };
 
-    security.rtkit.enable = true;
+    security = {
+      rtkit.enable = true;
+      polkit.enable = true;
+    };
 
     services.pipewire = {
       enable = true;
@@ -67,15 +73,11 @@ in
       xdg-utils
     ];
 
-    security.polkit.enable = true;
-
     environment.sessionVariables = rec {
       XDG_CACHE_HOME = "$HOME/.cache";
       XDG_CONFIG_HOME = "$HOME/.config";
       XDG_DATA_HOME = "$HOME/.local/share";
       XDG_STATE_HOME = "$HOME/.local/state";
-
-      # Not officially in the specification
       XDG_BIN_HOME = "$HOME/.local/bin";
       PATH = [ "${XDG_BIN_HOME}" ];
     };

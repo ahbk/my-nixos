@@ -7,9 +7,9 @@ let
   eachTarget = filterAttrs (user: cfg: cfg.enable) cfg;
   targetOpts = {
     options = with types; {
-      enable = mkEnableOption "backup target";
+      enable = mkEnableOption ''this backup target'';
       paths = mkOption {
-        description = "List of paths to backup";
+        description = ''Paths to backup.'';
         example = [
           /home/alex/.bash_history
           /home/alex/.local/share/qutebrowser/history.sqlite
@@ -18,7 +18,7 @@ let
         default = [ ];
       };
       exclude = mkOption {
-        description = "List of paths to not backup";
+        description = ''Paths to exclude from backup'';
         example = [ /home/alex/.cache ];
         type = listOf str;
         default = [ ];
@@ -27,14 +27,10 @@ let
   };
 in
 {
-  options = {
-    my-nixos.backup =
-      with types;
-      mkOption {
-        type = attrsOf (submodule targetOpts);
-        default = { };
-        description = "Specification of one or more backup targets";
-      };
+  options.my-nixos.backup = mkOption {
+    type = types.attrsOf (types.submodule targetOpts);
+    default = { };
+    description = ''Definition of backup targets.'';
   };
 
   config = mkIf (eachTarget != { }) {

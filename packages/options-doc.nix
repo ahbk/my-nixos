@@ -13,9 +13,11 @@ let
     check = false;
     modules = [
       ../modules/backup.nix
-      ../modules/de.nix
+      ../modules/desktop-env.nix
       ../modules/django.nix
+      ../modules/django-svelte.nix
       ../modules/fastapi.nix
+      ../modules/fastapi-svelte.nix
       ../modules/glesys-updaterecord.nix
       ../modules/hm.nix
       ../modules/ide.nix
@@ -31,7 +33,7 @@ let
       ../modules/vd.nix
       ../modules/wireguard.nix
       ../modules/wordpress.nix
-      ../hm-modules/de.nix
+      ../hm-modules/desktop-env.nix
     ];
   };
   optionsDoc = nixosOptionsDoc {
