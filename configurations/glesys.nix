@@ -44,9 +44,9 @@ in
 
     mailServer.enable = true;
 
-    django-svelte."chatddx.com" = sites.chatddx;
-    sverigesval = sites.sverigesval;
-    wordpress.sites."esse.nu" = sites.wordpress.sites."esse.nu";
+    django-svelte.sites."chatddx.com" = sites."chatddx.com";
+    fastapi-svelte.sites."sverigesval.org" = sites."sverigesval.org";
+    wordpress.sites."esse.nu" = sites."esse.nu";
   };
 
   boot.loader.grub = {

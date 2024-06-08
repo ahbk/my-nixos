@@ -4,51 +4,50 @@ with lib;
 with builtins;
 
 let
-  cfg = config.my-nixos.django-svelte;
+  cfg = config.my-nixos.fastapi-svelte;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
-
   siteOpts = {
     options = with types; {
-      enable = mkEnableOption "Django+SvelteKit site for this host.";
+      enable = mkEnableOption "fastapi-svelte";
       ssl = mkOption {
         description = "HTTPS";
         type = bool;
       };
       pkgs.svelte = mkOption {
-        description = "Svelte packages";
+        description = "svelte packages";
         type = attrsOf package;
       };
-      pkgs.django = mkOption {
-        description = "Django packages";
+      pkgs.fastapi = mkOption {
+        description = "fastapi packages";
         type = attrsOf package;
       };
       ports = mkOption {
-        description = "Two ports";
+        description = "two ports";
+        type = listOf port;
         example = [
           8000
           8001
         ];
-        type = listOf port;
       };
     };
   };
+
 in
 {
-  options.my-nixos.django-svelte = with types; {
+  options.my-nixos.fastapi-svelte = with types; {
     sites = mkOption {
-      description = "Specification of one or more Django+SvelteKit sites to serve";
+      description = "Specification of one or more FastAPI+SvelteKit sites to serve";
       type = attrsOf (submodule siteOpts);
       default = { };
     };
   };
 
   config = mkIf (eachSite != { }) {
-
-    my-nixos.django.sites = mapAttrs (hostname: cfg: {
+    my-nixos.fastapi.sites = mapAttrs (hostname: cfg: {
       enable = cfg.enable;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
-      pkgs = cfg.pkgs.django;
+      pkgs = cfg.pkgs.fastapi;
     }) eachSite;
 
     my-nixos.svelte.sites = mapAttrs (hostname: cfg: {

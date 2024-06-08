@@ -1,7 +1,7 @@
 { inputs, system }:
 
 {
-  wordpress.sites."test.esse.nu" = {
+  "test.esse.nu" = {
     enable = true;
     ssl = true;
     basicAuth = {
@@ -9,16 +9,15 @@
     };
   };
 
-  wordpress.sites."esse.nu" = {
+  "esse.nu" = {
     enable = true;
     ssl = true;
     www = true;
   };
 
-  sverigesval = {
+  "sverigesval.org" = {
     enable = true;
     ssl = true;
-    hostname = "sverigesval.org";
     pkgs = {
       inherit (inputs.sverigesval.packages.${system}) svelte fastapi;
     };
@@ -28,10 +27,9 @@
     ];
   };
 
-  chatddx = {
+  "chatddx.com" = {
     enable = true;
     ssl = true;
-    hostname = "chatddx.com";
     pkgs = {
       inherit (inputs.chatddx.packages.${system}) svelte django;
     };

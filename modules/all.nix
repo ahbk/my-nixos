@@ -9,6 +9,7 @@
     ./django-svelte.nix
     ./de.nix
     ./fastapi.nix
+    ./fastapi-svelte.nix
     ./glesys-updaterecord.nix
     ./hm.nix
     ./ide.nix
@@ -21,7 +22,6 @@
     ./postgresql.nix
     ./shell.nix
     ./svelte.nix
-    ./sverigesval.nix
     ./system.nix
     ./user.nix
     ./vd.nix
