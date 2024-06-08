@@ -1,9 +1,4 @@
-{
-  host,
-  inputs,
-  lib,
-  ...
-}:
+{ lib, ... }:
 
 with lib;
 

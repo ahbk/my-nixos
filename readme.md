@@ -24,7 +24,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable this backup target\.
+Whether to enable this backup target…
 
 
 
@@ -102,6 +102,89 @@ list of string
   /home/alex/.bash_history
   /home/alex/.local/share/qutebrowser/history.sqlite
 ]
+```
+
+*Declared by:*
+ - [modules/backup\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/backup.nix)
+
+
+
+## my-nixos\.backup\.\<name>\.privateKeyFile
+
+
+
+Location of the private key file used to connect with target\.
+Match with a public key in ` my-nixos.users.backup.keys `\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "/home/backup/.ssh/id_ed25519" `
+
+*Declared by:*
+ - [modules/backup\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/backup.nix)
+
+
+
+## my-nixos\.backup\.\<name>\.pruneOpts
+
+
+
+A list of options (–keep-\* et al\.) for ‘restic forget
+–prune’, to automatically prune old snapshots\.  The
+‘forget’ command is run *after* the ‘backup’ command, so
+keep that in mind when constructing the --keep-\* options\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+
+```
+[
+  "--keep-daily 7"
+  "--keep-weekly 5"
+  "--keep-monthly 12"
+  "--keep-yearly 75"
+]
+```
+
+*Declared by:*
+ - [modules/backup\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/backup.nix)
+
+
+
+## my-nixos\.backup\.\<name>\.timerConfig
+
+
+
+When to run the backup\. See [` systemd.timer(5) `](https://www.freedesktop.org/software/systemd/man/systemd.timer.html) for
+details\. If null no timer is created and the backup will only
+run when explicitly started\.
+
+
+
+*Type:*
+anything
+
+
+
+*Default:*
+
+```
+{
+  OnCalendar = "01:00";
+  Persistent = true;
+}
 ```
 
 *Declared by:*
@@ -203,22 +286,6 @@ boolean
 
 
 
-## my-nixos\.django\.sites\.\<name>\.pkgs
-
-
-
-The expected django app packages (static and app)\.
-
-
-
-*Type:*
-attribute set of package
-
-*Declared by:*
- - [modules/django\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django.nix)
-
-
-
 ## my-nixos\.django\.sites\.\<name>\.port
 
 
@@ -297,38 +364,6 @@ boolean
 
 *Example:*
 ` true `
-
-*Declared by:*
- - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
-
-
-
-## my-nixos\.django-svelte\.sites\.\<name>\.pkgs\.django
-
-
-
-Django packages
-
-
-
-*Type:*
-attribute set of package
-
-*Declared by:*
- - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
-
-
-
-## my-nixos\.django-svelte\.sites\.\<name>\.pkgs\.svelte
-
-
-
-Svelte packages
-
-
-
-*Type:*
-attribute set of package
 
 *Declared by:*
  - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
@@ -425,22 +460,6 @@ boolean
 
 
 
-## my-nixos\.fastapi\.sites\.\<name>\.pkgs
-
-
-
-The expected fastapi-app packages\.
-
-
-
-*Type:*
-attribute set of package
-
-*Declared by:*
- - [modules/fastapi\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi.nix)
-
-
-
 ## my-nixos\.fastapi\.sites\.\<name>\.port
 
 
@@ -519,38 +538,6 @@ boolean
 
 *Example:*
 ` true `
-
-*Declared by:*
- - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
-
-
-
-## my-nixos\.fastapi-svelte\.sites\.\<name>\.pkgs\.fastapi
-
-
-
-fastapi packages
-
-
-
-*Type:*
-attribute set of package
-
-*Declared by:*
- - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
-
-
-
-## my-nixos\.fastapi-svelte\.sites\.\<name>\.pkgs\.svelte
-
-
-
-svelte packages
-
-
-
-*Type:*
-attribute set of package
 
 *Declared by:*
  - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
@@ -1212,22 +1199,6 @@ string
 
 *Default:*
 ` "" `
-
-*Declared by:*
- - [modules/svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/svelte.nix)
-
-
-
-## my-nixos\.svelte\.sites\.\<name>\.pkgs
-
-
-
-The expected svelte app packages\.
-
-
-
-*Type:*
-attribute set of package
 
 *Declared by:*
  - [modules/svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/svelte.nix)
