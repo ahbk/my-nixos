@@ -9,10 +9,7 @@ with lib;
 
 let
   users = import ../users.nix;
-  sites = (import ../sites.nix) {
-    inherit inputs;
-    system = host.system;
-  };
+  sites = import ../sites.nix;
 in
 {
   networking = {

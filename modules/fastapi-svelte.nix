@@ -13,14 +13,6 @@ let
         description = "HTTPS";
         type = bool;
       };
-      pkgs.svelte = mkOption {
-        description = "svelte packages";
-        type = attrsOf package;
-      };
-      pkgs.fastapi = mkOption {
-        description = "fastapi packages";
-        type = attrsOf package;
-      };
       ports = mkOption {
         description = "two ports";
         type = listOf port;
@@ -46,14 +38,12 @@ in
       enable = cfg.enable;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
-      pkgs = cfg.pkgs.fastapi;
     }) eachSite;
 
     my-nixos.svelte.sites = mapAttrs (hostname: cfg: {
       enable = cfg.enable;
       port = elemAt cfg.ports 1;
       ssl = cfg.ssl;
-      pkgs = cfg.pkgs.svelte;
       api = "${if cfg.ssl then "https" else "http"}://${hostname}";
       api_ssr = "http://localhost:${toString (elemAt cfg.ports 0)}";
     }) eachSite;

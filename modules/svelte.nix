@@ -1,5 +1,7 @@
 {
   config,
+  host,
+  inputs,
   lib,
   pkgs,
   ...
@@ -37,12 +39,10 @@ let
         description = "Server side URL for the API endpoint";
         type = types.str;
       };
-      pkgs = mkOption {
-        description = "The expected svelte app packages.";
-        type = types.attrsOf types.package;
-      };
     };
   };
+
+  sveltePkgs = hostname: inputs.${hostname}.packages.${host.system}.svelte;
 
   envs = mapAttrs (
     hostname: cfg:
@@ -91,7 +91,7 @@ in
         description = "serve ${hostname}-svelte";
         serviceConfig = {
           ExecStart = "${pkgs.nodejs_20}/bin/node ${
-            cfg.pkgs.app.overrideAttrs ({ env = envs.${hostname}; })
+            (sveltePkgs hostname).app.overrideAttrs ({ env = envs.${hostname}; })
           }/build";
           User = hostname;
           Group = hostname;

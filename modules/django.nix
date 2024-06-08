@@ -1,5 +1,7 @@
 {
   config,
+  host,
+  inputs,
   lib,
   pkgs,
   ...
@@ -26,12 +28,10 @@ let
         description = "Whether the django-app can assume https or not.";
         type = bool;
       };
-      pkgs = mkOption {
-        description = "The expected django app packages (static and app).";
-        type = attrsOf package;
-      };
     };
   };
+
+  djangoPkgs = hostname: inputs.${hostname}.packages.${host.system}.django;
 
   envs = mapAttrs (
     hostname: cfg:
@@ -47,7 +47,7 @@ let
 
   bins = mapAttrs (
     hostname: cfg:
-    (cfg.pkgs.bin.overrideAttrs {
+    ((djangoPkgs hostname).bin.overrideAttrs {
       env = envs.${hostname};
       name = "${hostname}-manage";
     })
@@ -100,7 +100,7 @@ in
         proxyPass = "http://localhost:${toString cfg.port}";
       };
       locations."/static/" = {
-        alias = "${cfg.pkgs.static}/";
+        alias = "${(djangoPkgs hostname).static}/";
       };
     })) eachSite;
 
@@ -108,7 +108,7 @@ in
       "${hostname}-django" = {
         description = "serve ${hostname}-django";
         serviceConfig = {
-          ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
+          ExecStart = "${(djangoPkgs hostname).app.dependencyEnv}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
           User = hostname;
           Group = hostname;
           EnvironmentFile = "${envs.${hostname}}";
@@ -120,7 +120,7 @@ in
         description = "migrate ${hostname}-django";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/django-admin migrate";
+          ExecStart = "${(djangoPkgs hostname).app.dependencyEnv}/bin/django-admin migrate";
           User = hostname;
           Group = hostname;
           EnvironmentFile = "${envs.${hostname}}";

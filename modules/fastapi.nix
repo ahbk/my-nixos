@@ -1,5 +1,7 @@
 {
   config,
+  host,
+  inputs,
   lib,
   pkgs,
   ...
@@ -26,12 +28,10 @@ let
         description = "Whether the fastapi-app can assume https or not.";
         type = bool;
       };
-      pkgs = mkOption {
-        description = "The expected fastapi-app packages.";
-        type = attrsOf package;
-      };
     };
   };
+
+  fastapiPkgs = hostname: inputs.${hostname}.packages.${host.system}.fastapi;
 
   envs = mapAttrs (
     hostname: cfg:
@@ -47,7 +47,7 @@ let
 
   bins = mapAttrs (
     hostname: cfg:
-    (cfg.pkgs.bin.overrideAttrs {
+    ((fastapiPkgs hostname).bin.overrideAttrs {
       env = envs.${hostname};
       name = "${hostname}-manage";
     })
@@ -107,7 +107,7 @@ in
       "${hostname}-fastapi" = {
         description = "serve ${hostname}-fastapi";
         serviceConfig = {
-          ExecStart = "${cfg.pkgs.app.dependencyEnv}/bin/uvicorn app.main:run --host localhost --port ${toString cfg.port}";
+          ExecStart = "${(fastapiPkgs hostname).app.dependencyEnv}/bin/uvicorn app.main:run --host localhost --port ${toString cfg.port}";
           User = hostname;
           Group = hostname;
           EnvironmentFile = "${envs.${hostname}}";
@@ -120,7 +120,7 @@ in
         description = "migrate ${hostname}-fastapi";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${cfg.pkgs.bin}/bin/manage migrate";
+          ExecStart = "${(fastapiPkgs hostname).bin}/bin/manage migrate";
           User = hostname;
           Group = hostname;
           EnvironmentFile = "${envs.${hostname}}";

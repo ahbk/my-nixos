@@ -14,14 +14,6 @@ let
         description = "HTTPS";
         type = bool;
       };
-      pkgs.svelte = mkOption {
-        description = "Svelte packages";
-        type = attrsOf package;
-      };
-      pkgs.django = mkOption {
-        description = "Django packages";
-        type = attrsOf package;
-      };
       ports = mkOption {
         description = "Two ports";
         example = [
@@ -48,14 +40,12 @@ in
       enable = cfg.enable;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
-      pkgs = cfg.pkgs.django;
     }) eachSite;
 
     my-nixos.svelte.sites = mapAttrs (hostname: cfg: {
       enable = cfg.enable;
       port = elemAt cfg.ports 1;
       ssl = cfg.ssl;
-      pkgs = cfg.pkgs.svelte;
       api = "${if cfg.ssl then "https" else "http"}://${hostname}";
       api_ssr = "http://localhost:${toString (elemAt cfg.ports 0)}";
     }) eachSite;
