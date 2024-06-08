@@ -1,5 +1,4 @@
 let
-  hosts = import ../hosts.nix;
   users = import ../users.nix;
 in
 {
@@ -22,13 +21,9 @@ in
 
     wireguard.wg0.enable = true;
 
-    mailClient."alex" = {
-      enable = true;
-    };
+    mailClient."alex".enable = true;
 
-    backup."backup.ahbk" = {
-      enable = true;
-    };
+    backup."backup.ahbk".enable = true;
   };
 
   networking = {

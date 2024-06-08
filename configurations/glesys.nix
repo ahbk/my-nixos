@@ -1,13 +1,17 @@
-{ inputs, lib, ... }:
+{
+  host,
+  inputs,
+  lib,
+  ...
+}:
 
 with lib;
 
 let
   users = import ../users.nix;
-  hosts = import ../hosts.nix;
   sites = (import ../sites.nix) {
     inherit inputs;
-    system = "x86_64-linux";
+    system = host.system;
   };
 in
 {
@@ -29,9 +33,7 @@ in
       userAsTopDomain = false;
     };
 
-    backup."backup.ahbk" = {
-      enable = true;
-    };
+    backup."backup.ahbk".enable = true;
 
     wireguard.wg0.enable = true;
 
@@ -42,7 +44,7 @@ in
 
     mailServer.enable = true;
 
-    chatddx = sites.chatddx;
+    django-svelte."chatddx.com" = sites.chatddx;
     sverigesval = sites.sverigesval;
     wordpress.sites."esse.nu" = sites.wordpress.sites."esse.nu";
   };

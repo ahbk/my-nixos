@@ -14,31 +14,24 @@ let
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   stateDir = hostname: "/var/lib/${hostname}/django";
 
-  siteOpts =
-    {
-      lib,
-      name,
-      config,
-      ...
-    }:
-    {
-      options = {
-        enable = mkEnableOption "a django-app for this host";
-        port = mkOption {
-          description = "The port to serve the django-app.";
-          example = 8000;
-          type = types.port;
-        };
-        ssl = mkOption {
-          description = "Whether the django-app can assume https or not.";
-          type = types.bool;
-        };
-        pkgs = mkOption {
-          description = "The expected django app packages (static and app).";
-          type = types.attrsOf types.package;
-        };
+  siteOpts = {
+    options = with types; {
+      enable = mkEnableOption "a django-app for this host";
+      port = mkOption {
+        description = "The port to serve the django-app.";
+        example = 8000;
+        type = port;
+      };
+      ssl = mkOption {
+        description = "Whether the django-app can assume https or not.";
+        type = bool;
+      };
+      pkgs = mkOption {
+        description = "The expected django app packages (static and app).";
+        type = attrsOf package;
       };
     };
+  };
 
   envs = mapAttrs (
     hostname: cfg:
@@ -62,13 +55,11 @@ let
 in
 {
 
-  options = {
-    my-nixos.django = {
-      sites = mkOption {
-        type = types.attrsOf (types.submodule siteOpts);
-        default = { };
-        description = "Specification of one or more Django sites to serve";
-      };
+  options.my-nixos.django = with types; {
+    sites = mkOption {
+      type = attrsOf (submodule siteOpts);
+      default = { };
+      description = "Specification of one or more Django sites to serve";
     };
   };
 
