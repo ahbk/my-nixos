@@ -18,14 +18,14 @@ let
 
   siteOpts = {
     options = with types; {
-      enable = mkEnableOption "a django-app for this host";
+      enable = mkEnableOption "Django app";
       port = mkOption {
-        description = "The port to serve the django-app.";
+        description = "Listening port.";
         example = 8000;
         type = port;
       };
       ssl = mkOption {
-        description = "Whether the django-app can assume https or not.";
+        description = "Whether to enable SSL (https) support.";
         type = bool;
       };
     };
@@ -59,7 +59,7 @@ in
     sites = mkOption {
       type = attrsOf (submodule siteOpts);
       default = { };
-      description = "Specification of one or more Django sites to serve";
+      description = "Definition of per-domain Django apps to serve.";
     };
   };
 

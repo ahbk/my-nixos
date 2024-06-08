@@ -9,13 +9,13 @@ let
 
   siteOpts = {
     options = with types; {
-      enable = mkEnableOption "Django+SvelteKit site.";
+      enable = mkEnableOption "Django+SvelteKit app";
       ssl = mkOption {
-        description = "HTTPS";
+        description = "Whether to enable SSL (https) support.";
         type = bool;
       };
       ports = mkOption {
-        description = "Two ports";
+        description = "Listening ports.";
         example = [
           8000
           8001
@@ -28,7 +28,7 @@ in
 {
   options.my-nixos.django-svelte = with types; {
     sites = mkOption {
-      description = "Specification of one or more Django+SvelteKit sites to serve";
+      description = "Definition of per-domain Django+SvelteKit apps to serve.";
       type = attrsOf (submodule siteOpts);
       default = { };
     };

@@ -24,7 +24,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable this backup target…
+Whether to enable this backup target\.
 
 
 
@@ -50,7 +50,7 @@ boolean
 
 
 
-Paths to exclude from backup
+Paths to exclude from backup\.
 
 
 
@@ -243,7 +243,7 @@ boolean
 
 
 
-Specification of one or more Django sites to serve
+Definition of per-domain Django apps to serve\.
 
 
 
@@ -264,7 +264,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable a django-app for this host\.
+Whether to enable Django app\.
 
 
 
@@ -290,7 +290,7 @@ boolean
 
 
 
-The port to serve the django-app\.
+Listening port\.
 
 
 
@@ -311,7 +311,7 @@ The port to serve the django-app\.
 
 
 
-Whether the django-app can assume https or not\.
+Whether to enable SSL (https) support\.
 
 
 
@@ -327,7 +327,7 @@ boolean
 
 
 
-Specification of one or more Django+SvelteKit sites to serve
+Definition of per-domain Django+SvelteKit apps to serve\.
 
 
 
@@ -348,7 +348,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable Django+SvelteKit site…
+Whether to enable Django+SvelteKit app\.
 
 
 
@@ -374,7 +374,7 @@ boolean
 
 
 
-Two ports
+Listening ports\.
 
 
 
@@ -401,7 +401,7 @@ list of 16 bit unsigned integer; between 0 and 65535 (both inclusive)
 
 
 
-HTTPS
+Whether to enable SSL (https) support\.
 
 
 
@@ -417,7 +417,7 @@ boolean
 
 
 
-Specification of one or more FastAPI sites to serve
+Definition of per-domain FastAPI apps to serve\.
 
 
 
@@ -438,7 +438,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable a fastapi-app for this host\.
+Whether to enable FastAPI app\.
 
 
 
@@ -464,7 +464,7 @@ boolean
 
 
 
-The port to serve the fastapi-app\.
+Listening port\.
 
 
 
@@ -485,7 +485,7 @@ The port to serve the fastapi-app\.
 
 
 
-Whether the fastapi-app can assume https or not\.
+Whether to enable SSL (https) support\.
 
 
 
@@ -501,7 +501,7 @@ boolean
 
 
 
-Specification of one or more FastAPI+SvelteKit sites to serve
+Definition of per-domain FastAPI+SvelteKit apps to serve\.
 
 
 
@@ -522,7 +522,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable fastapi-svelte\.
+Whether to enable FastAPI+SvelteKit app\.
 
 
 
@@ -548,7 +548,7 @@ boolean
 
 
 
-two ports
+Listening ports\.
 
 
 
@@ -575,7 +575,7 @@ list of 16 bit unsigned integer; between 0 and 65535 (both inclusive)
 
 
 
-HTTPS
+Whether to enable SSL (https) support\.
 
 
 
@@ -591,7 +591,7 @@ boolean
 
 
 
-Whether to enable DNS-record on glesys\.
+Whether to enable updating DNS-record on glesys\.
 
 
 
@@ -617,7 +617,7 @@ boolean
 
 
 
-The glesys account id
+Glesys account id\.
 
 
 
@@ -633,12 +633,17 @@ string
 
 
 
-The device that should be watched\.
+Device that should be watched\.
 
 
 
 *Type:*
 string
+
+
+
+*Example:*
+` "enp3s0" `
 
 *Declared by:*
  - [modules/glesys-updaterecord\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/glesys-updaterecord.nix)
@@ -665,7 +670,7 @@ string
 
 
 
-Set of users to be configured with home-manager
+Set of users to be configured with home-manager\.
 
 
 
@@ -804,58 +809,6 @@ boolean
 
 *Declared by:*
  - [modules/ide\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/ide.nix)
-
-
-
-## my-nixos\.ide\.\<name>\.userAsTopDomain
-
-
-
-Whether to enable username a top domain name in local network\.
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` false `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [modules/ide\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/ide.nix)
-
-
-
-## my-nixos\.laptop\.enable
-
-
-
-Whether to enable Enable power management on the host\.
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` false `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [modules/laptop\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/laptop.nix)
 
 
 
@@ -1617,5 +1570,63 @@ boolean
 
 *Declared by:*
  - [hm-modules/desktop-env\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/desktop-env.nix)
+
+
+
+## my-nixos-hm\.ide\.enable
+
+
+
+Whether to enable IDE for this user\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [hm-modules/ide\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/ide.nix)
+
+
+
+## my-nixos-hm\.ide\.email
+
+
+
+Email for git\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [hm-modules/ide\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/ide.nix)
+
+
+
+## my-nixos-hm\.ide\.name
+
+
+
+Name for git\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [hm-modules/ide\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/ide.nix)
 
 

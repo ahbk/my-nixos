@@ -68,7 +68,6 @@ in
       enable = true;
       postgresql = true;
       mysql = true;
-      userAsTopDomain = false;
     };
 
     glesys.updaterecord = {

@@ -22,7 +22,6 @@ in
       enable = true;
       postgresql = false;
       mysql = false;
-      userAsTopDomain = false;
     };
 
     backup."backup.ahbk".enable = true;

@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   ...
@@ -16,12 +15,17 @@ with theme.colors;
 with theme.fonts;
 
 {
-  imports = [ inputs.nixvim.homeManagerModules.nixvim ];
 
   options.my-nixos-hm.ide = with types; {
-    enable = mkEnableOption (mcDoc "Configure IDE for this user");
-    name = mkOption { type = str; };
-    email = mkOption { type = str; };
+    enable = mkEnableOption "IDE for this user";
+    name = mkOption {
+      description = "Name for git.";
+      type = str;
+    };
+    email = mkOption {
+      description = "Email for git.";
+      type = str;
+    };
   };
 
   config = mkIf cfg.enable {

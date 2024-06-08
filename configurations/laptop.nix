@@ -11,13 +11,10 @@ in
       enable = true;
       postgresql = true;
       mysql = true;
-      userAsTopDomain = false;
     };
     hm.frans.enable = true;
     desktop-env.frans.enable = true;
     vd.frans.enable = true;
-
-    laptop.enable = true;
 
     wireguard.wg0.enable = true;
 
@@ -52,11 +49,6 @@ in
     }
   ];
 
-  services.dnsmasq = {
-    enable = false;
-    settings.address = "/.test/10.233.1.2";
-  };
-
   # Purism librem 13v2 has unusual keycode for pipe/backslash
   # https://forums.puri.sm/t/keyboard-layout-unable-to-recognize-pipe/2022
   systemd.services.pipefix = {
@@ -65,4 +57,14 @@ in
     before = [ "systemd-user-sessions.service" ];
     script = "/run/current-system/sw/bin/setkeycodes 56 43";
   };
+
+  programs.light = {
+    enable = true;
+    brightnessKeys.step = 10;
+    brightnessKeys.enable = true;
+  };
+
+  powerManagement.enable = true;
+
+  services.thermald.enable = true;
 }

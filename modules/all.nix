@@ -6,14 +6,13 @@
     inputs.nixos-mailserver.nixosModules.default
     ./backup.nix
     ./desktop-env.nix
-    ./django.nix
     ./django-svelte.nix
-    ./fastapi.nix
+    ./django.nix
     ./fastapi-svelte.nix
+    ./fastapi.nix
     ./glesys-updaterecord.nix
     ./hm.nix
     ./ide.nix
-    ./laptop.nix
     ./mail-client.nix
     ./mail-server.nix
     ./mysql.nix

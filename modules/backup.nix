@@ -7,7 +7,7 @@ let
   eachTarget = filterAttrs (user: cfg: cfg.enable) cfg;
   targetOpts = {
     options = with types; {
-      enable = mkEnableOption ''this backup target.'';
+      enable = mkEnableOption ''this backup target'';
       paths = mkOption {
         description = ''Paths to backup.'';
         example = [
@@ -18,7 +18,7 @@ let
         default = [ ];
       };
       exclude = mkOption {
-        description = ''Paths to exclude from backup'';
+        description = ''Paths to exclude from backup.'';
         example = [ /home/alex/.cache ];
         type = listOf str;
         default = [ ];

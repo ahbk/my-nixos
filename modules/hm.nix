@@ -20,7 +20,7 @@ in
   options.my-nixos.hm =
     with types;
     mkOption {
-      description = "Set of users to be configured with home-manager";
+      description = "Set of users to be configured with home-manager.";
       type = attrsOf (submodule userOpts);
       default = { };
     };

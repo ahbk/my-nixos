@@ -8,13 +8,13 @@ let
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   siteOpts = {
     options = with types; {
-      enable = mkEnableOption "fastapi-svelte";
+      enable = mkEnableOption "FastAPI+SvelteKit app";
       ssl = mkOption {
-        description = "HTTPS";
+        description = "Whether to enable SSL (https) support.";
         type = bool;
       };
       ports = mkOption {
-        description = "two ports";
+        description = "Listening ports.";
         type = listOf port;
         example = [
           8000
@@ -27,7 +27,7 @@ in
 {
   options.my-nixos.fastapi-svelte = with types; {
     sites = mkOption {
-      description = "Specification of one or more FastAPI+SvelteKit sites to serve";
+      description = "Definition of per-domain FastAPI+SvelteKit apps to serve.";
       type = attrsOf (submodule siteOpts);
       default = { };
     };

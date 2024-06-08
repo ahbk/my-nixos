@@ -21,7 +21,6 @@ let
       ../modules/glesys-updaterecord.nix
       ../modules/hm.nix
       ../modules/ide.nix
-      ../modules/laptop.nix
       ../modules/mail-client.nix
       ../modules/mail-server.nix
       ../modules/mysql.nix
@@ -34,6 +33,7 @@ let
       ../modules/wireguard.nix
       ../modules/wordpress.nix
       ../hm-modules/desktop-env.nix
+      ../hm-modules/ide.nix
     ];
   };
   optionsDoc = nixosOptionsDoc {
