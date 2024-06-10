@@ -32,5 +32,10 @@ in
 
       certificateScheme = "acme-nginx";
     };
+
+    my-nixos.backup."backup.ahbk".paths = with config.mailserver; [
+      dkimKeyDirectory
+      mailDirectory
+    ];
   };
 }
