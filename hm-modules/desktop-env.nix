@@ -5,26 +5,25 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib) mkIf getExe mkEnableOption;
+  inherit (builtins) substring;
+  inherit (theme) colors fonts;
   theme = import ../theme.nix;
-  unhashedHexes = lib.mapAttrs (n: c: builtins.substring 1 6 c) theme.colors;
+  unhashedHexes = lib.mapAttrs (n: c: substring 1 6 c) theme.colors;
   cfg = config.my-nixos-hm.desktop-env;
 in
-with theme.colors;
-with theme.fonts;
 
 {
-  options.my-nixos-hm.desktop-env = with types; {
+  options.my-nixos-hm.desktop-env = {
     enable = mkEnableOption "Desktop Environment for this user";
   };
 
-  config = lib.mkIf cfg.enable {
+  config = mkIf cfg.enable {
     programs.foot = {
       enable = true;
       settings = {
-        main.font = "${monospace}:size=11";
+        main.font = "${fonts.monospace}:size=11";
         main.dpi-aware = "no";
         mouse.hide-when-typing = "yes";
         colors = with unhashedHexes; {
@@ -65,7 +64,7 @@ with theme.fonts;
         config.bind('<Ctrl-O>', 'back')
         config.bind('<Ctrl-I>', 'forward')
       '';
-      settings = {
+      settings = with colors; {
         input = {
           links_included_in_focus_chain = false;
         };
@@ -84,7 +83,7 @@ with theme.fonts;
           };
         };
         fonts = {
-          default_family = [ monospace ];
+          default_family = [ fonts.monospace ];
           default_size = "11pt";
           hints = "default_size default_family";
         };
@@ -244,7 +243,7 @@ with theme.fonts;
               mode = "year";
               mode-mon-col = 3;
               weeks-pos = "left";
-              format = {
+              format = with colors; {
                 months = "<span color='${green-400}'><b>{}</b></span>";
                 days = "<span color='${white-400}'><b>{}</b></span>";
                 weeks = "<span color='${purple-400}'><b>{}</b></span>";
@@ -255,9 +254,9 @@ with theme.fonts;
           };
         };
       };
-      style = ''
+      style = with colors; ''
         * {
-          font-family: ${monospace};
+          font-family: ${fonts.monospace};
           background-color: ${bg-400};
         }
         #battery {
@@ -278,8 +277,8 @@ with theme.fonts;
       settings = {
         monitor = ",preferred,auto,1";
         exec-once = [
-          "${lib.getExe pkgs.swaybg} -i ${config.home.file.wallpaper.target}"
-          "${lib.getExe pkgs.waybar}"
+          "${getExe pkgs.swaybg} -i ${config.home.file.wallpaper.target}"
+          "${getExe pkgs.waybar}"
         ];
 
         general = {

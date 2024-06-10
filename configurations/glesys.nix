@@ -1,7 +1,3 @@
-{ lib, ... }:
-
-with lib;
-
 let
   users = import ../users.nix;
   sites = import ../sites.nix;

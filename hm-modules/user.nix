@@ -1,8 +1,12 @@
 { config, lib, ... }:
 
-with lib;
-
 let
+  inherit (lib)
+    types
+    mkIf
+    mkEnableOption
+    mkOption
+    ;
   cfg = config.my-nixos-hm.user;
 in
 {

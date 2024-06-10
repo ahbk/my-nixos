@@ -5,13 +5,21 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkEnableOption
+    mkOption
+    mapAttrs
+    mapAttrs'
+    nameValuePair
+    mkIf
+    ;
   cfg = config.my-nixos.mailClient;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
-  userOpts = with types; {
+  userOpts = {
     options = {
       enable = mkEnableOption "a mail client for user." // {
         default = true;

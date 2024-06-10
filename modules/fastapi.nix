@@ -7,9 +7,20 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkEnableOption
+    mkOption
+    mapAttrs
+    mapAttrsToList
+    flatten
+    getExe
+    mapAttrs'
+    mkIf
+    nameValuePair
+    ;
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.fastapi;
 

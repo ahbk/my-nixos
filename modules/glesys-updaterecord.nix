@@ -5,9 +5,14 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    types
+    mkEnableOption
+    mkOption
+    mkIf
+    getExe
+    ;
   cfg = config.my-nixos.glesys.updaterecord;
 in
 {

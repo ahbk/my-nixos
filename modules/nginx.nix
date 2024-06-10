@@ -1,16 +1,20 @@
 { config, lib, ... }:
 
-with lib;
-
 let
+  inherit (lib)
+    mkEnableOption
+    mkOption
+    types
+    mkIf
+    ;
   cfg = config.my-nixos.nginx;
 in
 {
-  options.my-nixos.nginx = {
+  options.my-nixos.nginx = with types; {
     enable = mkEnableOption "nginx web server.";
     email = mkOption {
       description = "Email for ACME certificate updates";
-      type = types.str;
+      type = str;
     };
   };
   config = mkIf cfg.enable {
@@ -18,6 +22,7 @@ in
       80
       443
     ];
+
     security.acme = {
       acceptTerms = true;
       defaults.email = cfg.email;

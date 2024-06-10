@@ -6,13 +6,19 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkEnableOption
+    mkOption
+    mkIf
+    mapAttrs
+    ;
   cfg = config.my-nixos.hm;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
-  userOpts = with types; {
+  userOpts = {
     options.enable = mkEnableOption "home-manager for this user";
   };
 in

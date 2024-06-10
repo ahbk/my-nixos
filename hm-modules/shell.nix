@@ -5,18 +5,16 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib) types mkIf mkEnableOption;
+  inherit (theme) colors;
   cfg = config.my-nixos-hm.shell;
   theme = import ../theme.nix;
 in
-with theme.colors;
-with theme.fonts;
 
 {
-  options.my-nixos-hm.shell = with types; {
-    enable = mkEnableOption (mkDoc "Enable shell for this user");
+  options.my-nixos-hm.shell = {
+    enable = mkEnableOption "Enable shell for this user";
   };
 
   config = mkIf cfg.enable {
@@ -91,7 +89,7 @@ with theme.fonts;
       keyMode = "vi";
       escapeTime = 10;
       baseIndex = 1;
-      extraConfig = ''
+      extraConfig = with colors; ''
         set-option -ga terminal-features ',foot:RGB'
         set-option -g status-right "#{user}@#{host}"
         set -ga terminal-overrides ",256col:Tc"

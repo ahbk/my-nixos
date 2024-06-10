@@ -5,41 +5,44 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    flatten
+    getExe
+    mapAttrs
+    mapAttrsToList
+    mkEnableOption
+    mkIf
+    mkOption
+    types
+    ;
+
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.wordpress;
   webserver = config.services.nginx;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   stateDir = hostname: "/var/lib/${hostname}/wordpress";
 
-  siteOpts =
-    {
-      lib,
-      name,
-      config,
-      ...
-    }:
-    {
-      options = {
-        enable = mkEnableOption "wordpress on this host.";
-        ssl = mkOption {
-          description = "Enable HTTPS.";
-          type = types.bool;
-        };
-        www = mkOption {
-          description = "Prefix the url with www.";
-          default = false;
-          type = types.bool;
-        };
-        basicAuth = mkOption {
-          description = "Protect the site with basic auth.";
-          type = types.attrsOf types.str;
-          default = { };
-        };
+  siteOpts = {
+    options = {
+      enable = mkEnableOption "wordpress on this host.";
+      ssl = mkOption {
+        description = "Enable HTTPS.";
+        type = types.bool;
+      };
+      www = mkOption {
+        description = "Prefix the url with www.";
+        default = false;
+        type = types.bool;
+      };
+      basicAuth = mkOption {
+        description = "Protect the site with basic auth.";
+        type = types.attrsOf types.str;
+        default = { };
       };
     };
+  };
 
   wpPhp = pkgs.php.buildEnv {
     extensions = { enabled, all }: with all; enabled ++ [ imagick ];

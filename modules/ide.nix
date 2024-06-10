@@ -5,14 +5,20 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkEnableOption
+    mkOption
+    mapAttrs
+    mkIf
+    ;
   cfg = config.my-nixos.ide;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
   eachHMUser = filterAttrs (user: cfg: config.my-nixos.hm.${user}.enable) eachUser;
 
-  userOpts = with types; {
+  userOpts = {
     options = {
       enable = mkEnableOption "IDE for this user";
       postgresql = mkEnableOption "a postgres db with same name";

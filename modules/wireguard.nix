@@ -5,10 +5,17 @@
   ...
 }:
 
-with lib;
-with builtins;
-
 let
+  inherit (lib)
+    mkMerge
+    mkIf
+    types
+    mapAttrsToList
+    filterAttrs
+    mkEnableOption
+    mkOption
+    ;
+  inherit (builtins) hasAttr;
   cfg = config.my-nixos.wireguard;
   hosts = import ../hosts.nix;
   isGateway = cfg: cfg.name == "stationary";

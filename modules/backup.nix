@@ -1,8 +1,14 @@
 { config, lib, ... }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkOption
+    mkIf
+    mapAttrs
+    mkEnableOption
+    ;
   cfg = config.my-nixos.backup;
   eachTarget = filterAttrs (user: cfg: cfg.enable) cfg;
   targetOpts = {

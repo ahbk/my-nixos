@@ -26,8 +26,10 @@
   outputs =
     { self, ... }@inputs:
 
-    with inputs.nixpkgs.lib;
-    with inputs.home-manager.lib;
+    let
+      inherit (inputs.nixpkgs.lib) nixosSystem mapAttrs;
+      inherit (inputs.home-manager.lib) homeManagerConfiguration;
+    in
 
     {
       homeConfigurations = mapAttrs (

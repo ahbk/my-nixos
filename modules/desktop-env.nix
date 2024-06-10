@@ -5,14 +5,22 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkOption
+    mkIf
+    mapAttrs
+    mkEnableOption
+    flatten
+    mapAttrsToList
+    ;
   cfg = config.my-nixos.desktop-env;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
   eachHMUser = filterAttrs (user: cfg: config.my-nixos.hm.${user}.enable) eachUser;
 
-  userOpts = with types; {
+  userOpts = {
     options.enable = mkEnableOption "desktop environment for this user";
   };
 in

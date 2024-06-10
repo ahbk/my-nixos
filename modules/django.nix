@@ -7,9 +7,19 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    types
+    mkEnableOption
+    mkOption
+    mkIf
+    filterAttrs
+    mapAttrsToList
+    mapAttrs
+    mapAttrs'
+    flatten
+    nameValuePair
+    ;
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.django;
 

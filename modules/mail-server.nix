@@ -1,8 +1,7 @@
 { config, lib, ... }:
 
-with lib;
-
 let
+  inherit (lib) mkEnableOption mkIf;
   cfg = config.my-nixos.mailServer;
 in
 {

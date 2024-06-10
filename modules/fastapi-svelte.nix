@@ -1,9 +1,15 @@
 { config, lib, ... }:
 
-with lib;
-with builtins;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkOption
+    mkEnableOption
+    mkIf
+    mapAttrs
+    ;
+  inherit (builtins) elemAt;
   cfg = config.my-nixos.fastapi-svelte;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
   siteOpts = {

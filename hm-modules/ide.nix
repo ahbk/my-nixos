@@ -5,14 +5,17 @@
   ...
 }:
 
-with lib;
-
 let
-  cfg = config.my-nixos-hm.ide;
   theme = import ../theme.nix;
+  inherit (lib)
+    types
+    mkIf
+    mkEnableOption
+    mkOption
+    ;
+  inherit (theme) colors;
+  cfg = config.my-nixos-hm.ide;
 in
-with theme.colors;
-with theme.fonts;
 
 {
 
@@ -59,7 +62,7 @@ with theme.fonts;
           enable = true;
           settings = {
             transparent = false;
-            colors.palette = {
+            colors.palette = with colors; {
               katanaGray = black-100; # deprecated
               fujiGray = black-200; # syn.comment term:bright black
               sumiInk6 = black-300; # nontext whitespace

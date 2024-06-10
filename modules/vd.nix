@@ -5,13 +5,19 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    mkEnableOption
+    mkOption
+    mkIf
+    mapAttrs
+    types
+    ;
   cfg = config.my-nixos.vd;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
-  userOpts = with types; {
+  userOpts = {
     options.enable = mkEnableOption "Visual design tools for this user";
   };
 in

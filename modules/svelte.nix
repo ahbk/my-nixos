@@ -7,37 +7,45 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    mkEnableOption
+    mkOption
+    types
+    mapAttrs
+    mkIf
+    mapAttrs'
+    nameValuePair
+    ;
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.svelte;
 
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
 
   siteOpts = {
-    options = {
+    options = with types; {
       enable = mkEnableOption "svelte-app for this host.";
       location = mkOption {
         description = "URL path to serve the application.";
         default = "";
-        type = types.str;
+        type = str;
       };
       port = mkOption {
         description = "Port to serve the application.";
-        type = types.port;
+        type = port;
       };
       ssl = mkOption {
         description = "Whether the svelte-app can assume https or not.";
-        type = types.bool;
+        type = bool;
       };
       api = mkOption {
         description = "URL for the API endpoint";
-        type = types.str;
+        type = str;
       };
       api_ssr = mkOption {
         description = "Server side URL for the API endpoint";
-        type = types.str;
+        type = str;
       };
     };
   };

@@ -7,13 +7,21 @@
   ...
 }:
 
-with lib;
-
 let
+  inherit (lib)
+    filterAttrs
+    types
+    mkIf
+    flatten
+    mapAttrsToList
+    mapAttrs
+    mkEnableOption
+    mkOption
+    ;
   cfg = config.my-nixos.shell;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
-  userOpts = with types; {
+  userOpts = {
     options.enable = mkEnableOption "shell for this user";
   };
 in
