@@ -6,6 +6,7 @@ in
   networking = {
     useDHCP = false;
     interfaces.ens1.useDHCP = true;
+    firewall.logRefusedConnections = false;
   };
 
   my-nixos = with users; {
@@ -19,6 +20,8 @@ in
       postgresql = false;
       mysql = false;
     };
+
+    fail2ban.enable = true;
 
     backup."backup.ahbk".enable = true;
 

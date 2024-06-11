@@ -8,6 +8,7 @@
     ./desktop-env.nix
     ./django-svelte.nix
     ./django.nix
+    ./fail2ban.nix
     ./fastapi-svelte.nix
     ./fastapi.nix
     ./glesys-updaterecord.nix

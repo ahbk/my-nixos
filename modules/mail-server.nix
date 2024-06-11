@@ -37,5 +37,14 @@ in
       dkimKeyDirectory
       mailDirectory
     ];
+
+    services.fail2ban.jails = {
+      postfix.settings = {
+        filter = "postfix[mode=aggressive]";
+      };
+      dovecot.settings = {
+        filter = "dovecot[mode=aggressive]";
+      };
+    };
   };
 }

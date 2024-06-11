@@ -115,6 +115,7 @@ in
     home.packages = with pkgs; [
       bat
       bitwarden-cli
+      dig
       eza
       fd
       imagemagick

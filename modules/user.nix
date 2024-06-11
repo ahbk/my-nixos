@@ -106,7 +106,12 @@ in
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
-        #ListenAddress = host.address;
+      };
+    };
+
+    services.fail2ban.jails = {
+      sshd.settings = {
+        filter = "sshd[mode=aggressive]";
       };
     };
   };

@@ -70,6 +70,8 @@ in
       device = "enp3s0";
     };
 
+    fail2ban.enable = true;
+
     wireguard.wg0.enable = true;
 
     nginx = {
