@@ -24,6 +24,11 @@ in
       ll = "eza";
       cd = "z";
       grep = "grep --color=auto";
+      needs-reboot = let
+        booted = "<(readlink /run/booted-system/{initrd,kernel,kernel-modules})";
+        current = "<(readlink /run/current-system/{initrd,kernel,kernel-modules})";
+        diff = "$(diff ${booted} ${current})";
+      in ''if [[ $(${diff}) ]] then echo "yes"; else echo "no"; fi'';
     };
 
     home.sessionVariables = {
