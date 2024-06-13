@@ -23,6 +23,5 @@ in
         "shadowserver.org"
       ];
     };
-
   };
 }

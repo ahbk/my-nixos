@@ -38,6 +38,7 @@ in
       hugo
       mkcert
       nil
+      nixfmt-rfc-style
       node2nix
       nodejs
       nodePackages.svelte-language-server

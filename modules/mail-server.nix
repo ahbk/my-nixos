@@ -13,10 +13,17 @@ in
   };
 
   config = mkIf (cfg.enable) {
+    services.postfix.transport = ''
+      esse.nu smtp:
+    '';
     mailserver = {
       enable = true;
       fqdn = "mail.ahbk.se";
-      domains = [ "ahbk.se" ];
+      dkimSelector = "ahbk";
+      domains = [
+        "ahbk.se"
+        "esse.nu"
+      ];
 
       loginAccounts = {
         "alex@ahbk.se" = {
