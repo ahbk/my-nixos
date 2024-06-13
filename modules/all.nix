@@ -4,6 +4,7 @@
     inputs.agenix.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
     inputs.nixos-mailserver.nixosModules.default
+    inputs.nixvim.nixosModules.nixvim
     ./backup.nix
     ./desktop-env.nix
     ./django-svelte.nix
@@ -15,7 +16,7 @@
     ./hm.nix
     ./ide.nix
     ./mail-client.nix
-    ./mail-server.nix
+    ./mailserver.nix
     ./mysql.nix
     ./nginx.nix
     ./nix.nix

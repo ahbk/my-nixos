@@ -859,7 +859,7 @@ boolean
 
 
 
-## my-nixos\.mailServer\.enable
+## my-nixos\.mailserver\.enable
 
 
 

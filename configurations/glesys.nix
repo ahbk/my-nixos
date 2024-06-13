@@ -32,7 +32,7 @@ in
       email = frans.email;
     };
 
-    mailServer.enable = true;
+    mailserver.enable = true;
 
     django-svelte.sites."chatddx.com" = sites."chatddx.com";
     fastapi-svelte.sites."sverigesval.org" = sites."sverigesval.org";

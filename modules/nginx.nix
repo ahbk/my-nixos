@@ -34,10 +34,16 @@ in
       recommendedOptimisation = true;
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
+
+      appendConfig = ''
+        worker_processes auto;
+        worker_cpu_affinity auto;
+      '';
     };
 
     services.nginx.virtualHosts."_" = {
       default = true;
+      rejectSSL = true;
       locations."/" = {
         return = "444";
       };

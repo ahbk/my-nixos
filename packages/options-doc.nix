@@ -22,7 +22,7 @@ let
       ../modules/hm.nix
       ../modules/ide.nix
       ../modules/mail-client.nix
-      ../modules/mail-server.nix
+      ../modules/mailserver.nix
       ../modules/mysql.nix
       ../modules/nginx.nix
       ../modules/postgresql.nix

@@ -21,7 +21,7 @@ let
 
   userOpts = {
     options = {
-      enable = mkEnableOption "a mail client for user." // {
+      enable = mkEnableOption "sendmail." // {
         default = true;
       };
     };
@@ -31,7 +31,7 @@ in
   options.my-nixos.mailClient =
     with types;
     mkOption {
-      description = "Set of users to be configured with mail client.";
+      description = "Set of users to be configured with sendmail.";
       type = attrsOf (submodule userOpts);
       default = { };
     };

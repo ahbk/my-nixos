@@ -2,20 +2,22 @@
 
 let
   inherit (lib) mkEnableOption mkIf;
-  cfg = config.my-nixos.mailServer;
+  cfg = config.my-nixos.mailserver;
 in
 {
 
   options = {
-    my-nixos.mailServer = {
+    my-nixos.mailserver = {
       enable = mkEnableOption "mail server.";
     };
   };
 
   config = mkIf (cfg.enable) {
+
     services.postfix.transport = ''
       esse.nu smtp:
     '';
+
     mailserver = {
       enable = true;
       fqdn = "mail.ahbk.se";

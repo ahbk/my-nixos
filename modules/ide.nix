@@ -43,10 +43,8 @@ in
       };
     }) eachHMUser;
 
-    programs.neovim = {
-      enable = true;
+    programs.vim = {
       defaultEditor = true;
-      vimAlias = true;
     };
 
     environment.systemPackages = with pkgs; [
