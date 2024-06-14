@@ -124,6 +124,14 @@ in
               '';
             };
 
+            "= /xmlrpc.php" = {
+              priority = 100;
+              extraConfig = ''
+                access_log /var/log/nginx/xmlrpc_access.log;
+                return 200 "This is a honeypot.";
+              '';
+            };
+
             "/" = {
               priority = 200;
               extraConfig = ''
@@ -166,6 +174,21 @@ in
         };
       }
     ) eachSite;
+
+    environment.etc."fail2ban/filter.d/xmlrpc.conf".text = ''
+    [Definition]
+    failregex = ^<HOST>.*"(GET|POST) \/+xmlrpc\.php(\?[^ ]*)? HTTP
+    '';
+
+    services.fail2ban.jails = {
+      xmlrpc.settings = {
+        filter = "xmlrpc";
+        logpath = "/var/log/nginx/xmlrpc_access.log";
+        backend = "auto";
+        maxretry = 1;
+        bantime = "1d";
+      };
+    };
 
     my-nixos.mysql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
 

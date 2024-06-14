@@ -40,15 +40,15 @@ in
     '';
   };
 
-  networking.firewall.interfaces.wg0 = {
-    allowedTCPPorts = [ 53 ];
-    allowedUDPPorts = [ 53 ];
-  };
-
   networking = {
     useDHCP = false;
     enableIPv6 = false;
     interfaces.enp3s0.useDHCP = true;
+    firewall = {
+      logRefusedConnections = false;
+      allowedTCPPorts = [ 53 ];
+      allowedUDPPorts = [ 53 ];
+    };
   };
 
   my-nixos = with users; {
