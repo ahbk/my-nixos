@@ -52,7 +52,7 @@ in
   };
 
   my-nixos = with users; {
-    user = {
+    users = {
       inherit frans backup;
     };
     shell.frans.enable = true;
@@ -73,6 +73,9 @@ in
     fail2ban.enable = true;
 
     wireguard.wg0.enable = true;
+
+    sendmail.alex.enable = true;
+    sendmail.frans.enable = true;
 
     nginx = {
       enable = true;
