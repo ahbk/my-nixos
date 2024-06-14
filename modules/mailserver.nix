@@ -12,7 +12,6 @@ let
     ;
 
   cfg = config.my-nixos.mailserver;
-  noRelayDomains = filterAttrs (domain: cfg: !cfg.relay) cfg.domains;
 in
 {
 
@@ -39,10 +38,11 @@ in
 
     services.postfix.transport =
       let
-        nullTransports = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
-        cfg = concatStringsSep "\n" nullTransports;
+        noRelayDomains = filterAttrs (domain: cfg: !cfg.relay) cfg.domains;
+        transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
+        transportsCfg = concatStringsSep "\n" transportsList;
       in
-      cfg;
+      transportsCfg;
 
     age.secrets = builtins.listToAttrs (
       builtins.map (user: {
