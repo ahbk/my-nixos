@@ -34,7 +34,10 @@ in
 
     mailserver = {
       enable = true;
-      users = [ "alex" "frans" ];
+      users = [
+        "alex"
+        "frans"
+      ];
       domains = {
         "ahbk.se".relay = true;
         "esse.nu".relay = false;

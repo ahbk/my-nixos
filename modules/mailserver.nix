@@ -33,24 +33,27 @@ in
         };
       });
     };
-
   };
 
   config = mkIf (cfg.enable) {
 
-    services.postfix.transport = let 
-      nullTransports = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
-      cfg = concatStringsSep "\n" nullTransports;
-    in cfg;
+    services.postfix.transport =
+      let
+        nullTransports = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
+        cfg = concatStringsSep "\n" nullTransports;
+      in
+      cfg;
 
-    age.secrets = builtins.listToAttrs (builtins.map (user: {
-      name = "mail-hashed-${user}";
-      value = {
-        file = ../secrets/mail-hashed-${user}.age;
-        owner = user;
-        group = user;
-      };
-    }) cfg.users);
+    age.secrets = builtins.listToAttrs (
+      builtins.map (user: {
+        name = "mail-hashed-${user}";
+        value = {
+          file = ../secrets/mail-hashed-${user}.age;
+          owner = user;
+          group = user;
+        };
+      }) cfg.users
+    );
 
     mailserver = {
       enable = true;
@@ -58,13 +61,15 @@ in
       dkimSelector = "ahbk";
       domains = mapAttrsToList (domain: _: domain) cfg.domains;
 
-      loginAccounts = builtins.listToAttrs (builtins.map (user: {
-        name = "${user}@ahbk.se";
-        value = {
-          hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
-          aliases = config.my-nixos.users.${user}.aliases;
-        };
-      }) cfg.users);
+      loginAccounts = builtins.listToAttrs (
+        builtins.map (user: {
+          name = "${user}@ahbk.se";
+          value = {
+            hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
+            aliases = config.my-nixos.users.${user}.aliases;
+          };
+        }) cfg.users
+      );
 
       certificateScheme = "acme-nginx";
     };

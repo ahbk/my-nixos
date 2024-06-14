@@ -46,7 +46,7 @@ let
       aliases = mkOption {
         description = "Emails this user manages.";
         type = listOf str;
-        default = [];
+        default = [ ];
       };
       groups = mkOption {
         description = "User groups.";
