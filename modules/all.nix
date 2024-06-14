@@ -24,7 +24,7 @@
     ./shell.nix
     ./svelte.nix
     ./system.nix
-    ./user.nix
+    ./users.nix
     ./vd.nix
     ./wireguard.nix
     ./wordpress.nix

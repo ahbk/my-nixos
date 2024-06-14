@@ -10,7 +10,7 @@ in
   };
 
   my-nixos = with users; {
-    user = {
+    users = {
       inherit alex frans backup;
     };
     shell.frans.enable = true;
@@ -32,7 +32,14 @@ in
       email = frans.email;
     };
 
-    mailserver.enable = true;
+    mailserver = {
+      enable = true;
+      users = [ "alex" "frans" ];
+      domains = {
+        "ahbk.se".relay = true;
+        "esse.nu".relay = false;
+      };
+    };
 
     django-svelte.sites."chatddx.com" = sites."chatddx.com";
     fastapi-svelte.sites."sverigesval.org" = sites."sverigesval.org";

@@ -18,7 +18,7 @@ let
     nameValuePair
     ;
   lib' = (import ../lib.nix) { inherit lib pkgs; };
-  cfg = config.my-nixos.user;
+  cfg = config.my-nixos.users;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = with types; {
@@ -43,6 +43,11 @@ let
         description = "User email.";
         type = str;
       };
+      aliases = mkOption {
+        description = "Emails this user manages.";
+        type = str;
+        default = [];
+      };
       groups = mkOption {
         description = "User groups.";
         type = listOf str;
@@ -53,7 +58,7 @@ let
 in
 {
 
-  options.my-nixos.user =
+  options.my-nixos.users =
     with types;
     mkOption {
       description = "Set of users to be configured.";

@@ -3,7 +3,7 @@ let
 in
 {
   my-nixos = {
-    user.frans = users.frans;
+    users.frans = users.frans;
     shell.frans.enable = true;
   };
 }

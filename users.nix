@@ -24,6 +24,12 @@
     uid = 1001;
     email = "alex@ahbk.se";
     groups = [ "wheel" ];
+    aliases = [
+      "postmaster@ahbk.se"
+      "abuse@ahbk.se"
+      "admin@ahbk.se"
+      "hej@ahbk.se"
+    ];
     keys = [ ./keys/ssh-user-alex.pub ];
   };
 

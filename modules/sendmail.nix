@@ -41,8 +41,8 @@ in
 
     age.secrets = mapAttrs' (
       user: cfg:
-      (nameValuePair "linux-passwd-plain-${user}" {
-        file = ../secrets/linux-passwd-plain-${user}.age;
+      (nameValuePair "mail-plain-${user}" {
+        file = ../secrets/mail-plain-${user}.age;
         owner = user;
         group = user;
       })
@@ -60,7 +60,7 @@ in
         auth = true;
         user = "${user}@ahbk.se";
         from = "${user}@ahbk.se";
-        passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets."linux-passwd-plain-${user}".path}";
+        passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets."mail-plain-${user}".path}";
       })) eachUser;
     };
   };

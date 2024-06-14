@@ -3,7 +3,7 @@ let
 in
 {
   my-nixos = {
-    user = with users; {
+    users = with users; {
       inherit alex frans backup;
     };
     shell.frans.enable = true;

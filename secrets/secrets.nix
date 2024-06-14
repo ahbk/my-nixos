@@ -30,6 +30,12 @@ in
   "linux-passwd-plain-alex.age".publicKeys = all;
   "linux-passwd-plain-backup.age".publicKeys = all;
 
+  "mail-hashed-alex.age".publicKeys = all;
+  "mail-hashed-frans.age".publicKeys = all;
+
+  "mail-plain-alex.age".publicKeys = all;
+  "mail-plain-frans.age".publicKeys = all;
+
   "webapp-key-dev.chatddx.com.age".publicKeys = all;
   "webapp-key-chatddx.com.age".publicKeys = all;
   "webapp-key-dev.sverigesval.org.age".publicKeys = all;
