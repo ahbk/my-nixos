@@ -2,19 +2,17 @@
 
 let
   inherit (lib)
-    concatStringSep
+    concatStringsSep
     filterAttrs
     mapAttrsToList
-    hasAttr
     mkEnableOption
     mkIf
     mkOption
-    optional
     types
     ;
 
-  users = import ../users;
   cfg = config.my-nixos.mailserver;
+  noRelayDomains = filterAttrs (domain: cfg: !cfg.relay) cfg.domains;
 in
 {
 
@@ -27,32 +25,32 @@ in
     domains = mkOption {
       description = "List of domains to manage.";
       type = attrsOf (submodule {
-        relay = mkOption {
-          description = "Enable if this host is the domain's final destination.";
-          type = bool;
+        options = {
+          relay = mkOption {
+            description = "Enable if this host is the domain's final destination.";
+            type = bool;
+          };
         };
       });
     };
-    
 
   };
 
   config = mkIf (cfg.enable) {
 
     services.postfix.transport = let 
-      noRelayDomains = filterAttrs (domain: cfg: cfg.relay) cfg.domains;
       nullTransports = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
-      cfg = concatStringSep "\n" nullTransports;
+      cfg = concatStringsSep "\n" nullTransports;
     in cfg;
 
-    age.secrets = builtins.listToAttrs (user: {
+    age.secrets = builtins.listToAttrs (builtins.map (user: {
       name = "mail-hashed-${user}";
       value = {
         file = ../secrets/mail-hashed-${user}.age;
         owner = user;
         group = user;
       };
-    }) cfg.users;
+    }) cfg.users);
 
     mailserver = {
       enable = true;
@@ -60,13 +58,13 @@ in
       dkimSelector = "ahbk";
       domains = mapAttrsToList (domain: _: domain) cfg.domains;
 
-      loginAccounts = builtins.listToAttrs (user: {
+      loginAccounts = builtins.listToAttrs (builtins.map (user: {
         name = "${user}@ahbk.se";
         value = {
-          hashedPasswordFile = config.age.secrets."mail-hashed-${user}";
+          hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
           aliases = config.my-nixos.users.${user}.aliases;
         };
-      }) cfg.users;
+      }) cfg.users);
 
       certificateScheme = "acme-nginx";
     };
