@@ -18,7 +18,7 @@ in
 
     wireguard.wg0.enable = true;
 
-    mailClient."alex".enable = true;
+    sendmail."alex".enable = true;
 
     backup."backup.ahbk".enable = true;
   };

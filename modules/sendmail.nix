@@ -16,7 +16,8 @@ let
     nameValuePair
     mkIf
     ;
-  cfg = config.my-nixos.mailClient;
+
+  cfg = config.my-nixos.sendmail;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
   userOpts = {
@@ -28,7 +29,7 @@ let
   };
 in
 {
-  options.my-nixos.mailClient =
+  options.my-nixos.sendmail =
     with types;
     mkOption {
       description = "Set of users to be configured with sendmail.";

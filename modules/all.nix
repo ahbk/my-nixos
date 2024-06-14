@@ -15,12 +15,12 @@
     ./glesys-updaterecord.nix
     ./hm.nix
     ./ide.nix
-    ./mail-client.nix
     ./mailserver.nix
     ./mysql.nix
     ./nginx.nix
     ./nix.nix
     ./postgresql.nix
+    ./sendmail.nix
     ./shell.nix
     ./svelte.nix
     ./system.nix

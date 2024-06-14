@@ -812,7 +812,7 @@ boolean
 
 
 
-## my-nixos\.mailClient
+## my-nixos\.sendmail
 
 
 
@@ -833,7 +833,7 @@ attribute set of (submodule)
 
 
 
-## my-nixos\.mailClient\.\<name>\.enable
+## my-nixos\.sendmail\.\<name>\.enable
 
 
 
