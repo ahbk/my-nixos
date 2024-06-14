@@ -47,7 +47,8 @@ let
   wpPhp = pkgs.php.buildEnv {
     extensions = { enabled, all }: with all; enabled ++ [ imagick ];
     extraConfig = ''
-      memory_limit=256M
+      memory_limit = 256M
+      cgi.fix_pathinfo = 0
     '';
   };
 in
@@ -96,16 +97,34 @@ in
         };
 
         ${serverName} = {
-          inherit serverName;
           root = stateDir hostname;
           forceSSL = cfg.ssl;
           enableACME = cfg.ssl;
+          basicAuth = mkIf (cfg.basicAuth != { }) cfg.basicAuth;
+
           extraConfig = ''
             index index.php;
           '';
+
           locations = {
+            "/favicon.ico" = {
+              priority = 100;
+              extraConfig = ''
+                log_not_found off;
+                access_log off;
+              '';
+            };
+
+            "/robots.txt" = {
+              priority = 100;
+              extraConfig = ''
+                allow all;
+                log_not_found off;
+                access_log off;
+              '';
+            };
+
             "/" = {
-              basicAuth = mkIf (cfg.basicAuth != { }) cfg.basicAuth;
               priority = 200;
               extraConfig = ''
                 try_files $uri $uri/ /index.php?$args;
@@ -113,15 +132,34 @@ in
             };
 
             "~ \\.php$" = {
-              priority = 500;
+              priority = 300;
               extraConfig = ''
-                include ${pkgs.nginx}/conf/fastcgi.conf;
-                fastcgi_intercept_errors on;
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
                 fastcgi_pass unix:${config.services.phpfpm.pools.${hostname}.socket};
+                fastcgi_index index.php;
+                include ${config.services.nginx.package}/conf/fastcgi.conf;
+                fastcgi_intercept_errors on;
+                fastcgi_param HTTP_PROXY "";
+                fastcgi_buffer_size 16k;
+                fastcgi_buffers 4 16k;
+              '';
+            };
 
-                location ~ /\.ht {
-                  deny all;
-                }
+            "~ /\\." = {
+              priority = 800;
+              extraConfig = ''deny all;'';
+            };
+
+            "~* /(?:uploads|files)/.*\\.php$" = {
+              priority = 900;
+              extraConfig = ''deny all;'';
+            };
+
+            "~* \\.(js|css|png|jpg|jpeg|gif|ico)$" = {
+              priority = 1000;
+              extraConfig = ''
+                expires max;
+                log_not_found off;
               '';
             };
           };
