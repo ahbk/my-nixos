@@ -53,7 +53,7 @@ in
 
   my-nixos = with users; {
     users = {
-      inherit frans backup;
+      inherit alex frans backup;
     };
     shell.frans.enable = true;
     hm.frans.enable = true;
@@ -79,7 +79,7 @@ in
 
     nginx = {
       enable = true;
-      email = frans.email;
+      email = alex.email;
     };
 
     wordpress.sites."test.esse.nu" = sites."test.esse.nu";

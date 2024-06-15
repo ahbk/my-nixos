@@ -35,6 +35,14 @@ in
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
 
+      commonHttpConfig = ''
+        log_format main '$time_iso8601 [$status] $remote_addr - '
+                        '$scheme://$host "$request" $http_referer '
+                        '"$http_user_agent" $body_bytes_sent';
+
+        access_log /var/log/nginx/access.log main;
+      '';
+
       appendConfig = ''
         worker_processes auto;
         worker_cpu_affinity auto;
