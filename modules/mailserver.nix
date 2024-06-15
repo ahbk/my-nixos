@@ -4,6 +4,7 @@ let
   inherit (lib)
     concatStringsSep
     filterAttrs
+    mapAttrs'
     mapAttrsToList
     mkEnableOption
     mkIf
@@ -12,14 +13,27 @@ let
     ;
 
   cfg = config.my-nixos.mailserver;
+  noRelayDomains = filterAttrs (domain: cfg: !cfg.relay) cfg.domains;
+  relayDomains = filterAttrs (domain: cfg: cfg.relay) cfg.domains;
 in
 {
 
   options.my-nixos.mailserver = with types; {
-    enable = mkEnableOption "mail server.";
+    enable = mkEnableOption "mail server";
     users = mkOption {
-      description = "List of users to enable server for.";
-      type = listOf str;
+      description = "Configure user accounts.";
+      type = attrsOf (submodule {
+        options = {
+          enable = (mkEnableOption "this user") // {
+            default = true;
+          };
+          catchAll = mkOption {
+            description = "Make the user recipient of a whole domain.";
+            type = listOf str;
+            default = [ ];
+          };
+        };
+      });
     };
     domains = mkOption {
       description = "List of domains to manage.";
@@ -36,40 +50,40 @@ in
 
   config = mkIf (cfg.enable) {
 
-    services.postfix.transport =
-      let
-        noRelayDomains = filterAttrs (domain: cfg: !cfg.relay) cfg.domains;
-        transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
-        transportsCfg = concatStringsSep "\n" transportsList;
-      in
-      transportsCfg;
+    services.postfix = {
+      #relayDomains = mapAttrsToList (domain: cfg: domain) cfg.domains;
+      transport =
+        let
+          transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
+          transportsCfg = concatStringsSep "\n" transportsList;
+        in
+        transportsCfg;
+      };
 
-    age.secrets = builtins.listToAttrs (
-      builtins.map (user: {
-        name = "mail-hashed-${user}";
-        value = {
-          file = ../secrets/mail-hashed-${user}.age;
-          owner = user;
-          group = user;
-        };
-      }) cfg.users
-    );
+    age.secrets = mapAttrs' (user: _: {
+      name = "mail-hashed-${user}";
+      value = {
+        file = ../secrets/mail-hashed-${user}.age;
+        owner = user;
+        group = user;
+      };
+    }) cfg.users;
 
     mailserver = {
       enable = true;
       fqdn = "mail.ahbk.se";
       dkimSelector = "ahbk";
       domains = mapAttrsToList (domain: _: domain) cfg.domains;
+      virtualMailboxDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
 
-      loginAccounts = builtins.listToAttrs (
-        builtins.map (user: {
-          name = "${user}@ahbk.se";
-          value = {
-            hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
-            aliases = config.my-nixos.users.${user}.aliases;
-          };
-        }) cfg.users
-      );
+      loginAccounts = mapAttrs' (user: userCfg: {
+        name = "${user}@ahbk.se";
+        value = {
+          inherit (userCfg) catchAll;
+          hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
+          aliases = config.my-nixos.users.${user}.aliases;
+        };
+      }) cfg.users;
 
       certificateScheme = "acme-nginx";
     };
