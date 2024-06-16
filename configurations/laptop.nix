@@ -6,20 +6,19 @@ in
     users = with users; {
       inherit alex frans backup;
     };
-    shell.frans.enable = true;
-    ide.frans = {
+    shell.alex.enable = true;
+    ide.alex = {
       enable = true;
       postgresql = true;
       mysql = true;
     };
-    hm.frans.enable = true;
-    desktop-env.frans.enable = true;
-    vd.frans.enable = true;
+    hm.alex.enable = true;
+    desktop-env.alex.enable = true;
+    vd.alex.enable = true;
 
     wireguard.wg0.enable = true;
 
     sendmail.alex.enable = true;
-    sendmail.frans.enable = true;
 
     backup."backup.ahbk".enable = true;
   };

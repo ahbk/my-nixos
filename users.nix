@@ -18,27 +18,33 @@
     ];
   };
 
+  frans = {
+    enable = true;
+    uid = 1000;
+    name = "Mr. Admin";
+    email = "frans@ahbk.se";
+    aliases = [
+      "postmaster@ahbk.se"
+      "abuse@ahbk.se"
+      "admin@ahbk.se"
+    ];
+    groups = [ "wheel" ];
+    keys = [ ./keys/ssh-user-alex.pub ];
+  };
+
   alex = {
     enable = true;
     name = "Alexander Holmbäck";
     uid = 1001;
     email = "alex@ahbk.se";
     groups = [ "wheel" ];
-    aliases = [
-      "postmaster@ahbk.se"
-      "abuse@ahbk.se"
-      "admin@ahbk.se"
-      "hej@ahbk.se"
-    ];
     keys = [ ./keys/ssh-user-alex.pub ];
   };
 
-  frans = {
+  rolf = {
     enable = true;
-    uid = 1000;
-    name = "Alexander Holmbäck";
-    email = "alexander.holmback@gmail.com";
-    groups = [ "wheel" ];
-    keys = [ ./keys/ssh-user-alex.pub ];
+    uid = 1100;
+    name = "Rolf Norgberg";
+    email = "rolf@sverigesval.org";
   };
 }
