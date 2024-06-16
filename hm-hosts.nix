@@ -1,17 +1,17 @@
 {
-  "frans@debian" = {
+  "alex@debian" = {
     system = "x86_64-linux";
     stateVersion = "23.11";
     my-nixos-hm = {
       ide = {
         enable = true;
         name = "Alexander Holmbäck";
-        email = "alexander.holmback@gmail.com";
+        email = "alex@ahbk.se";
       };
       shell.enable = true;
       user = {
         enable = true;
-        name = "frans";
+        name = "alex";
       };
     };
   };
