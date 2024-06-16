@@ -77,7 +77,7 @@ in
       virtualMailboxDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
 
       loginAccounts = mapAttrs' (user: userCfg: {
-        name = "${user}@ahbk.se";
+        name = config.my-nixos.users.${user}.email;
         value = {
           inherit (userCfg) catchAll;
           hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
