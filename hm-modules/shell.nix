@@ -6,7 +6,7 @@
 }:
 
 let
-  inherit (lib) types mkIf mkEnableOption;
+  inherit (lib) mkIf mkEnableOption;
   inherit (theme) colors;
   cfg = config.my-nixos-hm.shell;
   theme = import ../theme.nix;
@@ -34,7 +34,6 @@ in
     };
 
     home.sessionVariables = {
-      PATH = "$PATH:$HOME/.local/bin";
       PROMPT_COMMAND = "\${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -c; history -r";
       HISTTIMEFORMAT = "%y-%m-%d %T ";
     };
@@ -61,8 +60,6 @@ in
         "checkjobs"
       ];
 
-      bashrcExtra = "";
-
       initExtra = ''
         pwu() {
           bw unlock --raw > ~/.bwsession
@@ -70,6 +67,7 @@ in
         pw() {
           BW_SESSION=$(<~/.bwsession) bw get password $@ | wl-copy
         }
+        export PATH=$HOME/.local/bin:$PATH
       '';
 
       shellAliases = {
