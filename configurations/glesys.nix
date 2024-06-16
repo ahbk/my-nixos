@@ -13,9 +13,9 @@ in
     users = {
       inherit alex frans backup;
     };
-    shell.frans.enable = true;
-    hm.frans.enable = true;
-    ide.frans = {
+    shell.alex.enable = true;
+    hm.alex.enable = true;
+    ide.alex = {
       enable = true;
       postgresql = false;
       mysql = false;
