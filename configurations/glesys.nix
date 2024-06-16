@@ -11,7 +11,7 @@ in
 
   my-nixos = with users; {
     users = {
-      inherit alex frans backup;
+      inherit alex backup frans olof rolf;
     };
     shell.alex.enable = true;
     hm.alex.enable = true;
@@ -37,9 +37,13 @@ in
       users = {
         "alex" = { };
         "frans" = { };
+        "olof" = { };
+        "rolf" = { };
       };
       domains = {
         "ahbk.se".relay = true;
+        "chatddx.com".relay = true;
+        "sverigesval.org".relay = true;
         "esse.nu".relay = false;
       };
     };
