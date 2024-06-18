@@ -75,6 +75,7 @@ in
       dkimSelector = "ahbk";
       domains = mapAttrsToList (domain: _: domain) cfg.domains;
       virtualMailboxDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
+      enableSubmissionSsl = false;
 
       loginAccounts = mapAttrs' (user: userCfg: {
         name = config.my-nixos.users.${user}.email;
