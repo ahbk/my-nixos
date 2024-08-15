@@ -403,6 +403,8 @@ in
       signal-desktop
       thunderbird
       wl-clipboard
+      kooha
+      shotcut
     ];
   };
 }
