@@ -47,12 +47,14 @@ let
   envs = mapAttrs (
     hostname: cfg:
     (lib'.mkEnv hostname {
-      HOSTNAME = hostname;
+      ALLOW_ORIGINS = "'[\"${if cfg.ssl then "https" else "http"}://${hostname}\"]'";
+      DB_DSN = "postgresql+psycopg2://${hostname}@:5432/{hostname}";
       ENV = "production";
+      HOSTNAME = hostname;
+      LOG_LEVEL = "error";
+      SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret_key".path;
       SSL = if cfg.ssl then "true" else "false";
       STATE_DIR = stateDir hostname;
-      SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret_key".path;
-      ALLOW_ORIGINS = "'[\"${if cfg.ssl then "https" else "http"}://${hostname}\"]'";
     })
   ) eachSite;
 
