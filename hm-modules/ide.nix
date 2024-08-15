@@ -43,6 +43,7 @@ in
       nodejs
       nodePackages.svelte-language-server
       nodePackages.typescript-language-server
+      npm-check-updates
       php
       pyright
       (sqlite.override { interactive = true; })
