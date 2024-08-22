@@ -43,11 +43,19 @@ in
   networking = {
     useDHCP = false;
     enableIPv6 = false;
-    interfaces.enp3s0.useDHCP = true;
     firewall = {
       logRefusedConnections = false;
       allowedTCPPorts = [ 53 ];
       allowedUDPPorts = [ 53 ];
+    };
+  };
+
+  systemd.network = {
+    enable = true;
+    networks."10-enp3s0" = {
+      matchConfig.Name = "enp3s0";
+      networkConfig.DHCP = "ipv4";
+      linkConfig.RequiredForOnline = "yes";
     };
   };
 
