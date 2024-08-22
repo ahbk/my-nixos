@@ -37,7 +37,6 @@ in
       gcc
       hugo
       mkcert
-      nil
       nixfmt-rfc-style
       node2nix
       nodejs
@@ -186,8 +185,9 @@ in
             servers = {
               tsserver.enable = true;
               svelte.enable = true;
+              tailwindcss.enable = true;
               pyright.enable = true;
-              nil-ls.enable = true;
+              nixd.enable = true;
             };
             keymaps = {
               lspBuf = {
