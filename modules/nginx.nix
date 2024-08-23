@@ -43,6 +43,10 @@ in
         access_log /var/log/nginx/access.log main;
       '';
 
+      appendHttpConfig = ''
+        gzip_buffers 32 16k;
+      '';
+
       appendConfig = ''
         worker_processes auto;
         worker_cpu_affinity auto;
