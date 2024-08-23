@@ -41,17 +41,14 @@
     },
     "buildNodeModules": {
       "inputs": {
-        "nixpkgs": [
-          "chatddx",
-          "nixpkgs"
-        ]
+        "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1707354861,
-        "narHash": "sha256-L10H5hh9S6y20c7AKuKJ2h9BczODqpTCoGEZBDPJhd0=",
+        "lastModified": 1721879795,
+        "narHash": "sha256-xisS3Xq4pSS8SMpRpD/YltBMyzNI4lofvuIFN+BizrI=",
         "owner": "adisbladis",
         "repo": "buildNodeModules",
-        "rev": "76c7c56dd9dcea355a8e2ebd0f228a8f2d1e1ee8",
+        "rev": "98a462e86162ad8fc123f071e2e45fa5fd576e24",
         "type": "github"
       },
       "original": {
@@ -62,7 +59,7 @@
     },
     "buildNodeModules_2": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1721879795,
@@ -87,11 +84,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1724325912,
-        "narHash": "sha256-MzU5eBg1vMAgMmJLXscIStDI5vXGzEBTOy66nselh3g=",
+        "lastModified": 1724415060,
+        "narHash": "sha256-eJ/s6o/UVo2/8K5Lfsr9suu7I+h39UlUU7BEulpAM0A=",
         "ref": "refs/heads/main",
-        "rev": "cd1615987c853213ed52bdad3c0befa365fa222e",
-        "revCount": 98,
+        "rev": "ad7456c5dc098a15c506a8e9b16256e0feb434ce",
+        "revCount": 99,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
@@ -452,16 +449,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1723991338,
-        "narHash": "sha256-Grh5PF0+gootJfOJFenTTxDTYPidA3V28dqJ/WV7iis=",
-        "owner": "ahbk",
+        "lastModified": 1708407325,
+        "narHash": "sha256-P93MEydbhBe97i+8JKZUgfxZRr7/LoMiHvfb8VLFZ4k=",
+        "owner": "adisbladis",
         "repo": "nixpkgs",
-        "rev": "8a3354191c0d7144db9756a74755672387b702ba",
+        "rev": "f73c22fb5094f9829695469130b2c04059c7a425",
         "type": "github"
       },
       "original": {
-        "owner": "ahbk",
-        "ref": "nixos-unstable",
+        "owner": "adisbladis",
+        "ref": "fetchnpmlock",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -482,6 +479,22 @@
       }
     },
     "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1723991338,
+        "narHash": "sha256-Grh5PF0+gootJfOJFenTTxDTYPidA3V28dqJ/WV7iis=",
+        "owner": "ahbk",
+        "repo": "nixpkgs",
+        "rev": "8a3354191c0d7144db9756a74755672387b702ba",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ahbk",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1708407325,
         "narHash": "sha256-P93MEydbhBe97i+8JKZUgfxZRr7/LoMiHvfb8VLFZ4k=",
@@ -559,15 +572,15 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1712185021,
-        "narHash": "sha256-9eoA4YEk/ryguJ5PFExBr04iQe+LiNQsfHMW7R/xseg=",
-        "owner": "ahbk",
+        "lastModified": 1724208502,
+        "narHash": "sha256-TCRcEPSfgAw/t7kClmlr23s591N06mQCrhzlAO7cyFw=",
+        "owner": "nix-community",
         "repo": "poetry2nix",
-        "rev": "8faf4d3e52270fc9ea7454cba4c137be4eb92734",
+        "rev": "884b66152b0c625b8220b570a31dc7acc36749a3",
         "type": "github"
       },
       "original": {
-        "owner": "ahbk",
+        "owner": "nix-community",
         "repo": "poetry2nix",
         "type": "github"
       }
@@ -603,7 +616,7 @@
         "chatddx": "chatddx",
         "home-manager": "home-manager_2",
         "nixos-mailserver": "nixos-mailserver",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": "nixpkgs_2",
         "nixvim": "nixvim",
         "sverigesval": "sverigesval"
       }
@@ -617,11 +630,11 @@
         "poetry2nix": "poetry2nix_2"
       },
       "locked": {
-        "lastModified": 1724407751,
-        "narHash": "sha256-OopgiLEQTngKX6bf6rCfiqc2pwmKIfWksXYLZLlB+Gg=",
+        "lastModified": 1724418184,
+        "narHash": "sha256-b4OZ34D/js1FLt+w5tV32dA+PJmb4NX5H3AFV2Ag7oo=",
         "ref": "refs/heads/main",
-        "rev": "f40851ccce9336343cb7006ffaa1e78f4a4a9243",
-        "revCount": 118,
+        "rev": "5fdd2c1c5dd00ee224d4ce20310873e61aea186f",
+        "revCount": 121,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },
