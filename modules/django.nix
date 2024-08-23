@@ -9,16 +9,18 @@
 
 let
   inherit (lib)
-    types
-    mkEnableOption
-    mkOption
-    mkIf
+    elemAt
     filterAttrs
-    mapAttrsToList
+    flatten
     mapAttrs
     mapAttrs'
-    flatten
+    mapAttrsToList
+    mkEnableOption
+    mkIf
+    mkOption
     nameValuePair
+    splitString
+    types
     ;
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.django;
@@ -41,7 +43,7 @@ let
     };
   };
 
-  djangoPkgs = hostname: inputs.${hostname}.packages.${host.system}.django;
+  djangoPkgs = hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.django;
 
   envs = mapAttrs (
     hostname: cfg:

@@ -16,11 +16,11 @@
     nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
 
-    "sverigesval.org".url = "git+ssh://git@github.com/ahbk/sverigesval.org";
-    "sverigesval.org".inputs.nixpkgs.follows = "nixpkgs";
+    sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
+    sverigesval.inputs.nixpkgs.follows = "nixpkgs";
 
-    "chatddx.com".url = "git+ssh://git@github.com/LigninDDX/chatddx";
-    "chatddx.com".inputs.nixpkgs.follows = "nixpkgs";
+    chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
+    chatddx.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

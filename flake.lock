@@ -42,7 +42,7 @@
     "buildNodeModules": {
       "inputs": {
         "nixpkgs": [
-          "chatddx.com",
+          "chatddx",
           "nixpkgs"
         ]
       },
@@ -62,17 +62,14 @@
     },
     "buildNodeModules_2": {
       "inputs": {
-        "nixpkgs": [
-          "sverigesval.org",
-          "nixpkgs"
-        ]
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1707354861,
-        "narHash": "sha256-L10H5hh9S6y20c7AKuKJ2h9BczODqpTCoGEZBDPJhd0=",
+        "lastModified": 1721879795,
+        "narHash": "sha256-xisS3Xq4pSS8SMpRpD/YltBMyzNI4lofvuIFN+BizrI=",
         "owner": "adisbladis",
         "repo": "buildNodeModules",
-        "rev": "76c7c56dd9dcea355a8e2ebd0f228a8f2d1e1ee8",
+        "rev": "98a462e86162ad8fc123f071e2e45fa5fd576e24",
         "type": "github"
       },
       "original": {
@@ -81,7 +78,7 @@
         "type": "github"
       }
     },
-    "chatddx.com": {
+    "chatddx": {
       "inputs": {
         "buildNodeModules": "buildNodeModules",
         "nixpkgs": [
@@ -90,11 +87,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1717768642,
-        "narHash": "sha256-K6CcS9lHR3VwyiXPi0Wjb/3Mw6aZZ6qXe8xkhCOBsog=",
+        "lastModified": 1724325912,
+        "narHash": "sha256-MzU5eBg1vMAgMmJLXscIStDI5vXGzEBTOy66nselh3g=",
         "ref": "refs/heads/main",
-        "rev": "6449cf9afd1594ab490b80486033d4f15d3d16d1",
-        "revCount": 95,
+        "rev": "cd1615987c853213ed52bdad3c0befa365fa222e",
+        "revCount": 98,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
@@ -389,7 +386,7 @@
     "nix-github-actions": {
       "inputs": {
         "nixpkgs": [
-          "chatddx.com",
+          "chatddx",
           "poetry2nix",
           "nixpkgs"
         ]
@@ -411,7 +408,7 @@
     "nix-github-actions_2": {
       "inputs": {
         "nixpkgs": [
-          "sverigesval.org",
+          "sverigesval",
           "poetry2nix",
           "nixpkgs"
         ]
@@ -484,6 +481,22 @@
         "type": "indirect"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1708407325,
+        "narHash": "sha256-P93MEydbhBe97i+8JKZUgfxZRr7/LoMiHvfb8VLFZ4k=",
+        "owner": "adisbladis",
+        "repo": "nixpkgs",
+        "rev": "f73c22fb5094f9829695469130b2c04059c7a425",
+        "type": "github"
+      },
+      "original": {
+        "owner": "adisbladis",
+        "ref": "fetchnpmlock",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixvim": {
       "inputs": {
         "devshell": "devshell",
@@ -539,7 +552,7 @@
         "flake-utils": "flake-utils",
         "nix-github-actions": "nix-github-actions",
         "nixpkgs": [
-          "chatddx.com",
+          "chatddx",
           "nixpkgs"
         ],
         "systems": "systems_3",
@@ -564,18 +577,18 @@
         "flake-utils": "flake-utils_3",
         "nix-github-actions": "nix-github-actions_2",
         "nixpkgs": [
-          "sverigesval.org",
+          "sverigesval",
           "nixpkgs"
         ],
         "systems": "systems_6",
         "treefmt-nix": "treefmt-nix_3"
       },
       "locked": {
-        "lastModified": 1717602370,
-        "narHash": "sha256-qS/7is9JbnnycR6QmndsuTQfifWzjhgxObnXw+iHdP8=",
+        "lastModified": 1724208502,
+        "narHash": "sha256-TCRcEPSfgAw/t7kClmlr23s591N06mQCrhzlAO7cyFw=",
         "owner": "nix-community",
         "repo": "poetry2nix",
-        "rev": "81662ae1ad31491eae3bb1d976fb74c71853bc63",
+        "rev": "884b66152b0c625b8220b570a31dc7acc36749a3",
         "type": "github"
       },
       "original": {
@@ -587,15 +600,15 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
-        "chatddx.com": "chatddx.com",
+        "chatddx": "chatddx",
         "home-manager": "home-manager_2",
         "nixos-mailserver": "nixos-mailserver",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
-        "sverigesval.org": "sverigesval.org"
+        "sverigesval": "sverigesval"
       }
     },
-    "sverigesval.org": {
+    "sverigesval": {
       "inputs": {
         "buildNodeModules": "buildNodeModules_2",
         "nixpkgs": [
@@ -604,11 +617,11 @@
         "poetry2nix": "poetry2nix_2"
       },
       "locked": {
-        "lastModified": 1718917215,
-        "narHash": "sha256-Tp7QTR3Mkowz+xvUlXMLaJJngkqLEk4GhUQ/haZkajU=",
+        "lastModified": 1724407751,
+        "narHash": "sha256-OopgiLEQTngKX6bf6rCfiqc2pwmKIfWksXYLZLlB+Gg=",
         "ref": "refs/heads/main",
-        "rev": "82528349a8e33fa9d74f1720e9ac88e5d7d093fc",
-        "revCount": 115,
+        "rev": "f40851ccce9336343cb7006ffaa1e78f4a4a9243",
+        "revCount": 118,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },
@@ -708,7 +721,7 @@
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
-          "chatddx.com",
+          "chatddx",
           "poetry2nix",
           "nixpkgs"
         ]
@@ -751,17 +764,17 @@
     "treefmt-nix_3": {
       "inputs": {
         "nixpkgs": [
-          "sverigesval.org",
+          "sverigesval",
           "poetry2nix",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1717182148,
-        "narHash": "sha256-Hi09/RoizxubRf3PHToT2Nm7TL8B/abSVa6q82uEgNI=",
+        "lastModified": 1719749022,
+        "narHash": "sha256-ddPKHcqaKCIFSFc/cvxS14goUhCOAwsM1PbMr0ZtHMg=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "03b982b77df58d5974c61c6022085bafe780c1cf",
+        "rev": "8df5ff62195d4e67e2264df0b7f5e8c9995fd0bd",
         "type": "github"
       },
       "original": {

@@ -9,14 +9,16 @@
 
 let
   inherit (lib)
+    elemAt
     filterAttrs
+    mapAttrs
+    mapAttrs'
     mkEnableOption
     mkOption
-    types
-    mapAttrs
     mkIf
-    mapAttrs'
     nameValuePair
+    splitString
+    types
     ;
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.svelte;
@@ -50,7 +52,7 @@ let
     };
   };
 
-  sveltePkgs = hostname: inputs.${hostname}.packages.${host.system}.svelte;
+  sveltePkgs = hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.svelte;
 
   envs = mapAttrs (
     hostname: cfg:
