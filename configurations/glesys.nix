@@ -3,11 +3,30 @@ let
   sites = import ../sites.nix;
 in
 {
+  boot.loader.grub = {
+    enable = true;
+    device = "/dev/sda";
+  };
+
   networking = {
     useDHCP = false;
-    interfaces.ens1.useDHCP = true;
     firewall.logRefusedConnections = false;
   };
+
+  systemd.network = {
+    enable = true;
+    networks."01-ens1" = {
+      matchConfig.Name = "ens1";
+      networkConfig.DHCP = "yes";
+    };
+  };
+
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 4096;
+    }
+  ];
 
   my-nixos = with users; {
     users = {
@@ -52,16 +71,4 @@ in
     fastapi-svelte.sites."sverigesval.org" = sites."sverigesval.org";
     wordpress.sites."esse.nu" = sites."esse.nu";
   };
-
-  boot.loader.grub = {
-    enable = true;
-    device = "/dev/sda";
-  };
-
-  swapDevices = [
-    {
-      device = "/swapfile";
-      size = 4096;
-    }
-  ];
 }
