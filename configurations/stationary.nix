@@ -55,7 +55,6 @@ in
     networks."10-enp3s0" = {
       matchConfig.Name = "enp3s0";
       networkConfig.DHCP = "ipv4";
-      linkConfig.RequiredForOnline = "yes";
     };
   };
 
