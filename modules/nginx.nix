@@ -30,7 +30,7 @@ in
 
     services.nginx = {
       enable = true;
-      recommendedGzipSettings = true;
+      recommendedBrotliSettings = true;
       recommendedOptimisation = true;
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
@@ -41,10 +41,6 @@ in
                         '"$http_user_agent" $body_bytes_sent';
 
         access_log /var/log/nginx/access.log main;
-      '';
-
-      appendHttpConfig = ''
-        gzip_buffers 32 16k;
       '';
 
       appendConfig = ''
