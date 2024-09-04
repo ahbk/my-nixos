@@ -42,6 +42,7 @@ in
   "webapp-key-chatddx.com.age".publicKeys = all;
   "webapp-key-dev.sverigesval.org.age".publicKeys = all;
   "webapp-key-sverigesval.org.age".publicKeys = all;
+  "webapp-key-sysctl-user-portal.curetheweb.se.age".publicKeys = all;
 
   "wg-key-laptop.age".publicKeys = [
     alex
