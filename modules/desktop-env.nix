@@ -99,6 +99,9 @@ in
       "application/pdf" = "mupdf.desktop";
       "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
       "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
+      "message/rfc88" = "thunderbird.desktop";
+      "application/x-email" = "thunderbird.desktop";
+      "x-scheme-handler/mailto" = "thunderbird.desktop";
     };
   };
 }
