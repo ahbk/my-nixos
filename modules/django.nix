@@ -40,6 +40,22 @@ let
         description = "Whether to enable SSL (https) support.";
         type = bool;
       };
+      user = mkOption {
+        description = "Username for app owner";
+        type = str;
+      };
+      staticLocation = mkOption {
+        description = "URL Path for static files, null -> no serve static";
+        type = str;
+        example = "static/";
+        default = "";
+      };
+      proxyLocation = mkOption {
+        description = "Regex pattern for urls to proxy to django";
+        type = str;
+        example = "^/(api|admin)";
+        default = "/admin";
+      };
     };
   };
 
@@ -83,46 +99,48 @@ in
       hostname: cfg:
       (nameValuePair "${hostname}/secret-key" {
         file = ../secrets/webapp-key-${hostname}.age;
-        owner = hostname;
-        group = hostname;
+        owner = cfg.user;
+        group = cfg.user;
       })
     ) eachSite;
 
     users = lib'.mergeAttrs (hostname: cfg: {
-      users.${hostname} = {
+      users.${cfg.user} = {
         isSystemUser = true;
-        group = hostname;
+        group = cfg.user;
       };
-      groups.${hostname} = { };
+      groups.${cfg.user} = { };
     }) eachSite;
 
     systemd.tmpfiles.rules = flatten (
       mapAttrsToList (hostname: cfg: [
-        "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
-        "Z '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
+        "d '${stateDir hostname}' 0750 ${cfg.user} ${cfg.user} - -"
+        "Z '${stateDir hostname}' 0750 ${cfg.user} ${cfg.user} - -"
       ]) eachSite
     );
 
-    services.nginx.virtualHosts = mapAttrs (hostname: cfg: ({
+    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      locations."/admin" = {
-        recommendedProxySettings = true;
-        proxyPass = "http://localhost:${toString cfg.port}";
-      };
-      locations."/static/" = {
-        alias = "${(djangoPkgs hostname).static}/";
-      };
-    })) eachSite;
+      locations = {
+        ${cfg.proxyLocation} = {
+          priority = 100;
+          recommendedProxySettings = true;
+          proxyPass = "http://localhost:${toString cfg.port}";
+        };
+      } // (if (cfg.staticLocation == "") then { } else {
+        "/${cfg.staticLocation}".alias = "${(djangoPkgs hostname).static}/";
+      });
+    }) eachSite;
 
     systemd.services = lib'.mergeAttrs (hostname: cfg: {
       "${hostname}-django" = {
         description = "serve ${hostname}-django";
         serviceConfig = {
           ExecStart = "${(djangoPkgs hostname).app.dependencyEnv}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
-          User = hostname;
-          Group = hostname;
+          User = cfg.user;
+          Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
         };
         wantedBy = [ "multi-user.target" ];
@@ -133,8 +151,8 @@ in
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${(djangoPkgs hostname).app.dependencyEnv}/bin/django-admin migrate";
-          User = hostname;
-          Group = hostname;
+          User = cfg.user;
+          Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
         };
       };

@@ -41,6 +41,11 @@ let
         description = "Whether to enable SSL (https) support.";
         type = bool;
       };
+      user = mkOption {
+        description = "Username for app owner";
+        type = str;
+        default = null;
+      };
     };
   };
 
@@ -86,29 +91,29 @@ in
       hostname: cfg:
       (nameValuePair "${hostname}/secret_key" {
         file = ../secrets/webapp-key-${hostname}.age;
-        owner = hostname;
-        group = hostname;
+        owner = cfg.user;
+        group = cfg.user;
       })
     ) eachSite;
 
     users = lib'.mergeAttrs (hostname: cfg: {
-      users.${hostname} = {
+      users.${cfg.user} = {
         isSystemUser = true;
-        group = hostname;
+        group = cfg.user;
       };
-      groups.${hostname} = { };
+      groups.${cfg.user} = { };
     }) eachSite;
 
     my-nixos.postgresql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
 
     systemd.tmpfiles.rules = flatten (
       mapAttrsToList (hostname: cfg: [
-        "d '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
-        "Z '${stateDir hostname}' 0750 ${hostname} ${hostname} - -"
+        "d '${stateDir hostname}' 0750 ${cfg.user} ${cfg.user} - -"
+        "Z '${stateDir hostname}' 0750 ${cfg.user} ${cfg.user} - -"
       ]) eachSite
     );
 
-    services.nginx.virtualHosts = mapAttrs (hostname: cfg: ({
+    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
@@ -116,15 +121,15 @@ in
         recommendedProxySettings = true;
         proxyPass = "http://localhost:${toString cfg.port}";
       };
-    })) eachSite;
+    }) eachSite;
 
     systemd.services = lib'.mergeAttrs (hostname: cfg: {
       "${hostname}-fastapi" = {
         description = "serve ${hostname}-fastapi";
         serviceConfig = {
           ExecStart = "${(fastapiPkgs hostname).app.dependencyEnv}/bin/uvicorn app.main:fastapi --host localhost --port ${toString cfg.port}";
-          User = hostname;
-          Group = hostname;
+          User = cfg.user;
+          Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
         };
         wantedBy = [ "multi-user.target" ];
@@ -136,8 +141,8 @@ in
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${(fastapiPkgs hostname).bin}/bin/manage migrate";
-          User = hostname;
-          Group = hostname;
+          User = cfg.user;
+          Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
         };
       };
@@ -147,8 +152,8 @@ in
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -U ${hostname} ${hostname} > ${stateDir hostname}/dbdump.sql'";
-          User = hostname;
-          Group = hostname;
+          User = cfg.user;
+          Group = cfg.user;
         };
       };
       "${hostname}-pgsql-restore" = {
@@ -156,8 +161,8 @@ in
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${hostname} ${hostname} < ${stateDir hostname}/dbdump.sql'";
-          User = hostname;
-          Group = hostname;
+          User = cfg.user;
+          Group = cfg.user;
         };
       };
     }) eachSite;

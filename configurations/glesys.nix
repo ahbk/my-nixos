@@ -68,6 +68,10 @@ in
     };
 
     django-svelte.sites."chatddx.com" = sites."chatddx.com";
+
+    django-react.sites."sysctl-user-portal.curetheweb.se" = sites."sysctl-user-portal.curetheweb.se";
+    django.sites."sysctl-user-portal.curetheweb.se".proxyLocation = "~ ^/(api|admin)";
+
     fastapi-svelte.sites."sverigesval.org" = sites."sverigesval.org";
     wordpress.sites."esse.nu" = sites."esse.nu";
   };

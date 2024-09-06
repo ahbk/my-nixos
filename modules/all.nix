@@ -7,6 +7,7 @@
     inputs.nixvim.nixosModules.nixvim
     ./backup.nix
     ./desktop-env.nix
+    ./django-react.nix
     ./django-svelte.nix
     ./django.nix
     ./fail2ban.nix
@@ -20,6 +21,7 @@
     ./nginx.nix
     ./nix.nix
     ./postgresql.nix
+    ./react.nix
     ./sendmail.nix
     ./shell.nix
     ./svelte.nix

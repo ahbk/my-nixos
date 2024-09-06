@@ -7,6 +7,7 @@ let
     mkOption
     mapAttrs
     filterAttrs
+    mkDefault
     mkIf
     ;
   inherit (builtins) elemAt;
@@ -16,10 +17,6 @@ let
   siteOpts = {
     options = with types; {
       enable = mkEnableOption "Django+SvelteKit app";
-      ssl = mkOption {
-        description = "Whether to enable SSL (https) support.";
-        type = bool;
-      };
       ports = mkOption {
         description = "Listening ports.";
         example = [
@@ -27,6 +24,14 @@ let
           8001
         ];
         type = listOf port;
+      };
+      ssl = mkOption {
+        description = "Whether to enable SSL (https) support.";
+        type = bool;
+      };
+      user = mkOption {
+        description = "Username for app owner";
+        type = str;
       };
     };
   };
@@ -44,12 +49,15 @@ in
 
     my-nixos.django.sites = mapAttrs (hostname: cfg: {
       enable = cfg.enable;
+      user = cfg.user;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
+      staticLocation = mkDefault "static/";
     }) eachSite;
 
     my-nixos.svelte.sites = mapAttrs (hostname: cfg: {
       enable = cfg.enable;
+      user = cfg.user;
       port = elemAt cfg.ports 1;
       ssl = cfg.ssl;
       api = "${if cfg.ssl then "https" else "http"}://${hostname}";

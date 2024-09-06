@@ -49,6 +49,10 @@ let
         description = "Server side URL for the API endpoint";
         type = str;
       };
+      user = mkOption {
+        description = "Username for app owner";
+        type = str;
+      };
     };
   };
 
@@ -78,14 +82,14 @@ in
 
   config = mkIf (eachSite != { }) {
     users = lib'.mergeAttrs (hostname: cfg: {
-      users.${hostname} = {
+      users.${cfg.user} = {
         isSystemUser = true;
-        group = hostname;
+        group = cfg.user;
       };
-      groups.${hostname} = { };
+      groups.${cfg.user} = { };
     }) eachSite;
 
-    services.nginx.virtualHosts = mapAttrs (hostname: cfg: ({
+    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
@@ -93,7 +97,7 @@ in
         recommendedProxySettings = true;
         proxyPass = "http://localhost:${toString cfg.port}";
       };
-    })) eachSite;
+    }) eachSite;
 
     systemd.services = mapAttrs' (
       hostname: cfg:
@@ -101,10 +105,10 @@ in
         description = "serve ${hostname}-svelte";
         serviceConfig = {
           ExecStart = "${pkgs.nodejs_20}/bin/node ${
-            (sveltePkgs hostname).app.overrideAttrs ({ env = envs.${hostname}; })
+            (sveltePkgs hostname).app.overrideAttrs { env = envs.${hostname}; }
           }/build";
-          User = hostname;
-          Group = hostname;
+          User = cfg.user;
+          Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
         };
         wantedBy = [ "multi-user.target" ];
