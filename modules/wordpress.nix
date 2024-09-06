@@ -81,6 +81,20 @@ in
       ]) eachSite
     );
 
+    environment.etc."fail2ban/filter.d/phpfpm-probe.local".text = ''
+    [Definition]
+    failregex = ^.*\[error\].*FastCGI sent in stderr: "Unable to open primary script:.*client: <HOST>.*index\.php.*$
+    '';
+
+    services.fail2ban.jails = {
+      phpfpm-probe.settings = {
+        filter = "phpfpm-probe";
+        backend = "systemd";
+        maxretry = 5;
+        findtime = 600;
+      };
+    };
+
     services.nginx.virtualHosts = lib'.mergeAttrs (
       hostname: cfg:
       let
