@@ -58,7 +58,7 @@ in
           transportsCfg = concatStringsSep "\n" transportsList;
         in
         transportsCfg;
-      };
+    };
 
     age.secrets = mapAttrs' (user: _: {
       name = "mail-hashed-${user}";

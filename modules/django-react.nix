@@ -52,7 +52,6 @@ in
       user = cfg.user;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
-      staticLocation = mkDefault "static/";
     }) eachSite;
 
     my-nixos.react.sites = mapAttrs (hostname: cfg: {

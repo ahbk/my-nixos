@@ -82,8 +82,8 @@ in
     );
 
     environment.etc."fail2ban/filter.d/phpfpm-probe.local".text = ''
-    [Definition]
-    failregex = ^.*\[error\].*FastCGI sent in stderr: "Unable to open primary script:.*client: <HOST>.*index\.php.*$
+      [Definition]
+      failregex = ^.*\[error\].*FastCGI sent in stderr: "Unable to open primary script:.*client: <HOST>.*index\.php.*$
     '';
 
     services.fail2ban.jails = {

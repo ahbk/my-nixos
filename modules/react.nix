@@ -28,7 +28,7 @@ let
       enable = mkEnableOption "react-app for this host.";
       location = mkOption {
         description = "URL path to serve the application.";
-        default = "";
+        default = "/";
         type = str;
       };
       ssl = mkOption {
@@ -44,12 +44,7 @@ let
 
   reactPkgs = hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.react;
 
-  envs = mapAttrs (
-    hostname: cfg:
-    (lib'.mkEnv hostname {
-      VITE_API_ENDPOINT = cfg.api;
-    })
-  ) eachSite;
+  envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname { VITE_API_ENDPOINT = cfg.api; })) eachSite;
 in
 {
 
@@ -68,8 +63,8 @@ in
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      root = "${ (reactPkgs hostname).app.overrideAttrs { env = envs.${hostname}; } }/dist";
-      locations."/${cfg.location}" = {
+      root = "${(reactPkgs hostname).app.overrideAttrs { env = envs.${hostname}; }}/dist";
+      locations."${cfg.location}" = {
         index = "index.html";
         extraConfig = ''
           try_files $uri $uri/ /index.html;

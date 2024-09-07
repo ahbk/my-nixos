@@ -47,21 +47,22 @@ in
 
   config = mkIf (eachSite != { }) {
 
-    my-nixos.django.sites = mapAttrs (hostname: cfg: {
-      enable = cfg.enable;
-      user = cfg.user;
-      port = elemAt cfg.ports 0;
-      ssl = cfg.ssl;
-      staticLocation = mkDefault "static/";
-    }) eachSite;
+    my-nixos = {
+      django.sites = mapAttrs (hostname: cfg: {
+        enable = cfg.enable;
+        user = cfg.user;
+        port = elemAt cfg.ports 0;
+        ssl = cfg.ssl;
+      }) eachSite;
 
-    my-nixos.svelte.sites = mapAttrs (hostname: cfg: {
-      enable = cfg.enable;
-      user = cfg.user;
-      port = elemAt cfg.ports 1;
-      ssl = cfg.ssl;
-      api = "${if cfg.ssl then "https" else "http"}://${hostname}";
-      api_ssr = "http://localhost:${toString (elemAt cfg.ports 0)}";
-    }) eachSite;
+      svelte.sites = mapAttrs (hostname: cfg: {
+        enable = cfg.enable;
+        user = cfg.user;
+        port = elemAt cfg.ports 1;
+        ssl = cfg.ssl;
+        api = "${if cfg.ssl then "https" else "http"}://${hostname}";
+        api_ssr = "http://localhost:${toString (elemAt cfg.ports 0)}";
+      }) eachSite;
+    };
   };
 }

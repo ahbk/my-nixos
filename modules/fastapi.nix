@@ -49,7 +49,8 @@ let
     };
   };
 
-  fastapiPkgs = hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.fastapi;
+  fastapiPkgs =
+    hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.fastapi;
 
   envs = mapAttrs (
     hostname: cfg:

@@ -30,9 +30,7 @@
     groups = [ "wheel" ];
     keys = [ ./keys/ssh-user-alex.pub ];
     email = "frans@ahbk.se";
-    aliases = [
-      "admin@ahbk.se"
-    ];
+    aliases = [ "admin@ahbk.se" ];
   };
 
   olof = {

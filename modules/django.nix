@@ -19,6 +19,7 @@ let
     mkIf
     mkOption
     nameValuePair
+    optionalAttrs
     splitString
     types
     ;
@@ -44,17 +45,16 @@ let
         description = "Username for app owner";
         type = str;
       };
-      staticLocation = mkOption {
-        description = "URL Path for static files, null -> no serve static";
+      locationStatic = mkOption {
+        description = "Location pattern for static files, empty string -> no static";
         type = str;
-        example = "static/";
-        default = "";
+        default = "/static/";
       };
-      proxyLocation = mkOption {
-        description = "Regex pattern for urls to proxy to django";
+      locationProxy = mkOption {
+        description = "Location pattern for proxy to django, empty string -> no proxy";
         type = str;
         example = "^/(api|admin)";
-        default = "/admin";
+        default = "/";
       };
     };
   };
@@ -123,15 +123,18 @@ in
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      locations = {
-        ${cfg.proxyLocation} = {
-          priority = 100;
-          recommendedProxySettings = true;
-          proxyPass = "http://localhost:${toString cfg.port}";
+      locations =
+        optionalAttrs (cfg.locationProxy != "") {
+          ${cfg.locationProxy} = {
+            recommendedProxySettings = true;
+            proxyPass = "http://localhost:${toString cfg.port}";
+          };
+        }
+        // optionalAttrs (cfg.locationStatic != "") {
+          ${cfg.locationStatic} = {
+            alias = "${(djangoPkgs hostname).static}/";
+          };
         };
-      } // (if (cfg.staticLocation == "") then { } else {
-        "/${cfg.staticLocation}".alias = "${(djangoPkgs hostname).static}/";
-      });
     }) eachSite;
 
     systemd.services = lib'.mergeAttrs (hostname: cfg: {

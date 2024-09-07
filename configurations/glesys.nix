@@ -30,7 +30,13 @@ in
 
   my-nixos = with users; {
     users = {
-      inherit alex backup frans olof rolf;
+      inherit
+        alex
+        backup
+        frans
+        olof
+        rolf
+        ;
     };
     shell.alex.enable = true;
     hm.alex.enable = true;
@@ -68,9 +74,10 @@ in
     };
 
     django-svelte.sites."chatddx.com" = sites."chatddx.com";
+    django.sites."chatddx.com".locationProxy = "/admin";
 
     django-react.sites."sysctl-user-portal.curetheweb.se" = sites."sysctl-user-portal.curetheweb.se";
-    django.sites."sysctl-user-portal.curetheweb.se".proxyLocation = "~ ^/(api|admin)";
+    django.sites."sysctl-user-portal.curetheweb.se".locationProxy = "~ ^/(api|admin)";
 
     fastapi-svelte.sites."sverigesval.org" = sites."sverigesval.org";
     wordpress.sites."esse.nu" = sites."esse.nu";

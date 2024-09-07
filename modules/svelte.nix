@@ -30,7 +30,7 @@ let
       enable = mkEnableOption "svelte-app for this host.";
       location = mkOption {
         description = "URL path to serve the application.";
-        default = "";
+        default = "/";
         type = str;
       };
       port = mkOption {
@@ -93,7 +93,7 @@ in
       serverName = hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      locations."/${cfg.location}" = {
+      locations."${cfg.location}" = {
         recommendedProxySettings = true;
         proxyPass = "http://localhost:${toString cfg.port}";
       };
