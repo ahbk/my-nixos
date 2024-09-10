@@ -7,33 +7,40 @@
 }:
 
 let
-  inherit (pkgs.lib) hasPrefix removePrefix;
+  inherit (pkgs.lib) removePrefix;
 
   eval = lib.evalModules {
-    check = false;
     modules = [
+      { _module.check = false; }
       ../modules/backup.nix
       ../modules/desktop-env.nix
-      ../modules/django.nix
+      ../modules/django-react.nix
       ../modules/django-svelte.nix
-      ../modules/fastapi.nix
+      ../modules/django.nix
+      ../modules/fail2ban.nix
       ../modules/fastapi-svelte.nix
+      ../modules/fastapi.nix
       ../modules/glesys-updaterecord.nix
       ../modules/hm.nix
       ../modules/ide.nix
-      ../modules/mail-client.nix
       ../modules/mailserver.nix
       ../modules/mysql.nix
-      ../modules/nginx.nix
+      ../modules/nix.nix
       ../modules/postgresql.nix
+      ../modules/react.nix
+      ../modules/sendmail.nix
       ../modules/shell.nix
       ../modules/svelte.nix
-      ../modules/user.nix
+      ../modules/system.nix
+      ../modules/users.nix
       ../modules/vd.nix
       ../modules/wireguard.nix
       ../modules/wordpress.nix
       ../hm-modules/desktop-env.nix
       ../hm-modules/ide.nix
+      ../hm-modules/shell.nix
+      ../hm-modules/user.nix
+      ../hm-modules/vd.nix
     ];
   };
   optionsDoc = nixosOptionsDoc {

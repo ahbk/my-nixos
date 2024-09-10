@@ -1,4 +1,5 @@
 # Options
+
 ## my-nixos\.backup
 
 
@@ -286,6 +287,53 @@ boolean
 
 
 
+## my-nixos\.django\.sites\.\<name>\.locationProxy
+
+
+
+Location pattern for proxy to django, empty string -> no proxy
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "/" `
+
+
+
+*Example:*
+` "^/(api|admin)" `
+
+*Declared by:*
+ - [modules/django\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django.nix)
+
+
+
+## my-nixos\.django\.sites\.\<name>\.locationStatic
+
+
+
+Location pattern for static files, empty string -> no static
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "/static/" `
+
+*Declared by:*
+ - [modules/django\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django.nix)
+
+
+
 ## my-nixos\.django\.sites\.\<name>\.port
 
 
@@ -320,6 +368,128 @@ boolean
 
 *Declared by:*
  - [modules/django\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django.nix)
+
+
+
+## my-nixos\.django\.sites\.\<name>\.user
+
+
+
+Username for app owner
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [modules/django\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django.nix)
+
+
+
+## my-nixos\.django-react\.sites
+
+
+
+Definition of per-domain Django+SvelteKit apps to serve\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [modules/django-react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-react.nix)
+
+
+
+## my-nixos\.django-react\.sites\.\<name>\.enable
+
+
+
+Whether to enable Django+SvelteKit app\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [modules/django-react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-react.nix)
+
+
+
+## my-nixos\.django-react\.sites\.\<name>\.ports
+
+
+
+Listening ports\.
+
+
+
+*Type:*
+list of 16 bit unsigned integer; between 0 and 65535 (both inclusive)
+
+
+
+*Example:*
+
+```
+[
+  8000
+  8001
+]
+```
+
+*Declared by:*
+ - [modules/django-react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-react.nix)
+
+
+
+## my-nixos\.django-react\.sites\.\<name>\.ssl
+
+
+
+Whether to enable SSL (https) support\.
+
+
+
+*Type:*
+boolean
+
+*Declared by:*
+ - [modules/django-react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-react.nix)
+
+
+
+## my-nixos\.django-react\.sites\.\<name>\.user
+
+
+
+Username for app owner
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [modules/django-react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-react.nix)
 
 
 
@@ -413,6 +583,48 @@ boolean
 
 
 
+## my-nixos\.django-svelte\.sites\.\<name>\.user
+
+
+
+Username for app owner
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [modules/django-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django-svelte.nix)
+
+
+
+## my-nixos\.fail2ban\.enable
+
+
+
+Whether to enable site-wide fail2ban\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [modules/fail2ban\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fail2ban.nix)
+
+
+
 ## my-nixos\.fastapi\.sites
 
 
@@ -491,6 +703,27 @@ Whether to enable SSL (https) support\.
 
 *Type:*
 boolean
+
+*Declared by:*
+ - [modules/fastapi\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi.nix)
+
+
+
+## my-nixos\.fastapi\.sites\.\<name>\.user
+
+
+
+Username for app owner
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` null `
 
 *Declared by:*
  - [modules/fastapi\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi.nix)
@@ -581,6 +814,22 @@ Whether to enable SSL (https) support\.
 
 *Type:*
 boolean
+
+*Declared by:*
+ - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
+
+
+
+## my-nixos\.fastapi-svelte\.sites\.\<name>\.user
+
+
+
+Username for app owner
+
+
+
+*Type:*
+string
 
 *Declared by:*
  - [modules/fastapi-svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fastapi-svelte.nix)
@@ -812,58 +1061,11 @@ boolean
 
 
 
-## my-nixos\.sendmail
-
-
-
-Set of users to be configured with mail client\.
-
-
-
-*Type:*
-attribute set of (submodule)
-
-
-
-*Default:*
-` { } `
-
-*Declared by:*
- - [modules/mail-client\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mail-client.nix)
-
-
-
-## my-nixos\.sendmail\.\<name>\.enable
-
-
-
-Whether to enable a mail client for user…
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` true `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [modules/mail-client\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mail-client.nix)
-
-
-
 ## my-nixos\.mailserver\.enable
 
 
 
-Whether to enable mail server…
+Whether to enable mail server\.
 
 
 
@@ -881,7 +1083,102 @@ boolean
 ` true `
 
 *Declared by:*
- - [modules/mail-server\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mail-server.nix)
+ - [modules/mailserver\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mailserver.nix)
+
+
+
+## my-nixos\.mailserver\.domains
+
+
+
+List of domains to manage\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+*Declared by:*
+ - [modules/mailserver\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mailserver.nix)
+
+
+
+## my-nixos\.mailserver\.domains\.\<name>\.relay
+
+
+
+Enable if this host is the domain’s final destination\.
+
+
+
+*Type:*
+boolean
+
+*Declared by:*
+ - [modules/mailserver\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mailserver.nix)
+
+
+
+## my-nixos\.mailserver\.users
+
+
+
+Configure user accounts\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+*Declared by:*
+ - [modules/mailserver\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mailserver.nix)
+
+
+
+## my-nixos\.mailserver\.users\.\<name>\.enable
+
+
+
+Whether to enable this user\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [modules/mailserver\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mailserver.nix)
+
+
+
+## my-nixos\.mailserver\.users\.\<name>\.catchAll
+
+
+
+Make the user recipient of a whole domain\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [modules/mailserver\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/mailserver.nix)
 
 
 
@@ -927,48 +1224,6 @@ boolean
 
 
 
-## my-nixos\.nginx\.enable
-
-
-
-Whether to enable nginx web server…
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` false `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [modules/nginx\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/nginx.nix)
-
-
-
-## my-nixos\.nginx\.email
-
-
-
-Email for ACME certificate updates
-
-
-
-*Type:*
-string
-
-*Declared by:*
- - [modules/nginx\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/nginx.nix)
-
-
-
 ## my-nixos\.postgresql
 
 
@@ -1008,6 +1263,153 @@ boolean
 
 *Declared by:*
  - [modules/postgresql\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/postgresql.nix)
+
+
+
+## my-nixos\.react\.sites
+
+
+
+Specification of one or more React sites to serve
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [modules/react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/react.nix)
+
+
+
+## my-nixos\.react\.sites\.\<name>\.enable
+
+
+
+Whether to enable react-app for this host…
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [modules/react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/react.nix)
+
+
+
+## my-nixos\.react\.sites\.\<name>\.api
+
+
+
+URL for the API endpoint
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [modules/react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/react.nix)
+
+
+
+## my-nixos\.react\.sites\.\<name>\.location
+
+
+
+URL path to serve the application\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "/" `
+
+*Declared by:*
+ - [modules/react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/react.nix)
+
+
+
+## my-nixos\.react\.sites\.\<name>\.ssl
+
+
+
+Whether the react-app can assume https or not\.
+
+
+
+*Type:*
+boolean
+
+*Declared by:*
+ - [modules/react\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/react.nix)
+
+
+
+## my-nixos\.sendmail
+
+
+
+Set of users to be configured with sendmail\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [modules/sendmail\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/sendmail.nix)
+
+
+
+## my-nixos\.sendmail\.\<name>\.enable
+
+
+
+Whether to enable sendmail…
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [modules/sendmail\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/sendmail.nix)
 
 
 
@@ -1151,7 +1553,7 @@ string
 
 
 *Default:*
-` "" `
+` "/" `
 
 *Declared by:*
  - [modules/svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/svelte.nix)
@@ -1190,7 +1592,23 @@ boolean
 
 
 
-## my-nixos\.user
+## my-nixos\.svelte\.sites\.\<name>\.user
+
+
+
+Username for app owner
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [modules/svelte\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/svelte.nix)
+
+
+
+## my-nixos\.users
 
 
 
@@ -1207,11 +1625,11 @@ attribute set of (submodule)
 ` { } `
 
 *Declared by:*
- - [modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/user.nix)
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
 
 
 
-## my-nixos\.user\.\<name>\.enable
+## my-nixos\.users\.\<name>\.enable
 
 
 
@@ -1233,11 +1651,32 @@ boolean
 ` true `
 
 *Declared by:*
- - [modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/user.nix)
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
 
 
 
-## my-nixos\.user\.\<name>\.email
+## my-nixos\.users\.\<name>\.aliases
+
+
+
+Emails this user manages\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
+
+
+
+## my-nixos\.users\.\<name>\.email
 
 
 
@@ -1249,11 +1688,11 @@ User email\.
 string
 
 *Declared by:*
- - [modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/user.nix)
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
 
 
 
-## my-nixos\.user\.\<name>\.groups
+## my-nixos\.users\.\<name>\.groups
 
 
 
@@ -1270,11 +1709,11 @@ list of string
 ` [ ] `
 
 *Declared by:*
- - [modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/user.nix)
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
 
 
 
-## my-nixos\.user\.\<name>\.keys
+## my-nixos\.users\.\<name>\.keys
 
 
 
@@ -1291,11 +1730,11 @@ list of path
 ` [ ] `
 
 *Declared by:*
- - [modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/user.nix)
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
 
 
 
-## my-nixos\.user\.\<name>\.name
+## my-nixos\.users\.\<name>\.name
 
 
 
@@ -1307,11 +1746,11 @@ User name\.
 string
 
 *Declared by:*
- - [modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/user.nix)
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
 
 
 
-## my-nixos\.user\.\<name>\.uid
+## my-nixos\.users\.\<name>\.uid
 
 
 
@@ -1323,7 +1762,7 @@ User id\.
 signed integer
 
 *Declared by:*
- - [modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/user.nix)
+ - [modules/users\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/users.nix)
 
 
 
@@ -1528,8 +1967,6 @@ boolean
 
 ## my-nixos\.wordpress\.sites\.\<name>\.www
 
-
-
 Prefix the url with www\.
 
 
@@ -1628,5 +2065,99 @@ string
 
 *Declared by:*
  - [hm-modules/ide\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/ide.nix)
+
+
+
+## my-nixos-hm\.shell\.enable
+
+
+
+Whether to enable Enable shell for this user\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [hm-modules/shell\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/shell.nix)
+
+
+
+## my-nixos-hm\.user\.enable
+
+
+
+Whether to enable home-manager for this user\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [hm-modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/user.nix)
+
+
+
+## my-nixos-hm\.user\.name
+
+
+
+Name for the user\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [hm-modules/user\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/user.nix)
+
+
+
+## my-nixos-hm\.vd\.enable
+
+
+
+Whether to enable Enable visual design tools for this user\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [hm-modules/vd\.nix](https://github.com/ahbk/my-nixos/blob/master/hm-modules/vd.nix)
 
 
