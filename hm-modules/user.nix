@@ -12,7 +12,10 @@ in
 {
   options.my-nixos-hm.user = with types; {
     enable = mkEnableOption "home-manager for this user";
-    name = mkOption { type = str; };
+    name = mkOption {
+      description = "Name for the user.";
+      type = str;
+    };
   };
 
   config = mkIf cfg.enable {
