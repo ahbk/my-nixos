@@ -6,7 +6,7 @@
 }:
 
 let
-  inherit (lib) mkIf mkEnableOption;
+  inherit (lib) getExe mkIf mkEnableOption;
   inherit (theme) colors;
   cfg = config.my-nixos-hm.shell;
   theme = import ../theme.nix;
@@ -18,33 +18,35 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.shellAliases = {
-      f = "fzf | xargs -r xdg-open";
-      l = "eza -la --icons=auto";
-      ll = "eza";
-      cd = "z";
-      grep = "grep --color=auto";
-      switch = "nixos-rebuild switch --use-remote-sudo --show-trace --print-build-logs --verbose";
-      needs-reboot =
-        let
-          booted = "<(readlink /run/booted-system/{initrd,kernel,kernel-modules})";
-          current = "<(readlink /run/current-system/{initrd,kernel,kernel-modules})";
-          diff = "$(diff ${booted} ${current})";
-        in
-        ''if [[ ${diff} ]] then echo "yes"; else echo "no"; fi'';
-    };
-
-    home.sessionVariables = {
-      PROMPT_COMMAND = "\${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -c; history -r";
-      HISTTIMEFORMAT = "%y-%m-%d %T ";
-    };
-
     programs.ssh = {
       enable = true;
     };
 
     programs.bash = {
       enable = true;
+
+      sessionVariables = {
+        PATH = "$HOME/.local/bin:$PATH";
+        PROMPT_COMMAND = "\${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -c; history -r";
+        HISTTIMEFORMAT = "%y-%m-%d %T";
+      };
+
+      shellAliases = {
+        battery = "cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status";
+        f = "fzf | xargs -r xdg-open";
+        l = "eza -la --icons=auto";
+        ll = "eza";
+        cd = "z";
+        grep = "grep --color=auto";
+        switch = "nixos-rebuild switch --use-remote-sudo --show-trace --print-build-logs --verbose";
+        needs-reboot =
+          let
+            booted = "<(readlink /run/booted-system/{initrd,kernel,kernel-modules})";
+            current = "<(readlink /run/current-system/{initrd,kernel,kernel-modules})";
+            diff = "$(diff ${booted} ${current})";
+          in
+          ''if [[ ${diff} ]] then echo "yes"; else echo "no"; fi'';
+      };
 
       historyControl = [
         "ignoredups"
@@ -68,12 +70,10 @@ in
         pw() {
           BW_SESSION=$(<~/.bwsession) bw get password $@ | wl-copy
         }
-        export PATH=$HOME/.local/bin:$PATH
+        d() {
+          ${getExe pkgs.wdiff} "$1" "$2" | ${getExe pkgs.colordiff}
+        }
       '';
-
-      shellAliases = {
-        battery = "cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status";
-      };
     };
 
     programs.yazi = {
@@ -106,16 +106,6 @@ in
         set -g status-fg "${fg-500}"
         bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'wl-copy'
       '';
-    };
-
-    programs.starship = {
-      enable = false;
-      settings = {
-        add_newline = false;
-        aws.disabled = true;
-        gcloud.disabled = true;
-        line_break.disabled = true;
-      };
     };
 
     home.packages = with pkgs; [
