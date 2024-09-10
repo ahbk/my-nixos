@@ -55,13 +55,13 @@ in
         tls = true;
         logfile = "~/.msmtp.log";
       };
-      accounts = mapAttrs (user: cfg: ({
+      accounts = mapAttrs (user: cfg: {
         host = "mail.ahbk.se";
         auth = true;
         user = "${user}@ahbk.se";
         from = "${user}@ahbk.se";
         passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets."mail-plain-${user}".path}";
-      })) eachUser;
+      }) eachUser;
     };
   };
 }
