@@ -1,6 +1,11 @@
 { config, lib, ... }:
 let
-  inherit (lib) mkEnableOption mkIf mkOption types;
+  inherit (lib)
+    mkEnableOption
+    mkIf
+    mkOption
+    types
+    ;
   cfg = config.my-nixos.fail2ban;
 in
 {
@@ -9,7 +14,10 @@ in
     ignoreIP = mkOption {
       default = [ ];
       type = types.listOf types.str;
-      example = [ "10.0.0.0/24" "shadowserver.org" ];
+      example = [
+        "10.0.0.0/24"
+        "shadowserver.org"
+      ];
       description = ''A list of IP addresses, CIDR masks or DNS hosts not ta ban a host.'';
     };
   };
