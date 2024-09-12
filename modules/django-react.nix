@@ -16,7 +16,7 @@ let
 
   siteOpts = {
     options = with types; {
-      enable = mkEnableOption "Django+SvelteKit app";
+      enable = mkEnableOption "Django+React app";
       ports = mkOption {
         description = "Listening ports.";
         example = [
@@ -39,7 +39,7 @@ in
 {
   options.my-nixos.django-react = with types; {
     sites = mkOption {
-      description = "Definition of per-domain Django+SvelteKit apps to serve.";
+      description = "Definition of per-domain Django+React apps to serve.";
       type = attrsOf (submodule siteOpts);
       default = { };
     };
