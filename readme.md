@@ -1,5 +1,4 @@
 # Options
-
 ## my-nixos\.backup
 
 
@@ -391,7 +390,7 @@ string
 
 
 
-Definition of per-domain Django+SvelteKit apps to serve\.
+Definition of per-domain Django+React apps to serve\.
 
 
 
@@ -412,7 +411,7 @@ attribute set of (submodule)
 
 
 
-Whether to enable Django+SvelteKit app\.
+Whether to enable Django+React app\.
 
 
 
@@ -603,7 +602,7 @@ string
 
 
 
-Whether to enable site-wide fail2ban\.
+Whether to enable the jails configured with ` services.fail2ban.jails `\.
 
 
 
@@ -619,6 +618,38 @@ boolean
 
 *Example:*
 ` true `
+
+*Declared by:*
+ - [modules/fail2ban\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fail2ban.nix)
+
+
+
+## my-nixos\.fail2ban\.ignoreIP
+
+
+
+A list of IP addresses, CIDR masks or DNS hosts not ta ban a host\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+
+
+*Example:*
+
+```
+[
+  "10.0.0.0/24"
+  "shadowserver.org"
+]
+```
 
 *Declared by:*
  - [modules/fail2ban\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/fail2ban.nix)
@@ -1951,8 +1982,6 @@ attribute set of string
 
 ## my-nixos\.wordpress\.sites\.\<name>\.ssl
 
-
-
 Enable HTTPS\.
 
 
@@ -1966,6 +1995,8 @@ boolean
 
 
 ## my-nixos\.wordpress\.sites\.\<name>\.www
+
+
 
 Prefix the url with www\.
 
