@@ -54,7 +54,7 @@ let
       locationProxy = mkOption {
         description = "Location pattern for proxy to django, empty string -> no proxy";
         type = str;
-        example = "^/(api|admin)";
+        example = "~ ^/(api|admin)";
         default = "/";
       };
     };

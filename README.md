@@ -305,7 +305,7 @@ string
 
 
 *Example:*
-` "^/(api|admin)" `
+` "~ ^/(api|admin)" `
 
 *Declared by:*
  - [modules/django\.nix](https://github.com/ahbk/my-nixos/blob/master/modules/django.nix)
