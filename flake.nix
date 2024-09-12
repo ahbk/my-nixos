@@ -38,7 +38,7 @@
       homeConfigurations = mapAttrs (
         target: cfg:
         homeManagerConfiguration {
-          pkgs = inputs.nixpkgs.legacyPackages.${cfg.system};
+          pkgs = nixpkgs.legacyPackages.${cfg.system};
           extraSpecialArgs = {
             inherit inputs;
           };
@@ -66,7 +66,7 @@
 
       packages."x86_64-linux".options-doc =
         let
-          pkgs' = import ./packages/all.nix { pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux"; };
+          pkgs' = import ./packages/all.nix { pkgs = nixpkgs.legacyPackages."x86_64-linux"; };
         in
         pkgs'.options-doc;
     };
