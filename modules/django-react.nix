@@ -7,7 +7,6 @@ let
     mkOption
     mapAttrs
     filterAttrs
-    mkDefault
     mkIf
     ;
   inherit (builtins) elemAt;

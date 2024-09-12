@@ -27,11 +27,11 @@
   };
 
   outputs =
-    { self, ... }@inputs:
+    { nixpkgs, home-manager, ... }@inputs:
 
     let
-      inherit (inputs.nixpkgs.lib) nixosSystem mapAttrs;
-      inherit (inputs.home-manager.lib) homeManagerConfiguration;
+      inherit (nixpkgs.lib) nixosSystem mapAttrs;
+      inherit (home-manager.lib) homeManagerConfiguration;
     in
 
     {

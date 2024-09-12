@@ -8,9 +8,8 @@
 let
   inherit (lib) mkIf getExe mkEnableOption;
   inherit (builtins) substring;
-  inherit (theme) colors fonts;
-  theme = import ../theme.nix;
-  unhashedHexes = lib.mapAttrs (n: c: substring 1 6 c) theme.colors;
+  inherit (import ../theme.nix) colors fonts;
+  unhashedHexes = lib.mapAttrs (n: c: substring 1 6 c) colors;
   cfg = config.my-nixos-hm.desktop-env;
 in
 
@@ -20,6 +19,26 @@ in
   };
 
   config = mkIf cfg.enable {
+
+    home.packages = with pkgs; [
+      chromium
+      firefox
+      feh
+      kooha
+      mpv
+      mupdf
+      pinta
+      shotcut
+      signal-desktop
+      thunderbird
+      wl-clipboard
+    ];
+
+    home.file.wallpaper = {
+      source = ../wallpaper.jpg;
+      target = ".config/hypr/wallpaper.jpg";
+    };
+
     programs.foot = {
       enable = true;
       settings = {
@@ -388,23 +407,5 @@ in
       };
     };
 
-    home.file.wallpaper = {
-      source = ../wallpaper.jpg;
-      target = ".config/hypr/wallpaper.jpg";
-    };
-
-    home.packages = with pkgs; [
-      chromium
-      feh
-      firefox
-      mpv
-      mupdf
-      pinta
-      signal-desktop
-      thunderbird
-      wl-clipboard
-      kooha
-      shotcut
-    ];
   };
 }

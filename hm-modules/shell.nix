@@ -7,9 +7,8 @@
 
 let
   inherit (lib) getExe mkIf mkEnableOption;
-  inherit (theme) colors;
+  inherit (import ../theme.nix) colors;
   cfg = config.my-nixos-hm.shell;
-  theme = import ../theme.nix;
 in
 
 {
@@ -18,6 +17,24 @@ in
   };
 
   config = mkIf cfg.enable {
+
+    home.packages = with pkgs; [
+      bat
+      bitwarden-cli
+      dig
+      eza
+      fd
+      imagemagick
+      lazygit
+      openssl
+      ranger
+      ripgrep
+      silver-searcher
+      unzip
+      tcpdump
+      traceroute
+    ];
+
     programs.ssh = {
       enable = true;
     };
@@ -33,7 +50,7 @@ in
 
       shellAliases = {
         battery = "cat /sys/class/power_supply/BAT/capacity && cat /sys/class/power_supply/BAT/status";
-        f = "fzf | xargs -r xdg-open";
+        f = "xdg-open \"$(fzf)\"";
         l = "eza -la --icons=auto";
         ll = "eza";
         cd = "z";
@@ -108,21 +125,5 @@ in
       '';
     };
 
-    home.packages = with pkgs; [
-      bat
-      bitwarden-cli
-      dig
-      eza
-      fd
-      imagemagick
-      lazygit
-      openssl
-      ranger
-      ripgrep
-      silver-searcher
-      unzip
-      tcpdump
-      traceroute
-    ];
   };
 }
