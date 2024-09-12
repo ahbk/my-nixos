@@ -22,7 +22,7 @@
     chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
 
-    sysctl-user-portal.url = "git+ssh://git@github.com/PelleHanspers/sysctl_userportal?ref=deploy";
+    sysctl-user-portal.url = "git+ssh://git@github.com/PelleHanspers/sysctl_userportal";
     sysctl-user-portal.inputs.nixpkgs.follows = "nixpkgs";
   };
 

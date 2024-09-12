@@ -68,8 +68,16 @@ in
     users = lib'.mergeAttrs (hostname: cfg: {
       users.${hostname} = {
         isSystemUser = true;
+        home = "/var/lib/${hostname}";
+        shell = pkgs.bashInteractive;
+        homeMode = "755";
+        createHome = true;
         group = hostname;
         extraGroups = [ webserver.group ];
+        packages = with pkgs; [
+          git
+          wp-cli
+        ];
       };
       groups.${hostname} = { };
     }) eachSite;
@@ -160,6 +168,11 @@ in
             };
 
             "~ /\\." = {
+              priority = 800;
+              extraConfig = ''deny all;'';
+            };
+
+            "~ \.(log|sql)$" = {
               priority = 800;
               extraConfig = ''deny all;'';
             };
