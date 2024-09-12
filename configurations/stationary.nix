@@ -77,7 +77,15 @@ in
       device = "enp3s0";
     };
 
-    fail2ban.enable = true;
+    fail2ban = {
+      enable = true;
+      ignoreIP = [
+        "10.0.0.0/24"
+        "ahbk.se"
+        "stationary.ahbk.se"
+        "shadowserver.org"
+      ];
+    };
 
     wireguard.wg0.enable = true;
 

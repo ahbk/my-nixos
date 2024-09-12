@@ -46,7 +46,15 @@ in
       mysql = false;
     };
 
-    fail2ban.enable = true;
+    fail2ban = {
+      enable = true;
+      ignoreIP = [
+        "10.0.0.0/24"
+        "ahbk.se"
+        "stationary.ahbk.se"
+        "shadowserver.org"
+      ];
+    };
 
     backup."backup.ahbk".enable = true;
 
