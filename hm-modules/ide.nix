@@ -6,13 +6,14 @@
 }:
 
 let
-  inherit (import ../theme.nix) colors;
   inherit (lib)
     types
     mkIf
     mkEnableOption
     mkOption
     ;
+
+  inherit (import ../theme.nix) colors;
   cfg = config.my-nixos-hm.ide;
 in
 

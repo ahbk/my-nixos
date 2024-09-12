@@ -10,14 +10,15 @@
 let
   inherit (lib)
     filterAttrs
-    types
-    mkIf
     flatten
-    mapAttrsToList
     mapAttrs
+    mapAttrsToList
     mkEnableOption
+    mkIf
     mkOption
+    types
     ;
+
   cfg = config.my-nixos.shell;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 

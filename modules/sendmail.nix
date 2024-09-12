@@ -8,13 +8,13 @@
 let
   inherit (lib)
     filterAttrs
-    types
-    mkEnableOption
-    mkOption
     mapAttrs
     mapAttrs'
-    nameValuePair
+    mkEnableOption
     mkIf
+    mkOption
+    nameValuePair
+    types
     ;
 
   cfg = config.my-nixos.sendmail;

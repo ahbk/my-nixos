@@ -14,12 +14,13 @@ let
     mapAttrs
     mapAttrs'
     mkEnableOption
-    mkOption
     mkIf
+    mkOption
     nameValuePair
     splitString
     types
     ;
+
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.svelte;
 

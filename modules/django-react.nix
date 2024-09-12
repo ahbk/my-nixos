@@ -2,13 +2,14 @@
 
 let
   inherit (lib)
-    types
-    mkEnableOption
-    mkOption
-    mapAttrs
     filterAttrs
+    mapAttrs
+    mkEnableOption
     mkIf
+    mkOption
+    types
     ;
+
   inherit (builtins) elemAt;
   cfg = config.my-nixos.django-react;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;

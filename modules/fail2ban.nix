@@ -6,6 +6,7 @@ let
     mkOption
     types
     ;
+
   cfg = config.my-nixos.fail2ban;
 in
 {

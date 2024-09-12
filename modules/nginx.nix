@@ -3,10 +3,11 @@
 let
   inherit (lib)
     mkEnableOption
+    mkIf
     mkOption
     types
-    mkIf
     ;
+
   cfg = config.my-nixos.nginx;
 in
 {

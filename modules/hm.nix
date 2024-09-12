@@ -9,12 +9,13 @@
 let
   inherit (lib)
     filterAttrs
-    types
-    mkEnableOption
-    mkOption
-    mkIf
     mapAttrs
+    mkEnableOption
+    mkIf
+    mkOption
+    types
     ;
+
   cfg = config.my-nixos.hm;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 

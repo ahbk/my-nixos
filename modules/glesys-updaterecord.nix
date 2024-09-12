@@ -7,12 +7,13 @@
 
 let
   inherit (lib)
-    types
-    mkEnableOption
-    mkOption
-    mkIf
     getExe
+    mkEnableOption
+    mkIf
+    mkOption
+    types
     ;
+
   cfg = config.my-nixos.glesys.updaterecord;
 in
 {

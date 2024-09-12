@@ -2,15 +2,15 @@
 
 let
   inherit (lib)
-    types
-    mkEnableOption
-    mkOption
-    mapAttrs
+    elemAt
     filterAttrs
-    mkDefault
+    mapAttrs
+    mkEnableOption
     mkIf
+    mkOption
+    types
     ;
-  inherit (builtins) elemAt;
+
   cfg = config.my-nixos.django-svelte;
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
 

@@ -6,7 +6,8 @@
 }:
 
 let
-  inherit (lib) getExe mkIf mkEnableOption;
+  inherit (lib) getExe mkEnableOption mkIf;
+
   inherit (import ../theme.nix) colors;
   cfg = config.my-nixos-hm.shell;
 in

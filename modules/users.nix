@@ -8,15 +8,16 @@
 let
   inherit (lib)
     filterAttrs
-    types
-    mkEnableOption
-    mkOption
-    mkIf
-    mapAttrs
     hasAttr
+    mapAttrs
     mapAttrs'
+    mkEnableOption
+    mkIf
+    mkOption
     nameValuePair
+    types
     ;
+
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.users;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;

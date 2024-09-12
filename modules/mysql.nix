@@ -8,11 +8,12 @@
 let
   inherit (lib)
     filterAttrs
-    mkOption
-    mkIf
     mapAttrsToList
+    mkIf
+    mkOption
     types
     ;
+
   cfg = config.my-nixos.mysql;
   eachCfg = filterAttrs (user: cfg: cfg.ensure) cfg;
   userOpts = {

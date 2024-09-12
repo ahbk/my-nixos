@@ -8,11 +8,12 @@
 let
   inherit (lib)
     filterAttrs
-    types
-    mkOption
-    mkIf
     mapAttrsToList
+    mkIf
+    mkOption
+    types
     ;
+
   cfg = config.my-nixos.postgresql;
   eachCfg = filterAttrs (user: cfg: cfg.ensure) cfg;
   userOpts = {

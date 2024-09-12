@@ -3,12 +3,13 @@
 let
   inherit (lib)
     filterAttrs
-    types
-    mkOption
-    mkIf
     mapAttrs
+    mkIf
     mkEnableOption
+    mkOption
+    types
     ;
+
   cfg = config.my-nixos.backup;
   eachTarget = filterAttrs (user: cfg: cfg.enable) cfg;
   targetOpts = {

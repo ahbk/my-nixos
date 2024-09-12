@@ -13,11 +13,12 @@ let
     filterAttrs
     mapAttrs
     mkEnableOption
-    mkOption
     mkIf
+    mkOption
     splitString
     types
     ;
+
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.react;
 

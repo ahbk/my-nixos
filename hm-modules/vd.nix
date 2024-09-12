@@ -6,7 +6,8 @@
 }:
 
 let
-  inherit (lib) mkIf mkEnableOption;
+  inherit (lib) mkEnableOption mkIf;
+
   cfg = config.my-nixos-hm.vd;
 in
 {

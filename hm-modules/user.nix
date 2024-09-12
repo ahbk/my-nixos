@@ -3,10 +3,11 @@
 let
   inherit (lib)
     types
-    mkIf
     mkEnableOption
+    mkIf
     mkOption
     ;
+
   cfg = config.my-nixos-hm.user;
 in
 {

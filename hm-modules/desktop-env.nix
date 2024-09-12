@@ -6,8 +6,13 @@
 }:
 
 let
-  inherit (lib) mkIf getExe mkEnableOption;
-  inherit (builtins) substring;
+  inherit (lib)
+    getExe
+    mkEnableOption
+    mkIf
+    substring
+    ;
+
   inherit (import ../theme.nix) colors fonts;
   unhashedHexes = lib.mapAttrs (n: c: substring 1 6 c) colors;
   cfg = config.my-nixos-hm.desktop-env;

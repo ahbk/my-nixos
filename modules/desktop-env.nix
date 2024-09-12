@@ -8,14 +8,15 @@
 let
   inherit (lib)
     filterAttrs
-    types
-    mkOption
-    mkIf
-    mapAttrs
-    mkEnableOption
     flatten
+    types
+    mapAttrs
     mapAttrsToList
+    mkEnableOption
+    mkIf
+    mkOption
     ;
+
   cfg = config.my-nixos.desktop-env;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
   eachHMUser = filterAttrs (user: cfg: config.my-nixos.hm.${user}.enable) eachUser;
