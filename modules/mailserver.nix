@@ -89,6 +89,15 @@ in
       certificateScheme = "acme-nginx";
     };
 
+    # nixos-mailserver configures this redis instance,
+    # we just add a log identity
+    services.redis.servers.rspamd = {
+      settings = {
+        syslog-ident = "redis-rspamd";
+      };
+    };
+
+
     my-nixos.backup."backup.ahbk".paths = with config.mailserver; [
       dkimKeyDirectory
       mailDirectory

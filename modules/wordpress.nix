@@ -45,7 +45,7 @@ let
   };
 
   wpPhp = pkgs.php.buildEnv {
-    extensions = { enabled, all }: with all; enabled ++ [ imagick ];
+    extensions = { enabled, all }: with all; enabled ++ [ imagick memcached opcache ];
     extraConfig = ''
       memory_limit = 256M
       cgi.fix_pathinfo = 0
@@ -64,6 +64,14 @@ in
   };
 
   config = mkIf (eachSite != { }) {
+
+    services.redis.servers.wordpress = {
+      enable = true;
+      port = 6381;
+      settings = {
+        syslog-ident = "redis-wordpress";
+      };
+    };
 
     users = lib'.mergeAttrs (hostname: cfg: {
       users.${hostname} = {
@@ -207,6 +215,7 @@ in
         display_errors = Off;
         log_errors = On;
         error_log = ${stateDir hostname}/error.log;
+        extension=${pkgs.phpExtensions.redis}/lib/php/extensions/redis.so
       '';
       settings = {
         "listen.owner" = webserver.user;
