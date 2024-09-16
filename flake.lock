@@ -752,11 +752,11 @@
         "poetry2nix": "poetry2nix_3"
       },
       "locked": {
-        "lastModified": 1725738661,
-        "narHash": "sha256-orZjS42A+qE7IdMiNotxazsG8pflDYPUaLCB1b3tEK4=",
+        "lastModified": 1725832222,
+        "narHash": "sha256-v7WeXRIsxtw+vvKlX9GnIeZ/m1fcS5P3o+lz/6Kcha0=",
         "ref": "refs/heads/main",
-        "rev": "6f8a41808106dd5dba244032b78508a2fd8d7d85",
-        "revCount": 49,
+        "rev": "cd3d4b4437a67ae96947e04103eb5d1f5d4bee19",
+        "revCount": 53,
         "type": "git",
         "url": "ssh://git@github.com/PelleHanspers/sysctl_userportal"
       },
