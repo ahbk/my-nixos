@@ -36,6 +36,7 @@ in
       shotcut
       signal-desktop
       thunderbird
+      xournalpp
       wl-clipboard
     ];
 
