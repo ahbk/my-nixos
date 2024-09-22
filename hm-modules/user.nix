@@ -2,10 +2,12 @@
 
 let
   inherit (lib)
-    types
+    hm
+    mkDefault
     mkEnableOption
     mkIf
     mkOption
+    types
     ;
 
   cfg = config.my-nixos-hm.user;
@@ -23,7 +25,13 @@ in
     programs.home-manager.enable = true;
     home = {
       username = cfg.name;
-      homeDirectory = lib.mkDefault /home/${cfg.name};
+      homeDirectory = mkDefault /home/${cfg.name};
+      activation = {
+        prune-home = hm.dag.entryAfter ["writeBoundary"] ''
+            rm -rf /home/${cfg.name}/.nix-defexpr
+            rm -rf /home/${cfg.name}/.nix-profile
+        '';
+      };
     };
   };
 }
