@@ -47,6 +47,7 @@ in
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${host.system}.default
       w3m
+      git
     ];
   };
 }
