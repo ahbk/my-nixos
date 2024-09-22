@@ -23,6 +23,9 @@ in
 
   config = mkIf cfg.enable {
     programs.home-manager.enable = true;
+    nix.settings = {
+      use-xdg-base-directories = true;
+    };
     home = {
       username = cfg.name;
       homeDirectory = mkDefault /home/${cfg.name};
