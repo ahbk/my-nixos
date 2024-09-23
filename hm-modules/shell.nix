@@ -27,6 +27,7 @@ in
       fd
       imagemagick
       lazygit
+      less
       openssl
       ranger
       ripgrep
@@ -34,6 +35,7 @@ in
       unzip
       tcpdump
       traceroute
+      which
     ];
 
     programs.ssh = {

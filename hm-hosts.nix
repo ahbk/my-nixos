@@ -17,7 +17,7 @@
   };
   "alex@arch" = {
     system = "x86_64-linux";
-    stateVersion = "23.11";
+    stateVersion = "24.05";
     my-nixos-hm = {
       ide = {
         enable = true;
