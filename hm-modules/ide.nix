@@ -115,12 +115,22 @@ in
           };
         };
       };
+
+      autoCmd = [
+        {
+          command = "silent :!nixfmt %";
+          event = [ "BufWritePost" ];
+          pattern = [ "*.nix" ];
+        }
+      ];
+
       opts = {
         number = true;
         shiftwidth = 2;
         wildmenu = true;
         wildmode = "longest:full,full";
       };
+
       keymaps = [
         {
           key = "<F2>";
