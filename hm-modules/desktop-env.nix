@@ -101,6 +101,7 @@ in
           default_page = "qute://history/";
         };
         content = {
+          javascript.clipboard = "access";
           pdfjs = true;
           cache = {
             appcache = true;
