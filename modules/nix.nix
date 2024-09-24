@@ -6,10 +6,7 @@
 }:
 
 let
-  inherit (lib)
-    mkDefault
-    mkForce
-    ;
+  inherit (lib) mkDefault mkForce;
 in
 {
   nix = {
@@ -18,12 +15,18 @@ in
     channel.enable = false;
     settings = {
       auto-optimise-store = false;
-      bash-prompt-prefix = "(nix:$name)\040";
-      experimental-features = [ "nix-command" "flakes" ];
+      bash-prompt-prefix = "(nix:$name)\\040";
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       max-jobs = "auto";
       nix-path = mkForce "nixpkgs=/etc/nix/inputs/nixpkgs";
-      substituters = [ "https://cache.nixos.org" "https://cache.lix.systems" ];
-      trusted-users = [ "alex" "@wheel" ];
+      substituters = [
+        "https://cache.nixos.org"
+        "https://cache.lix.systems"
+      ];
+      trusted-users = [ "@wheel" ];
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="

@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (lib)
@@ -28,11 +33,17 @@ in
       package = mkForce pkgs.lix;
       settings = {
         auto-optimise-store = false;
-        bash-prompt-prefix = "(nix:$name)\040";
-        experimental-features = [ "nix-command" "flakes" ];
+        bash-prompt-prefix = "(nix:$name)\\040";
+        experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
         extra-nix-path = "nixpkgs=flake:nixpkgs";
         max-jobs = "auto";
-        substituters = [ "https://cache.nixos.org" "https://cache.lix.systems" ];
+        substituters = [
+          "https://cache.nixos.org"
+          "https://cache.lix.systems"
+        ];
         trusted-public-keys = [
           "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
           "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
@@ -44,9 +55,9 @@ in
       username = cfg.name;
       homeDirectory = mkDefault /home/${cfg.name};
       activation = {
-        prune-home = hm.dag.entryAfter ["writeBoundary"] ''
-            rm -rf /home/${cfg.name}/.nix-defexpr
-            rm -rf /home/${cfg.name}/.nix-profile
+        prune-home = hm.dag.entryAfter [ "writeBoundary" ] ''
+          rm -rf /home/${cfg.name}/.nix-defexpr
+          rm -rf /home/${cfg.name}/.nix-profile
         '';
       };
     };
