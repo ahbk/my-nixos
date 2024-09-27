@@ -1,3 +1,6 @@
 .tmp
 result
 id_ed25519
+.direnv
+.envrc
+__pycache__
