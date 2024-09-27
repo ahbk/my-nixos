@@ -120,7 +120,7 @@ in {
           pattern = [ "*.py" ];
         }
         {
-          command = "silent :!${pkgs.nixfmt}/bin/nixfmt %";
+          command = "silent :!${pkgs.nixfmt-rfc-style}/bin/nixfmt %";
           event = [ "BufWritePost" ];
           pattern = [ "*.nix" ];
         }
