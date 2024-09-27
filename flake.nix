@@ -2,7 +2,7 @@
   description = "my nixos";
 
   inputs = {
-    nixpkgs.url = "github:ahbk/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:ahbk/nixpkgs/my-nixos";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -22,55 +22,68 @@
     chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
 
-    sysctl-user-portal.url =
-      "git+ssh://git@github.com/PelleHanspers/sysctl_userportal";
+    sysctl-user-portal.url = "git+ssh://git@github.com/PelleHanspers/sysctl_userportal";
     sysctl-user-portal.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, home-manager, ... }@inputs:
+  outputs =
+    { nixpkgs, home-manager, ... }@inputs:
     let
       inherit (nixpkgs.lib) nixosSystem mapAttrs;
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
 
-    in rec {
-      homeConfigurations = mapAttrs (target: cfg:
+    in
+    rec {
+      homeConfigurations = mapAttrs (
+        target: cfg:
         homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${cfg.system};
-          extraSpecialArgs = { inherit inputs; };
+          extraSpecialArgs = {
+            inherit inputs;
+          };
           modules = [
             { home.stateVersion = cfg.stateVersion; }
             ./hm-modules/all.nix
             { inherit (cfg) my-nixos-hm; }
           ];
-        }) (import ./hm-hosts.nix);
+        }
+      ) (import ./hm-hosts.nix);
 
-      nixosConfigurations = mapAttrs (hostname: host:
+      nixosConfigurations = mapAttrs (
+        hostname: host:
         nixosSystem {
-          specialArgs = { inherit inputs host; };
+          specialArgs = {
+            inherit inputs host;
+          };
           modules = [
             ./configurations/${hostname}-hardware.nix
             ./modules/all.nix
             ./configurations/${hostname}.nix
           ];
-        }) (import ./hosts.nix);
+        }
+      ) (import ./hosts.nix);
 
       devShells.${system}.default = pkgs.mkShell {
         packages = [
           nixosConfigurations.laptop.config.system.build.nixos-rebuild
-          (pkgs.python312.withPackages (ps: [ ps.pytest ps.requests ps.ping3 ]))
+          (pkgs.python312.withPackages (ps: [
+            ps.pytest
+            ps.requests
+            ps.ping3
+          ]))
         ];
       };
 
       packages.${system} = {
         default = nixosConfigurations.laptop.config.system.build.nixos-rebuild;
 
-        options-doc = let
-          pkgs' = import ./packages/all.nix {
-            pkgs = nixpkgs.legacyPackages.${system};
-          };
-        in pkgs'.options-doc;
+        options-doc =
+          let
+            pkgs' = import ./packages/all.nix { pkgs = nixpkgs.legacyPackages.${system}; };
+          in
+          pkgs'.options-doc;
       };
     };
 }

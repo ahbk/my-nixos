@@ -547,7 +547,7 @@
       },
       "original": {
         "owner": "ahbk",
-        "ref": "nixos-unstable",
+        "ref": "my-nixos",
         "repo": "nixpkgs",
         "type": "github"
       }
