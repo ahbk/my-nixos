@@ -41,25 +41,7 @@
     },
     "buildNodeModules": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
-      },
-      "locked": {
-        "lastModified": 1721879795,
-        "narHash": "sha256-xisS3Xq4pSS8SMpRpD/YltBMyzNI4lofvuIFN+BizrI=",
-        "owner": "adisbladis",
-        "repo": "buildNodeModules",
-        "rev": "98a462e86162ad8fc123f071e2e45fa5fd576e24",
-        "type": "github"
-      },
-      "original": {
-        "owner": "adisbladis",
-        "repo": "buildNodeModules",
-        "type": "github"
-      }
-    },
-    "buildNodeModules_2": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
         "lastModified": 1725446470,
@@ -77,18 +59,17 @@
     },
     "chatddx": {
       "inputs": {
-        "buildNodeModules": "buildNodeModules",
         "nixpkgs": [
           "nixpkgs"
         ],
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1724415060,
-        "narHash": "sha256-eJ/s6o/UVo2/8K5Lfsr9suu7I+h39UlUU7BEulpAM0A=",
+        "lastModified": 1727778391,
+        "narHash": "sha256-e/9p01eIuUDf2nvsfC0d3dj3l5fKJGtrGWuLC6ZN+lQ=",
         "ref": "refs/heads/main",
-        "rev": "ad7456c5dc098a15c506a8e9b16256e0feb434ce",
-        "revCount": 99,
+        "rev": "63d26d8f0a72fb007ad70e300318363e9a1be980",
+        "revCount": 105,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
@@ -196,11 +177,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1705309234,
-        "narHash": "sha256-uNRRNRKmJyCRC/8y1RqBkqWBLM034y4qN7EprSdmgyA=",
+        "lastModified": 1710146030,
+        "narHash": "sha256-SZ5L6eA7HJ/nmkzGG7/ISclqe6oZdOZTNoesiInkXPQ=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "1ef2e671c3b0c19053962c07dbda38332dcebf26",
+        "rev": "b1d9ab70662946ef0850d488da1c9019f3a9752a",
         "type": "github"
       },
       "original": {
@@ -489,16 +470,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1708407325,
-        "narHash": "sha256-P93MEydbhBe97i+8JKZUgfxZRr7/LoMiHvfb8VLFZ4k=",
-        "owner": "adisbladis",
+        "lastModified": 1723991338,
+        "narHash": "sha256-Grh5PF0+gootJfOJFenTTxDTYPidA3V28dqJ/WV7iis=",
+        "owner": "ahbk",
         "repo": "nixpkgs",
-        "rev": "f73c22fb5094f9829695469130b2c04059c7a425",
+        "rev": "8a3354191c0d7144db9756a74755672387b702ba",
         "type": "github"
       },
       "original": {
-        "owner": "adisbladis",
-        "ref": "fetchnpmlock",
+        "owner": "ahbk",
+        "ref": "my-nixos",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -519,22 +500,6 @@
       }
     },
     "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1723991338,
-        "narHash": "sha256-Grh5PF0+gootJfOJFenTTxDTYPidA3V28dqJ/WV7iis=",
-        "owner": "ahbk",
-        "repo": "nixpkgs",
-        "rev": "8a3354191c0d7144db9756a74755672387b702ba",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ahbk",
-        "ref": "my-nixos",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_3": {
       "locked": {
         "lastModified": 1708407325,
         "narHash": "sha256-P93MEydbhBe97i+8JKZUgfxZRr7/LoMiHvfb8VLFZ4k=",
@@ -612,11 +577,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1724208502,
-        "narHash": "sha256-TCRcEPSfgAw/t7kClmlr23s591N06mQCrhzlAO7cyFw=",
+        "lastModified": 1727169160,
+        "narHash": "sha256-m/3tT0Wvk2V4H15riZC/yT7i7t+8V58HTDpthKV5yhk=",
         "owner": "nix-community",
         "repo": "poetry2nix",
-        "rev": "884b66152b0c625b8220b570a31dc7acc36749a3",
+        "rev": "7624b3e0275d9b52dbdda46ef7ffee66b36ff823",
         "type": "github"
       },
       "original": {
@@ -681,7 +646,7 @@
         "chatddx": "chatddx",
         "home-manager": "home-manager_2",
         "nixos-mailserver": "nixos-mailserver",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
         "sverigesval": "sverigesval",
         "sysctl-user-portal": "sysctl-user-portal"
@@ -710,7 +675,7 @@
     },
     "sysctl-user-portal": {
       "inputs": {
-        "buildNodeModules": "buildNodeModules_2",
+        "buildNodeModules": "buildNodeModules",
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -856,11 +821,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1708335038,
-        "narHash": "sha256-ETLZNFBVCabo7lJrpjD6cAbnE11eDOjaQnznmg/6hAE=",
+        "lastModified": 1719749022,
+        "narHash": "sha256-ddPKHcqaKCIFSFc/cvxS14goUhCOAwsM1PbMr0ZtHMg=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "e504621290a1fd896631ddbc5e9c16f4366c9f65",
+        "rev": "8df5ff62195d4e67e2264df0b7f5e8c9995fd0bd",
         "type": "github"
       },
       "original": {
