@@ -62,24 +62,6 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1721879795,
-        "narHash": "sha256-xisS3Xq4pSS8SMpRpD/YltBMyzNI4lofvuIFN+BizrI=",
-        "owner": "adisbladis",
-        "repo": "buildNodeModules",
-        "rev": "98a462e86162ad8fc123f071e2e45fa5fd576e24",
-        "type": "github"
-      },
-      "original": {
-        "owner": "adisbladis",
-        "repo": "buildNodeModules",
-        "type": "github"
-      }
-    },
-    "buildNodeModules_3": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_4"
-      },
-      "locked": {
         "lastModified": 1725446470,
         "narHash": "sha256-/FhYQ64zNcOi/V4ttookf5ZTGe4Ey/hlFctx+ZRMs2E=",
         "owner": "adisbladis",
@@ -568,22 +550,6 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
-      "locked": {
-        "lastModified": 1708407325,
-        "narHash": "sha256-P93MEydbhBe97i+8JKZUgfxZRr7/LoMiHvfb8VLFZ4k=",
-        "owner": "adisbladis",
-        "repo": "nixpkgs",
-        "rev": "f73c22fb5094f9829695469130b2c04059c7a425",
-        "type": "github"
-      },
-      "original": {
-        "owner": "adisbladis",
-        "ref": "fetchnpmlock",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixvim": {
       "inputs": {
         "devshell": "devshell",
@@ -671,11 +637,11 @@
         "treefmt-nix": "treefmt-nix_3"
       },
       "locked": {
-        "lastModified": 1724208502,
-        "narHash": "sha256-TCRcEPSfgAw/t7kClmlr23s591N06mQCrhzlAO7cyFw=",
+        "lastModified": 1727169160,
+        "narHash": "sha256-m/3tT0Wvk2V4H15riZC/yT7i7t+8V58HTDpthKV5yhk=",
         "owner": "nix-community",
         "repo": "poetry2nix",
-        "rev": "884b66152b0c625b8220b570a31dc7acc36749a3",
+        "rev": "7624b3e0275d9b52dbdda46ef7ffee66b36ff823",
         "type": "github"
       },
       "original": {
@@ -723,18 +689,17 @@
     },
     "sverigesval": {
       "inputs": {
-        "buildNodeModules": "buildNodeModules_2",
         "nixpkgs": [
           "nixpkgs"
         ],
         "poetry2nix": "poetry2nix_2"
       },
       "locked": {
-        "lastModified": 1724418184,
-        "narHash": "sha256-b4OZ34D/js1FLt+w5tV32dA+PJmb4NX5H3AFV2Ag7oo=",
+        "lastModified": 1727736058,
+        "narHash": "sha256-dIZjuz4chKw1GJOwG6nDeM47AJXsyloie2MJ2DR97FU=",
         "ref": "refs/heads/main",
-        "rev": "5fdd2c1c5dd00ee224d4ce20310873e61aea186f",
-        "revCount": 121,
+        "rev": "fc261a92bc2c8d6a4a09d30e52503fc2ba757337",
+        "revCount": 125,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },
@@ -745,7 +710,7 @@
     },
     "sysctl-user-portal": {
       "inputs": {
-        "buildNodeModules": "buildNodeModules_3",
+        "buildNodeModules": "buildNodeModules_2",
         "nixpkgs": [
           "nixpkgs"
         ],
