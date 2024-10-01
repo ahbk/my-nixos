@@ -142,7 +142,7 @@ in
         description = "migrate ${hostname}-fastapi";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${(fastapiPkgs hostname).bin}/bin/manage migrate";
+          ExecStart = "${bins.${hostname}}/bin/${hostname}-manage migrate";
           User = cfg.user;
           Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
