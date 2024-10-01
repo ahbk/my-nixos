@@ -11,7 +11,20 @@ in
 {
   nix = {
     package = mkDefault pkgs.lix;
-    registry.nixpkgs.flake = inputs.nixpkgs;
+    registry = {
+      my-nixos = {
+        from = {
+          id = "my-nixos";
+          type = "indirect";
+        };
+        to = {
+          owner = "ahbk";
+          repo = "my-nixos";
+          type = "github";
+        };
+      };
+      nixpkgs.flake = inputs.nixpkgs;
+    };
     channel.enable = false;
     settings = {
       auto-optimise-store = false;
