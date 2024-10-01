@@ -39,24 +39,6 @@
         "type": "gitlab"
       }
     },
-    "buildNodeModules": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "lastModified": 1725446470,
-        "narHash": "sha256-/FhYQ64zNcOi/V4ttookf5ZTGe4Ey/hlFctx+ZRMs2E=",
-        "owner": "adisbladis",
-        "repo": "buildNodeModules",
-        "rev": "b36f9efdc93658924b6332b1823add81b898667c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "adisbladis",
-        "repo": "buildNodeModules",
-        "type": "github"
-      }
-    },
     "chatddx": {
       "inputs": {
         "nixpkgs": [
@@ -499,22 +481,6 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1708407325,
-        "narHash": "sha256-P93MEydbhBe97i+8JKZUgfxZRr7/LoMiHvfb8VLFZ4k=",
-        "owner": "adisbladis",
-        "repo": "nixpkgs",
-        "rev": "f73c22fb5094f9829695469130b2c04059c7a425",
-        "type": "github"
-      },
-      "original": {
-        "owner": "adisbladis",
-        "ref": "fetchnpmlock",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixvim": {
       "inputs": {
         "devshell": "devshell",
@@ -627,11 +593,11 @@
         "treefmt-nix": "treefmt-nix_4"
       },
       "locked": {
-        "lastModified": 1725322757,
-        "narHash": "sha256-dgbmWv9ysSAZi27W4DnCdWDG+Q2yCCngVTKApDCN0ms=",
+        "lastModified": 1727169160,
+        "narHash": "sha256-m/3tT0Wvk2V4H15riZC/yT7i7t+8V58HTDpthKV5yhk=",
         "owner": "nix-community",
         "repo": "poetry2nix",
-        "rev": "184203e05a78f93f3c6329597db4cbec0471984b",
+        "rev": "7624b3e0275d9b52dbdda46ef7ffee66b36ff823",
         "type": "github"
       },
       "original": {
@@ -675,18 +641,17 @@
     },
     "sysctl-user-portal": {
       "inputs": {
-        "buildNodeModules": "buildNodeModules",
         "nixpkgs": [
           "nixpkgs"
         ],
         "poetry2nix": "poetry2nix_3"
       },
       "locked": {
-        "lastModified": 1726580860,
-        "narHash": "sha256-EIweBj9klsToZ+j2dMdnNDBRwckI03Zr/WT8C0woGRY=",
+        "lastModified": 1727779321,
+        "narHash": "sha256-IYfWEn/HGa/de7l7K7pFWsqBXd/+hKIoRd0oAJL+YUo=",
         "ref": "refs/heads/main",
-        "rev": "ac94c557edb335fb8f02e0ef2838aec62c260dbd",
-        "revCount": 58,
+        "rev": "936b3d3d5308a109a35299835ac990ed63de0ce9",
+        "revCount": 62,
         "type": "git",
         "url": "ssh://git@github.com/PelleHanspers/sysctl_userportal"
       },
