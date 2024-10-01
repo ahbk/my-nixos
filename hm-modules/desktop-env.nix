@@ -36,8 +36,8 @@ in
       shotcut
       signal-desktop
       thunderbird
-      xournalpp
       wl-clipboard
+      xournalpp
     ];
 
     home.file.wallpaper = {
