@@ -51,7 +51,6 @@ in
   config = mkIf (cfg.enable) {
 
     services.postfix = {
-      #relayDomains = mapAttrsToList (domain: cfg: domain) cfg.domains;
       transport =
         let
           transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
@@ -96,7 +95,6 @@ in
         syslog-ident = "redis-rspamd";
       };
     };
-
 
     my-nixos.backup."backup.ahbk".paths = with config.mailserver; [
       dkimKeyDirectory

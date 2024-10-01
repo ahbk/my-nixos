@@ -45,7 +45,15 @@ let
   };
 
   wpPhp = pkgs.php.buildEnv {
-    extensions = { enabled, all }: with all; enabled ++ [ imagick memcached opcache ];
+    extensions =
+      { enabled, all }:
+      with all;
+      enabled
+      ++ [
+        imagick
+        memcached
+        opcache
+      ];
     extraConfig = ''
       memory_limit = 256M
       cgi.fix_pathinfo = 0

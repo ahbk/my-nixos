@@ -1,12 +1,23 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
-  inherit (lib) types mkIf mkEnableOption mkOption;
+  inherit (lib)
+    types
+    mkIf
+    mkEnableOption
+    mkOption
+    ;
 
   inherit (import ../theme.nix) colors;
   cfg = config.my-nixos-hm.ide;
 
-in {
+in
+{
   options.my-nixos-hm.ide = with types; {
     enable = mkEnableOption "IDE for this user";
     name = mkOption {
@@ -61,8 +72,7 @@ in {
             sumiInk3 = black-600; # bg
             sumiInk2 = black-700; # bg_m1
             sumiInk1 = black-800; # bg_dim bg_m2
-            sumiInk0 =
-              black-900; # bg_m3 float.bf float.fg_border float.bg_border term:black
+            sumiInk0 = black-900; # bg_m3 float.bf float.fg_border float.bg_border term:black
 
             peachRed = red-300; # syn.special3 term:ext2
             autumnRed = red-400; # vcs.removed term:red
@@ -182,7 +192,9 @@ in {
           enable = true;
           settings = {
             highlight.enable = true;
-            indent = { enable = true; };
+            indent = {
+              enable = true;
+            };
           };
         };
 
@@ -223,7 +235,9 @@ in {
           enable = true;
           autoEnableSources = true;
           settings = {
-            completion = { keyword_length = 2; };
+            completion = {
+              keyword_length = 2;
+            };
             sources = [
               { name = "nvim_lsp"; }
               { name = "luasnip"; }
@@ -234,10 +248,8 @@ in {
               "<C-Space>" = "cmp.mapping.complete()";
               "<C-e>" = "cmp.mapping.close()";
               "<CR>" = "cmp.mapping.confirm({ select = true })";
-              "<S-Tab>" =
-                "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
-              "<Tab>" =
-                "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
+              "<S-Tab>" = "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
+              "<Tab>" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
             };
           };
         };
