@@ -66,11 +66,11 @@ let
     hostname: cfg:
     (lib'.mkEnv hostname {
       DEBUG = "false";
-      SECRET_KEY_FILE = config.age.secrets."${hostname}/secret-key".path;
-      SCHEME = if cfg.ssl then "https" else "http";
-      STATE_DIR = stateDir hostname;
-      HOST = hostname;
       DJANGO_SETTINGS_MODULE = "app.settings";
+      HOST = hostname;
+      SCHEME = if cfg.ssl then "https" else "http";
+      SECRET_KEY_FILE = config.age.secrets."${hostname}/secret-key".path;
+      STATE_DIR = stateDir hostname;
     })
   ) eachSite;
 
