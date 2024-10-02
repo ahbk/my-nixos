@@ -437,15 +437,16 @@
         "nixpkgs-24_05": "nixpkgs-24_05"
       },
       "locked": {
-        "lastModified": 1725974623,
-        "narHash": "sha256-JT+58N7qMYVMsRvrVNovvmnDdcB1c7w5JIyuhJUUHQk=",
+        "lastModified": 1727858070,
+        "narHash": "sha256-Vfs0DEA4EWDMQD266wxIbK1E10zldmJGicho7e8AiX0=",
         "owner": "ahbk",
         "repo": "nixos-mailserver",
-        "rev": "efda419f372792db0a98281703a1b99ea798dcda",
+        "rev": "2d61d9af8e0b97fe9451574d0f5461bc4cb3ef46",
         "type": "gitlab"
       },
       "original": {
         "owner": "ahbk",
+        "ref": "relay-domains",
         "repo": "nixos-mailserver",
         "type": "gitlab"
       }

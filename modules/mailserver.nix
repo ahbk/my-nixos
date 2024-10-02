@@ -13,8 +13,8 @@ let
     ;
 
   cfg = config.my-nixos.mailserver;
-  noRelayDomains = filterAttrs (domain: cfg: !cfg.relay) cfg.domains;
-  relayDomains = filterAttrs (domain: cfg: cfg.relay) cfg.domains;
+  relayDomains = filterAttrs (domain: cfg: !cfg.mailbox) cfg.domains;
+  mailboxDomains = filterAttrs (domain: cfg: cfg.mailbox) cfg.domains;
 in
 {
 
@@ -39,7 +39,7 @@ in
       description = "List of domains to manage.";
       type = attrsOf (submodule {
         options = {
-          relay = mkOption {
+          mailbox = mkOption {
             description = "Enable if this host is the domain's final destination.";
             type = bool;
           };
@@ -51,9 +51,10 @@ in
   config = mkIf (cfg.enable) {
 
     services.postfix = {
+      origin = "ahbk.se";
       transport =
         let
-          transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") noRelayDomains;
+          transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") relayDomains;
           transportsCfg = concatStringsSep "\n" transportsList;
         in
         transportsCfg;
@@ -72,8 +73,8 @@ in
       enable = true;
       fqdn = "mail.ahbk.se";
       dkimSelector = "ahbk";
-      domains = mapAttrsToList (domain: _: domain) cfg.domains;
-      virtualMailboxDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
+      domains = mapAttrsToList (domain: _: domain) mailboxDomains;
+      relayDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
       enableSubmissionSsl = false;
 
       loginAccounts = mapAttrs' (user: userCfg: {

@@ -74,10 +74,10 @@ in
         "rolf" = { };
       };
       domains = {
-        "ahbk.se".relay = true;
-        "chatddx.com".relay = true;
-        "sverigesval.org".relay = true;
-        "esse.nu".relay = false;
+        "ahbk.se".mailbox = true;
+        "chatddx.com".mailbox = true;
+        "sverigesval.org".mailbox = true;
+        "esse.nu".mailbox = false;
       };
     };
 
