@@ -12,6 +12,7 @@ in
   nix = {
     package = mkDefault pkgs.lix;
     registry = {
+      self.flake = inputs.self;
       my-nixos = {
         from = {
           id = "my-nixos";
