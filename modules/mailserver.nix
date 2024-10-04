@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (lib)
@@ -101,6 +106,22 @@ in
       dkimKeyDirectory
       mailDirectory
     ];
+
+    my-nixos.monit.config = ''
+      check process postfix with pidfile /var/lib/postfix/queue/pid/master.pid
+          start program = "${pkgs.systemd}/bin/systemctl start postfix"
+          stop program = "${pkgs.systemd}/bin/systemctl stop postfix"
+          if failed port 25 protocol smtp for 5 cycles then restart
+
+      check process dovecot with pidfile /var/run/dovecot2/master.pid
+          start program = "${pkgs.systemd}/bin/systemctl start dovecot2"
+          stop program = "${pkgs.systemd}/bin/systemctl stop dovecot2"
+          if failed host ${config.mailserver.fqdn} port 993 type tcpssl sslauto protocol imap for 5 cycles then restart
+
+      check process rspamd with matching "rspamd: main process"
+          start program = "${pkgs.systemd}/bin/systemctl start rspamd"
+          stop program = "${pkgs.systemd}/bin/systemctl stop rspamd"
+    '';
 
     services.fail2ban.jails = {
       postfix.settings = {

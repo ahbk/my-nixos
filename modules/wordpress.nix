@@ -7,6 +7,7 @@
 
 let
   inherit (lib)
+    concatStringsSep
     filterAttrs
     flatten
     getExe
@@ -260,6 +261,23 @@ in
 
     my-nixos.backup."backup.ahbk".paths = flatten (
       mapAttrsToList (hostname: cfg: [ (stateDir hostname) ]) eachSite
+    );
+
+    my-nixos.monit.config = concatStringsSep "\n" (
+      mapAttrsToList (
+        hostname: cfg:
+        let
+          serverName = if cfg.www then "www.${hostname}" else hostname;
+        in
+        ''
+          check host ${hostname} with address ${serverName}
+              if failed
+                  port 443
+                  protocol https
+                  with ssl options { verify: enable }
+                then alert
+        ''
+      ) eachSite
     );
 
     systemd.timers = lib'.mergeAttrs (hostname: cfg: {

@@ -65,6 +65,20 @@ in
       email = alex.email;
     };
 
+    monit = {
+      enable = true;
+      config = ''
+         set alert ${alex.email}
+         set daemon 120 with start delay 60
+         set mailserver
+             localhost
+        set httpd
+            port 2812
+            use address 10.0.0.3
+            allow 10.0.0.0/24
+      '';
+    };
+
     mailserver = {
       enable = true;
       users = {
