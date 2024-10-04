@@ -47,6 +47,8 @@ in
           PATH = "$HOME/.local/bin:$PATH";
           PROMPT_COMMAND = "\${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a; history -c; history -r";
           HISTTIMEFORMAT = "%y-%m-%d %T";
+          MANPAGER = "sh -c 'col -bx | bat -l man -p'";
+          MANROFFOPT = "-c";
         };
 
         shellAliases = {
