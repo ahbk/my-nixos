@@ -7,6 +7,7 @@
     keys = [ ./keys/ssh-user-alex.pub ];
     email = "alex@ahbk.se";
     aliases = [
+      "dmarc-reports@ahbk.se"
       "postmaster@ahbk.se"
       "abuse@ahbk.se"
       "info@ahbk.se"
