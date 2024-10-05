@@ -107,7 +107,7 @@ in
       mailDirectory
     ];
 
-    my-nixos.monit.config = ''
+    my-nixos.monitor.config = ''
       check process postfix with pidfile /var/lib/postfix/queue/pid/master.pid
           start program = "${pkgs.systemd}/bin/systemctl start postfix"
           stop program = "${pkgs.systemd}/bin/systemctl stop postfix"

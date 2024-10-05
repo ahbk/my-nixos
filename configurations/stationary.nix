@@ -96,6 +96,21 @@ in
       email = alex.email;
     };
 
+    monitor = {
+      enable = true;
+      config = ''
+         set alert ${alex.email}
+         set daemon 120 with start delay 60
+         set mailserver
+             glesys.ahbk
+
+         set httpd
+             port 2812
+             use address 10.0.0.1
+             allow 10.0.0.0/24
+      '';
+    };
+
     wordpress.sites."test.esse.nu" = sites."test.esse.nu";
   };
 }

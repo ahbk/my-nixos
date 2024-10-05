@@ -65,7 +65,7 @@ in
       email = alex.email;
     };
 
-    monit = {
+    monitor = {
       enable = true;
       config = ''
          set alert ${alex.email}

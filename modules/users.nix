@@ -115,7 +115,7 @@ in
       };
     };
 
-    my-nixos.monit.config = ''
+    my-nixos.monitor.config = ''
       check process sshd with pidfile /var/run/sshd.pid
           start program  "${pkgs.systemd}/bin/systemctl start sshd"
           stop program  "${pkgs.systemd}/bin/systemctl stop sshd"

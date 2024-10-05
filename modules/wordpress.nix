@@ -263,7 +263,7 @@ in
       mapAttrsToList (hostname: cfg: [ (stateDir hostname) ]) eachSite
     );
 
-    my-nixos.monit.config = concatStringsSep "\n" (
+    my-nixos.monitor.config = concatStringsSep "\n" (
       mapAttrsToList (
         hostname: cfg:
         let

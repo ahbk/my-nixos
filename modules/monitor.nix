@@ -7,11 +7,11 @@ let
     types
     ;
 
-  cfg = config.my-nixos.monit;
+  cfg = config.my-nixos.monitor;
 in
 {
-  options.my-nixos.monit = {
-    enable = mkEnableOption "monit service";
+  options.my-nixos.monitor = {
+    enable = mkEnableOption "monitor service";
     config = mkOption {
       description = ''
         Configuration lines to add to /etc/monitrc.
