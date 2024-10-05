@@ -57,6 +57,14 @@ in
 
     services.postfix = {
       origin = "ahbk.se";
+      networks = [
+        "10.0.0.0/24"
+        "127.0.0.1/32"
+        "46.246.47.6/32"
+        "[::1]/128"
+        "[2a02:752:0:18::37]/128"
+        "[fe80::10e0:d7ff:fe9c:3f01]/128"
+      ];
       transport =
         let
           transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") relayDomains;
