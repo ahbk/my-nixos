@@ -87,6 +87,11 @@ in
       publicKeyFile = ../keys/ssh-host-${target}.pub;
     }) eachTarget;
 
+    services.prometheus.exporters.restic = {
+      enable = true;
+      passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
+    };
+
     services.restic.backups = mapAttrs (target: targetCfg: {
       inherit (targetCfg)
         paths

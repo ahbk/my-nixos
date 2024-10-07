@@ -1,3 +1,4 @@
+{ config, ... }:
 let
   users = import ../users.nix;
   sites = import ../sites.nix;
@@ -14,6 +15,36 @@ in
 
   services.nginx.virtualHosts."stationary.ahbk".locations."/netdata/" = {
     proxyPass = "http://localhost:19999/";
+  };
+
+  services.prometheus = {
+    enable = true;
+    scrapeConfigs = [
+      {
+        job_name = "mail";
+        static_configs = with config.services.prometheus.exporters; [
+          {
+            targets = [
+              "glesys.ahbk:${toString postfix.port}"
+              "glesys.ahbk:${toString dovecot.port}"
+            ];
+          }
+        ];
+      }
+      {
+        job_name = "backup";
+        static_configs = with config.services.prometheus.exporters; [
+          {
+            targets = [
+              "glesys.ahbk:${toString restic.port}"
+              "stationary.ahbk:${toString restic.port}"
+              "laptop.ahbk:${toString restic.port}"
+            ];
+          }
+        ];
+      }
+    ];
+
   };
 
   services.invoiceplane = {
@@ -44,6 +75,14 @@ in
     useDHCP = false;
     enableIPv6 = false;
     firewall = {
+      interfaces.wg0 = {
+        allowedTCPPortRanges = [
+          {
+            from = 9000;
+            to = 9999;
+          }
+        ];
+      };
       logRefusedConnections = false;
       allowedTCPPorts = [ 53 ];
       allowedUDPPorts = [ 53 ];
@@ -94,21 +133,6 @@ in
     nginx = {
       enable = true;
       email = alex.email;
-    };
-
-    monitor = {
-      enable = true;
-      config = ''
-         set alert ${alex.email}
-         set daemon 120 with start delay 60
-         set mailserver
-             glesys.ahbk
-
-         set httpd
-             port 2812
-             use address 10.0.0.1
-             allow 10.0.0.0/24
-      '';
     };
 
     wordpress.sites."test.esse.nu" = sites."test.esse.nu";
