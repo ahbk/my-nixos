@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, ... }:
 
 let
   inherit (lib)
@@ -55,24 +50,6 @@ in
 
   config = mkIf (cfg.enable) {
 
-    services.postfix = {
-      origin = "ahbk.se";
-      networks = [
-        "10.0.0.0/24"
-        "127.0.0.1/32"
-        "46.246.47.6/32"
-        "[::1]/128"
-        "[2a02:752:0:18::37]/128"
-        "[fe80::10e0:d7ff:fe9c:3f01]/128"
-      ];
-      transport =
-        let
-          transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") relayDomains;
-          transportsCfg = concatStringsSep "\n" transportsList;
-        in
-        transportsCfg;
-    };
-
     age.secrets = mapAttrs' (user: _: {
       name = "mail-hashed-${user}";
       value = {
@@ -102,42 +79,57 @@ in
       certificateScheme = "acme-nginx";
     };
 
-    # nixos-mailserver configures this redis instance,
-    # we just add a log identity
-    services.redis.servers.rspamd = {
-      settings = {
-        syslog-ident = "redis-rspamd";
+    services = {
+
+      fail2ban.jails = {
+        postfix.settings = {
+          filter = "postfix[mode=aggressive]";
+        };
+        dovecot.settings = {
+          filter = "dovecot[mode=aggressive]";
+        };
       };
-    };
 
-    my-nixos.backup."backup.ahbk".paths = with config.mailserver; [
-      dkimKeyDirectory
-      mailDirectory
-    ];
-
-    my-nixos.monitor.config = ''
-      check process postfix with pidfile /var/lib/postfix/queue/pid/master.pid
-          start program = "${pkgs.systemd}/bin/systemctl start postfix"
-          stop program = "${pkgs.systemd}/bin/systemctl stop postfix"
-          if failed port 25 protocol smtp for 5 cycles then restart
-
-      check process dovecot with pidfile /var/run/dovecot2/master.pid
-          start program = "${pkgs.systemd}/bin/systemctl start dovecot2"
-          stop program = "${pkgs.systemd}/bin/systemctl stop dovecot2"
-          if failed host ${config.mailserver.fqdn} port 993 type tcpssl sslauto protocol imap for 5 cycles then restart
-
-      check process rspamd with matching "rspamd: main process"
-          start program = "${pkgs.systemd}/bin/systemctl start rspamd"
-          stop program = "${pkgs.systemd}/bin/systemctl stop rspamd"
-    '';
-
-    services.fail2ban.jails = {
-      postfix.settings = {
-        filter = "postfix[mode=aggressive]";
+      postfix = {
+        origin = "ahbk.se";
+        networks = [
+          "10.0.0.0/24"
+          "127.0.0.1/32"
+          "46.246.47.6/32"
+          "[::1]/128"
+          "[2a02:752:0:18::37]/128"
+          "[fe80::10e0:d7ff:fe9c:3f01]/128"
+        ];
+        transport =
+          let
+            transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") relayDomains;
+            transportsCfg = concatStringsSep "\n" transportsList;
+          in
+          transportsCfg;
       };
-      dovecot.settings = {
-        filter = "dovecot[mode=aggressive]";
+
+      prometheus.exporters = {
+        dovecot = {
+          enable = true;
+        };
+        postfix = {
+          enable = true;
+        };
       };
+
+      # nixos-mailserver configures this redis instance,
+      # we just add a log identity
+      redis.servers.rspamd = {
+        settings = {
+          syslog-ident = "redis-rspamd";
+        };
+      };
+
+      restic.backups."backup.ahbk".paths = with config.mailserver; [
+        dkimKeyDirectory
+        mailDirectory
+      ];
+
     };
   };
 }

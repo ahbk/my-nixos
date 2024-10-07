@@ -10,7 +10,17 @@ in
 
   networking = {
     useDHCP = false;
-    firewall.logRefusedConnections = false;
+    firewall = {
+      interfaces.wg0 = {
+        allowedTCPPortRanges = [
+          {
+            from = 9000;
+            to = 9999;
+          }
+        ];
+      };
+      logRefusedConnections = false;
+    };
   };
 
   systemd.network = {
