@@ -1,4 +1,3 @@
-{ config, ... }:
 let
   users = import ../users.nix;
   sites = import ../sites.nix;
@@ -19,44 +18,6 @@ in
 
   services.prometheus = {
     enable = true;
-    scrapeConfigs = with config.services.prometheus.exporters; [
-      {
-        job_name = "wireguard";
-        static_configs = [
-          {
-            targets = [
-              "glesys.ahbk:${toString wireguard.port}"
-              "stationary.ahbk:${toString wireguard.port}"
-              "laptop.ahbk:${toString wireguard.port}"
-            ];
-          }
-        ];
-      }
-      {
-        job_name = "mail";
-        static_configs = [
-          {
-            targets = [
-              "glesys.ahbk:${toString postfix.port}"
-              "glesys.ahbk:${toString dovecot.port}"
-            ];
-          }
-        ];
-      }
-      {
-        job_name = "backup";
-        static_configs = [
-          {
-            targets = [
-              "glesys.ahbk:${toString restic.port}"
-              "stationary.ahbk:${toString restic.port}"
-              "laptop.ahbk:${toString restic.port}"
-            ];
-          }
-        ];
-      }
-    ];
-
   };
 
   services.invoiceplane = {
@@ -87,14 +48,6 @@ in
     useDHCP = false;
     enableIPv6 = false;
     firewall = {
-      interfaces.wg0 = {
-        allowedTCPPortRanges = [
-          {
-            from = 9000;
-            to = 9999;
-          }
-        ];
-      };
       logRefusedConnections = false;
       allowedTCPPorts = [ 53 ];
       allowedUDPPorts = [ 53 ];

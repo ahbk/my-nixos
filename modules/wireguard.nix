@@ -41,13 +41,40 @@ in
 
   config = mkMerge [
     (mkIf cfg.wg0.enable {
-
-      services.prometheus.exporters.wireguard.enable = true;
+      services.prometheus = {
+        exporters.wireguard.enable = true;
+        scrapeConfigs = with config.services.prometheus.exporters; [
+          {
+            job_name = "wireguard";
+            static_configs = [
+              {
+                targets = [
+                  "glesys.ahbk:${toString wireguard.port}"
+                  "stationary.ahbk:${toString wireguard.port}"
+                  "laptop.ahbk:${toString wireguard.port}"
+                ];
+              }
+            ];
+          }
+        ];
+      };
 
       networking = {
         wireguard.enable = true;
         networkmanager.unmanaged = [ "interface-name:wg0" ];
-        interfaces.wg0.useDHCP = false;
+        firewall = {
+          interfaces.wg0 = {
+            allowedTCPPortRanges = [
+              {
+                from = 9000;
+                to = 9999;
+              }
+            ];
+          };
+        };
+        interfaces.wg0 = {
+          useDHCP = false;
+        };
       } // (if isServer host then { firewall.allowedUDPPorts = [ cfg.wg0.port ]; } else { });
 
       age.secrets."wg-key-${host.name}" = {

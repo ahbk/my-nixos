@@ -11,14 +11,6 @@ in
   networking = {
     useDHCP = false;
     firewall = {
-      interfaces.wg0 = {
-        allowedTCPPortRanges = [
-          {
-            from = 9000;
-            to = 9999;
-          }
-        ];
-      };
       logRefusedConnections = false;
     };
   };

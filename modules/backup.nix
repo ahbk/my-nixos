@@ -88,6 +88,21 @@ in
       group = "backup";
     };
 
+    services.prometheus.scrapeConfigs = with config.services.prometheus.exporters; [
+      {
+        job_name = "backup";
+        static_configs = [
+          {
+            targets = [
+              "glesys.ahbk:${toString restic.port}"
+              "stationary.ahbk:${toString restic.port}"
+              "laptop.ahbk:${toString restic.port}"
+            ];
+          }
+        ];
+      }
+    ];
+
     services.openssh.knownHosts = mapAttrs (target: cfg: {
       publicKeyFile = ../keys/ssh-host-${target}.pub;
     }) eachTarget;

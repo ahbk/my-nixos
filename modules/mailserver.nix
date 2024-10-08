@@ -135,10 +135,23 @@ in
         }
       '';
 
-      prometheus.exporters = {
-        postfix = {
+      prometheus = {
+        exporters.postfix = {
           enable = true;
         };
+        scrapeConfigs = with config.services.prometheus.exporters; [
+          {
+            job_name = "mail";
+            static_configs = [
+              {
+                targets = [
+                  "glesys.ahbk:${toString postfix.port}"
+                  "glesys.ahbk:${toString dovecot.port}"
+                ];
+              }
+            ];
+          }
+        ];
       };
 
       # nixos-mailserver configures this redis instance,
