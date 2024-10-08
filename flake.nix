@@ -27,7 +27,12 @@
   };
 
   outputs =
-    { nixpkgs, home-manager, ... }@inputs:
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      ...
+    }@inputs:
     let
       inherit (nixpkgs.lib) nixosSystem mapAttrs;
       inherit (home-manager.lib) homeManagerConfiguration;
@@ -67,12 +72,10 @@
 
       devShells.${system}.default = pkgs.mkShell {
         packages = [
-          nixosConfigurations.laptop.config.system.build.nixos-rebuild
-          (pkgs.python312.withPackages (ps: [
-            ps.pytest
-            ps.requests
-            ps.ping3
-          ]))
+          (pkgs.writeShellScriptBin "deploy" ''
+            #!/usr/bin/env bash
+            nixos-rebuild switch --use-remote-sudo --flake ${self} --build-host $1 --target-host $1
+          '')
         ];
       };
 
