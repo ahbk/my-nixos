@@ -19,10 +19,22 @@ in
 
   services.prometheus = {
     enable = true;
-    scrapeConfigs = [
+    scrapeConfigs = with config.services.prometheus.exporters; [
+      {
+        job_name = "wireguard";
+        static_configs = [
+          {
+            targets = [
+              "glesys.ahbk:${toString wireguard.port}"
+              "stationary.ahbk:${toString wireguard.port}"
+              "laptop.ahbk:${toString wireguard.port}"
+            ];
+          }
+        ];
+      }
       {
         job_name = "mail";
-        static_configs = with config.services.prometheus.exporters; [
+        static_configs = [
           {
             targets = [
               "glesys.ahbk:${toString postfix.port}"
@@ -33,7 +45,7 @@ in
       }
       {
         job_name = "backup";
-        static_configs = with config.services.prometheus.exporters; [
+        static_configs = [
           {
             targets = [
               "glesys.ahbk:${toString restic.port}"

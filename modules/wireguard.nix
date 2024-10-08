@@ -42,6 +42,8 @@ in
   config = mkMerge [
     (mkIf cfg.wg0.enable {
 
+      services.prometheus.exporters.wireguard.enable = true;
+
       networking = {
         wireguard.enable = true;
         networkmanager.unmanaged = [ "interface-name:wg0" ];
