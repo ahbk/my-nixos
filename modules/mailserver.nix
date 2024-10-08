@@ -108,10 +108,34 @@ in
           transportsCfg;
       };
 
+      dovecot2.extraConfig = ''
+        service stats {
+          inet_listener http {
+            port = ${toString config.services.prometheus.exporters.dovecot.port}
+          }
+        }
+
+        metric auth_success {
+          filter = (event=auth_request_finished AND success=yes)
+        }
+
+        metric imap_command {
+          filter = event=imap_command_finished
+          group_by = cmd_name tagged_reply_state
+        }
+
+        metric smtp_command {
+          filter = event=smtp_server_command_finished
+          group_by = cmd_name status_code duration:exponential:1:5:10
+        }
+
+        metric mail_delivery {
+          filter = event=mail_delivery_finished
+          group_by = duration:exponential:1:5:10
+        }
+      '';
+
       prometheus.exporters = {
-        dovecot = {
-          enable = true;
-        };
         postfix = {
           enable = true;
         };

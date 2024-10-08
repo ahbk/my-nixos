@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (lib)
@@ -87,23 +92,27 @@ in
       publicKeyFile = ../keys/ssh-host-${target}.pub;
     }) eachTarget;
 
-    services.prometheus.exporters.restic = {
-      enable = true;
-      passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
-    };
+    services.restic = {
+      server = {
+        enable = true;
+        prometheus = true;
+        listenAddress = toString config.services.prometheus.exporters.restic.port;
+        extraFlags = [ "--no-auth" ];
+      };
 
-    services.restic.backups = mapAttrs (target: targetCfg: {
-      inherit (targetCfg)
-        paths
-        exclude
-        pruneOpts
-        timerConfig
-        ;
-      repository = "sftp:backup@${target}:repository";
-      initialize = true;
-      user = "root";
-      passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
-      extraOptions = [ "sftp.command='ssh backup@${target} -i ${targetCfg.privateKeyFile} -s sftp'" ];
-    }) eachTarget;
+      backups = mapAttrs (target: targetCfg: {
+        inherit (targetCfg)
+          paths
+          exclude
+          pruneOpts
+          timerConfig
+          ;
+        repository = "sftp:backup@${target}:repository";
+        initialize = true;
+        user = "root";
+        passwordFile = config.age.secrets."linux-passwd-plain-backup".path;
+        extraOptions = [ "sftp.command='ssh backup@${target} -i ${targetCfg.privateKeyFile} -s sftp'" ];
+      }) eachTarget;
+    };
   };
 }
