@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 let
   users = import ../users.nix;
   sites = import ../sites.nix;
@@ -62,9 +63,38 @@ in
     };
   };
 
+  services.grafana = {
+    enable = true;
+    settings = {
+      server = {
+        http_port = 9999;
+        domain = "stationary.ahbk";
+        root_url = "http://stationary.ahbk/grafana/";
+        serve_from_sub_path = true;
+      };
+      "auth.anonymous".enabled = true;
+      "auth.basic".enabled = false;
+    };
+    provision.datasources = {
+      settings.datasources = [
+        {
+          name = "Prometheus localhost";
+          url = "http://localhost:9090";
+          type = "prometheus";
+          isDefault = true;
+        }
+      ];
+    };
+  };
+
+  services.nginx.virtualHosts."stationary.ahbk".locations."/grafana/" = {
+    proxyPass = "http://localhost:9999";
+    proxyWebsockets = true;
+  };
+
   my-nixos = with users; {
     users = {
-      inherit alex frans backup;
+      inherit alex frans;
     };
     shell.alex.enable = true;
     hm.alex.enable = true;
@@ -73,6 +103,14 @@ in
       postgresql = true;
       mysql = true;
     };
+
+    backup.local = {
+      enable = true;
+      target = "backup.ahbk";
+      server = true;
+    };
+
+    mailserver.monitor = true;
 
     glesys.updaterecord = {
       enable = true;

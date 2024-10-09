@@ -20,7 +20,10 @@ in
 
     sendmail.alex.enable = true;
 
-    backup."backup.ahbk".enable = true;
+    backup.local = {
+      enable = true;
+      target = "backup.ahbk";
+    };
   };
 
   networking = {

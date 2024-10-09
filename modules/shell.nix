@@ -36,7 +36,7 @@ in
     };
   config = mkIf (eachUser != { }) {
 
-    my-nixos.backup."backup.ahbk".paths = flatten (
+    services.restic.backups.local.paths = flatten (
       mapAttrsToList (user: cfg: [ "/home/${user}/.bash_history" ]) eachUser
     );
 

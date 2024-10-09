@@ -14,6 +14,7 @@ let
     mkIf
     mkMerge
     mkOption
+    optionalAttrs
     types
     ;
 
@@ -66,16 +67,16 @@ in
           interfaces.wg0 = {
             allowedTCPPortRanges = [
               {
-                from = 9000;
+                from = 7000;
                 to = 9999;
               }
             ];
           };
-        };
+        } // (optionalAttrs (isServer host) { allowedUDPPorts = [ cfg.wg0.port ]; });
         interfaces.wg0 = {
           useDHCP = false;
         };
-      } // (if isServer host then { firewall.allowedUDPPorts = [ cfg.wg0.port ]; } else { });
+      };
 
       age.secrets."wg-key-${host.name}" = {
         file = ../secrets/wg-key-${host.name}.age;

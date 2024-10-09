@@ -17,7 +17,6 @@
     ./hm.nix
     ./ide.nix
     ./mailserver.nix
-    ./monitor.nix
     ./mysql.nix
     ./nginx.nix
     ./nix.nix

@@ -27,12 +27,7 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      ...
-    }@inputs:
+    { nixpkgs, home-manager, ... }@inputs:
     let
       inherit (nixpkgs.lib) nixosSystem mapAttrs;
       inherit (home-manager.lib) homeManagerConfiguration;
@@ -74,7 +69,7 @@
         packages = [
           (pkgs.writeShellScriptBin "deploy" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --flake ${./.} --build-host $1 --target-host $1
+            nixos-rebuild switch --use-remote-sudo --flake ./ --build-host $1 --target-host $1
           '')
         ];
       };

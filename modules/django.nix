@@ -162,7 +162,7 @@ in
       };
     }) eachSite;
 
-    my-nixos.backup."backup.ahbk".paths = flatten (
+    services.restic.backups.local.paths = flatten (
       mapAttrsToList (hostname: cfg: [ (stateDir hostname) ]) eachSite
     );
 
