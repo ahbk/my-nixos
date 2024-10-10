@@ -48,5 +48,8 @@ in
       use-xdg-base-directories = true;
     };
   };
-  environment.etc."nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
+  environment.etc = {
+    "nix/inputs/self".source = "${inputs.self}";
+    "nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
+  };
 }
