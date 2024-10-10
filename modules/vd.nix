@@ -34,8 +34,9 @@ in
   config = mkIf (eachUser != { }) {
     home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.vd.enable = true; }) eachUser;
 
-    nixpkgs.config.allowUnfreePredicate =
-      pkg: builtins.elem (lib.getName pkg) [ "helvetica-neue-lt-std" ];
+    # Mirror at web.archive.org has stopped working, fix at some point
+    #nixpkgs.config.allowUnfreePredicate =
+    #  pkg: builtins.elem (lib.getName pkg) [ "helvetica-neue-lt-std" ];
 
     fonts.packages = with pkgs; [
       aileron
@@ -48,7 +49,7 @@ in
       fira-code-symbols
       font-awesome
       garamond-libre
-      helvetica-neue-lt-std
+      # helvetica-neue-lt-std
       ibm-plex
       inter
       jost

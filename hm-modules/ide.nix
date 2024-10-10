@@ -173,6 +173,7 @@ in
       ];
 
       plugins = {
+        web-devicons.enable = true;
         leap.enable = true;
         sleuth.enable = true;
         neo-tree.enable = true;
@@ -210,7 +211,7 @@ in
         lsp = {
           enable = true;
           servers = {
-            tsserver.enable = true;
+            ts_ls.enable = true;
             svelte.enable = true;
             tailwindcss.enable = true;
             pyright.enable = true;
