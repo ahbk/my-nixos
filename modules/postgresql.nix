@@ -40,14 +40,20 @@ in
   };
 
   config = mkIf (eachCfg != { }) {
-    services.postgresql = {
-      enable = true;
-      package = pkgs.postgresql_14;
-      ensureDatabases = mapAttrsToList (user: cfg: user) eachCfg;
-      ensureUsers = mapAttrsToList (user: cfg: {
-        name = user;
-        ensureDBOwnership = true;
-      }) eachCfg;
+    services = {
+      prometheus.exporters.postgres = {
+        enable = true;
+        runAsLocalSuperUser = true;
+      };
+      postgresql = {
+        enable = true;
+        package = pkgs.postgresql_14;
+        ensureDatabases = mapAttrsToList (user: cfg: user) eachCfg;
+        ensureUsers = mapAttrsToList (user: cfg: {
+          name = user;
+          ensureDBOwnership = true;
+        }) eachCfg;
+      };
     };
   };
 }

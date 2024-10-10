@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 let
   users = import ../users.nix;
   sites = import ../sites.nix;
@@ -17,8 +17,86 @@ in
     proxyPass = "http://localhost:19999/";
   };
 
+  services.prometheus.exporters.blackbox = {
+    enable = true;
+    configFile = pkgs.writeTextFile {
+      name = "prometheus-exporters-blackbox";
+      text = ''
+        modules:
+          http_2xx:
+            prober: http
+            timeout: 5s
+            http:
+              valid_http_versions: [ "HTTP/1.1", "HTTP/2" ]
+              valid_status_codes: []
+      '';
+    };
+  };
   services.prometheus = {
     enable = true;
+    scrapeConfigs = with config.services.prometheus.exporters; [
+      {
+        job_name = "php-fpm";
+        static_configs = [
+          {
+            targets = [
+              "glesys.ahbk:${toString php-fpm.port}"
+              "stationary.ahbk:${toString php-fpm.port}"
+            ];
+          }
+        ];
+      }
+      {
+        job_name = "redis";
+        static_configs = [
+          {
+            targets = [
+              "glesys.ahbk:${toString redis.port}"
+              "stationary.ahbk:${toString redis.port}"
+            ];
+          }
+        ];
+      }
+      {
+        job_name = "postgres";
+        static_configs = [
+          {
+            targets = [
+              "glesys.ahbk:${toString postgres.port}"
+              "stationary.ahbk:${toString postgres.port}"
+            ];
+          }
+        ];
+      }
+      {
+        job_name = "probe websites";
+        metrics_path = "/probe";
+        params = {
+          module = [ "http_2xx" ];
+        };
+        static_configs = [
+          {
+            targets = [
+              "https://esse.nu"
+              "https://chatddx.com"
+              "https://sverigesval.org"
+              "https://sysctl-user-portal.curetheweb.se"
+              "https://ahbk.se"
+            ];
+          }
+        ];
+        relabel_configs = [
+          {
+            source_labels = [ "__address__" ];
+            target_label = "__param_target";
+          }
+          {
+            target_label = "__address__";
+            replacement = "stationary.ahbk:9115";
+          }
+        ];
+      }
+    ];
   };
 
   services.invoiceplane = {

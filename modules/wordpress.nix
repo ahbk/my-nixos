@@ -258,6 +258,10 @@ in
       };
     }) eachSite;
 
+    services.prometheus.exporters = {
+      redis.enable = true;
+    };
+
     services.restic.backups.local.paths = flatten (
       mapAttrsToList (hostname: cfg: [ (stateDir hostname) ]) eachSite
     );
