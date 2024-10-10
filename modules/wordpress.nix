@@ -259,7 +259,10 @@ in
     }) eachSite;
 
     services.prometheus.exporters = {
-      redis.enable = true;
+      redis = {
+        enable = true;
+        extraFlags = [ "-redis.addr redis://localhost:6381" ];
+      };
     };
 
     services.restic.backups.local.paths = flatten (
