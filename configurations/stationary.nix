@@ -9,13 +9,7 @@ in
     device = "/dev/sda";
   };
 
-  services.netdata.enable = true;
-
   boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
-
-  services.nginx.virtualHosts."stationary.ahbk".locations."/netdata/" = {
-    proxyPass = "http://localhost:19999/";
-  };
 
   services.prometheus.exporters.blackbox = {
     enable = true;
