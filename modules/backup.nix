@@ -46,22 +46,7 @@ in
       file = ../secrets/linux-passwd-plain-backup.age;
     };
 
-    services = with config.services.prometheus.exporters; {
-      prometheus.scrapeConfigs = [
-        {
-          job_name = "backup";
-          static_configs = [
-            {
-              targets = [
-                "glesys.ahbk:${toString restic.port}"
-                "stationary.ahbk:${toString restic.port}"
-                "backup.ahbk:${toString cfg.local.port}"
-                "laptop.ahbk:${toString restic.port}"
-              ];
-            }
-          ];
-        }
-      ];
+    services = {
 
       prometheus.exporters.restic = {
         enable = true;
