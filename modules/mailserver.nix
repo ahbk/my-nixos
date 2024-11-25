@@ -21,7 +21,6 @@ in
 
   options.my-nixos.mailserver = with types; {
     enable = mkEnableOption "mail server";
-    monitor = (mkEnableOption "monitor mail server");
     users = mkOption {
       description = "Configure user accounts.";
       type = attrsOf (submodule {
@@ -51,22 +50,6 @@ in
   };
 
   config = mkMerge [
-    (mkIf cfg.monitor {
-      services.prometheus.scrapeConfigs = with config.services.prometheus.exporters; [
-        {
-          job_name = "mail";
-          static_configs = [
-            {
-              targets = [
-                "glesys.ahbk:${toString postfix.port}"
-                "glesys.ahbk:${toString dovecot.port}"
-                "glesys.ahbk:${toString rspamd.port}"
-              ];
-            }
-          ];
-        }
-      ];
-    })
     (mkIf cfg.enable {
 
       age.secrets = mapAttrs' (user: _: {
@@ -176,6 +159,14 @@ in
           mailDirectory
         ];
 
+        nginx.virtualHosts.rspamd = {
+          serverName = "glesys.ahbk";
+          locations = {
+            "/rspamd/" = {
+              proxyPass = "http://unix:/run/rspamd/worker-controller.sock:/";
+            };
+          };
+        };
       };
     })
   ];
