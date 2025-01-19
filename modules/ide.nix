@@ -44,6 +44,10 @@ in
       };
     }) eachHMUser;
 
+    virtualisation.docker = {
+      enable = true;
+    };
+
     programs.vim = {
       enable = true;
       defaultEditor = true;
@@ -57,7 +61,12 @@ in
 
     programs.adb.enable = true;
 
-    users.users = mapAttrs (user: cfg: { extraGroups = [ "adbusers" ]; }) eachUser;
+    users.users = mapAttrs (user: cfg: {
+      extraGroups = [
+        "adbusers"
+        "docker"
+      ];
+    }) eachUser;
 
     my-nixos.postgresql = mapAttrs (user: cfg: { ensure = cfg.postgresql; }) eachUser;
     my-nixos.mysql = mapAttrs (user: cfg: { ensure = cfg.mysql; }) eachUser;
