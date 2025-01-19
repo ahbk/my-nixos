@@ -31,6 +31,7 @@ in
       openssl
       ranger
       ripgrep
+      shell-gpt
       silver-searcher
       unzip
       tcpdump
