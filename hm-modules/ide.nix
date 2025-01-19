@@ -40,7 +40,7 @@ in
       ruff
       nix-init
       node2nix
-      nodejs
+      nodejs_22
       nodePackages.svelte-language-server
       nodePackages.typescript-language-server
       npm-check-updates
@@ -179,7 +179,7 @@ in
         neo-tree.enable = true;
         oil.enable = true;
         nix.enable = true;
-        nvim-colorizer.enable = true;
+        colorizer.enable = true;
         fugitive.enable = true;
         gitignore.enable = false;
 
