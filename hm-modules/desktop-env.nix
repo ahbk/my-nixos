@@ -32,6 +32,7 @@ in
       kooha
       mpv
       mupdf
+      nyxt
       pinta
       shotcut
       signal-desktop
@@ -378,7 +379,7 @@ in
             "$mainMod, d, pseudo,"
             "$mainMod, s, togglesplit,"
             "$mainMod, h, movefocus, l"
-            "$mainMod, l, movefocus, r"
+            "$mainMod, l, exec, ${lib.getExe pkgs.swaylock} --color 000000"
             "$mainMod, k, movefocus, u"
             "$mainMod, j, movefocus, d"
             "$mainMod, mouse_down, workspace, e+1"
