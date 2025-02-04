@@ -16,6 +16,9 @@ let
   ];
 in
 {
+  "ahbk-cert-key.age".publicKeys = all;
+  "ahbk-cert.age".publicKeys = all;
+
   "linux-passwd-hashed-alex.age".publicKeys = all;
   "linux-passwd-hashed-backup.age".publicKeys = all;
   "linux-passwd-hashed-frans.age".publicKeys = all;

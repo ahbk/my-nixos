@@ -5,6 +5,7 @@
     inputs.home-manager.nixosModules.home-manager
     inputs.nixos-mailserver.nixosModules.default
     inputs.nixvim.nixosModules.nixvim
+    ./ahbk-cert.nix
     ./backup.nix
     ./desktop-env.nix
     ./django-react.nix
