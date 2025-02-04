@@ -2,6 +2,9 @@ let
   users = import ../users.nix;
 in
 {
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+
   my-nixos = {
     users = with users; {
       inherit alex frans backup;
