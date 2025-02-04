@@ -28,6 +28,7 @@ in
       imagemagick
       lazygit
       less
+      nethogs
       openssl
       ranger
       ripgrep
