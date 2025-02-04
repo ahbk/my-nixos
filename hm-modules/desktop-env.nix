@@ -27,6 +27,7 @@ in
 
     home.packages = with pkgs; [
       chromium
+      cmus
       firefox
       feh
       kooha
@@ -261,8 +262,76 @@ in
             "eDP-1"
             "HDMI-A-1"
           ];
-          modules-right = [ "battery" ];
+          modules-right = [
+            "pulseaudio#source"
+            "pulseaudio#sink"
+            "bluetooth"
+            "network"
+            "battery"
+          ];
+          modules-left = [
+            "hyprland/workspaces"
+            "hyprland/submap"
+          ];
           modules-center = [ "clock" ];
+          "network" = {
+            "interface" = "wlp1s0";
+            "format" = "{ifname}";
+            "format-wifi" = "{essid} ({signalStrength}%) ";
+            "format-ethernet" = "{ipaddr}/{cidr} 󰊗";
+            "format-disconnected" = "";
+            "tooltip-format" = "{ifname} via {gwaddr} 󰊗";
+            "tooltip-format-wifi" = "{essid} ({signalStrength}%) ";
+            "tooltip-format-ethernet" = "{ifname} ";
+            "tooltip-format-disconnected" = "Disconnected";
+            "max-length" = 50;
+
+          };
+          "pulseaudio#source" = {
+            "format-source" = "{volume}% ";
+            "format-source-muted" = "{volume}% ";
+            "format" = "{format_source}";
+            "max-volume" = 100;
+            "on-click" = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+            "on-click-middle" = "pavucontrol";
+            "on-scroll-up" = "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 1%+";
+            "on-scroll-down" = "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 1%-";
+          };
+          "pulseaudio#sink" = {
+            "format" = "{volume}% {icon}";
+            "format-bluetooth" = "{volume}% {icon}";
+            "format-muted" = "";
+            "format-icons" = {
+              "alsa_output.pci-0000_00_1f.3.analog-stereo" = "";
+              "alsa_output.pci-0000_00_1f.3.analog-stereo-muted" = "";
+              "headphone" = "";
+              "hands-free" = "";
+              "headset" = "";
+              "phone" = "";
+              "phone-muted" = "";
+              "portable" = "";
+              "car" = "";
+              "default" = [
+                ""
+                ""
+              ];
+            };
+            "scroll-step" = 1;
+            "on-click" = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+            "on-click-middle" = "pavucontrol";
+            "ignored-sinks" = [ "Easy Effects Sink" ];
+          };
+          bluetooth = {
+            format = " {status}";
+            "format-connected" = " {device_alias}";
+            "format-connected-battery" = " {device_alias} {device_battery_percentage}%";
+            "tooltip-format" = "{controller_alias}\t{controller_address}\n\n{num_connections} connected";
+            "tooltip-format-connected" =
+              "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}";
+            "tooltip-format-enumerate-connected" = "{device_alias}\t{device_address}";
+            "tooltip-format-enumerate-connected-battery" =
+              "{device_alias}\t{device_address}\t{device_battery_percentage}%";
+          };
           clock = {
             tooltip-format = "<tt><small>{calendar}</small></tt>";
             format-alt = "{:%A %Y-%m-%d}";
@@ -286,17 +355,41 @@ in
           font-family: ${fonts.monospace};
           background-color: ${bg-400};
         }
-        #battery {
+
+        #workspaces button.active {
+          color: ${fg-300};
+        }
+
+        .module {
           padding: 0 10px;
           border-radius: 10px;
-          background-color: ${blue-400};
-        }
-        #clock {
-          padding: 0 10px;
           background-color: ${bg-300};
           color: ${fg-300};
         }
       '';
+    };
+
+    programs.hyprlock = {
+      enable = true;
+      settings = {
+        general = {
+          ignore_empty_input = true;
+          hide_cursor = true;
+        };
+
+        background = [
+          {
+            color = "#000000";
+          }
+        ];
+
+        input-field = [
+          {
+            position = "0, 0";
+            font-family = fonts.monospace;
+          }
+        ];
+      };
     };
 
     wayland.windowManager.hyprland = {
@@ -377,9 +470,10 @@ in
             "$mainMod, c, killactive,"
             "$mainMod, q, exit,"
             "$mainMod, d, pseudo,"
-            "$mainMod, s, togglesplit,"
+            "$mainMod, a, togglesplit,"
+            "$mainMod, s, exec, systemctl suspend,"
             "$mainMod, h, movefocus, l"
-            "$mainMod, l, exec, ${lib.getExe pkgs.swaylock} --color 000000"
+            "$mainMod, l, exec, hyprlock"
             "$mainMod, k, movefocus, u"
             "$mainMod, j, movefocus, d"
             "$mainMod, mouse_down, workspace, e+1"
