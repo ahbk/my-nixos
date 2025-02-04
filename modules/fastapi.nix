@@ -129,7 +129,7 @@ in
       "${hostname}-fastapi" = {
         description = "serve ${hostname}-fastapi";
         serviceConfig = {
-          ExecStart = "${(fastapiPkgs hostname).app.dependencyEnv}/bin/uvicorn app.main:fastapi --host localhost --port ${toString cfg.port}";
+          ExecStart = "${(fastapiPkgs hostname).app}/bin/uvicorn app.main:fastapi --host localhost --port ${toString cfg.port}";
           User = cfg.user;
           Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
