@@ -1,7 +1,11 @@
-{ pkgs, config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   users = import ../users.nix;
-  sites = import ../sites.nix;
 in
 {
   boot.loader.grub = {
@@ -32,7 +36,47 @@ in
       hints['laptop.ahbk'] = '10.0.0.2'
       hints['phone.ahbk'] = '10.0.0.4'
       hints['backup.ahbk'] = '10.0.0.1'
+      hints['nextcloud.ahbk'] = '10.0.0.1'
+      hints['collabora.ahbk'] = '10.0.0.1'
     '';
+  };
+
+  my-nixos.ahbk-cert.enable = true;
+
+  age.secrets = {
+    nextcloud = {
+      file = ../secrets/nextcloud-pass.age;
+      owner = "nextcloud";
+      group = "nextcloud";
+    };
+  };
+
+  services.collabora-online = {
+    enable = true;
+    settings.ssl = rec {
+      ca_file_path = cert_file_path;
+      cert_file_path = config.age.secrets.ahbk-cert.path;
+      key_file_path = config.age.secrets.ahbk-cert-key.path;
+    };
+    aliasGroups = [ { host = "https://collabora.ahbk:9980"; } ];
+  };
+
+  services.nginx.virtualHosts."nextcloud.ahbk" = {
+    forceSSL = true;
+    sslCertificate = config.age.secrets.ahbk-cert.path;
+    sslCertificateKey = config.age.secrets.ahbk-cert-key.path;
+  };
+
+  services.nextcloud = {
+    enable = true;
+    https = true;
+    hostName = "nextcloud.ahbk";
+    package = pkgs.nextcloud30;
+    database.createLocally = true;
+    config = {
+      dbtype = "pgsql";
+      adminpassFile = config.age.secrets.nextcloud.path;
+    };
   };
 
   networking = {
@@ -53,8 +97,8 @@ in
     };
   };
 
-  my-nixos = with users; {
-    users = {
+  my-nixos = {
+    users = with users; {
       inherit alex frans;
     };
     shell.alex.enable = true;
@@ -96,9 +140,9 @@ in
 
     nginx = {
       enable = true;
-      email = alex.email;
+      email = users.alex.email;
     };
 
-    wordpress.sites."test.esse.nu" = sites."test.esse.nu";
+    #wordpress.sites."test.esse.nu" = sites."test.esse.nu";
   };
 }
