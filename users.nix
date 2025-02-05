@@ -11,6 +11,7 @@
       "postmaster@ahbk.se"
       "abuse@ahbk.se"
       "info@ahbk.se"
+      "alex@sverigesval.org"
     ];
   };
 
