@@ -9,6 +9,7 @@ let
   inherit (lib)
     filterAttrs
     mapAttrsToList
+    mkDefault
     mkIf
     mkOption
     types
@@ -16,27 +17,33 @@ let
 
   cfg = config.my-nixos.postgresql;
   eachCfg = filterAttrs (user: cfg: cfg.ensure) cfg;
-  userOpts = {
-    options = {
-      ensure =
-        with types;
-        mkOption {
-          description = "Ensure a postgresql database for the user.";
-          default = true;
-          type = bool;
-        };
-    };
-  };
 in
 {
-  options = {
-    my-nixos.postgresql =
-      with types;
-      mkOption {
-        type = attrsOf (submodule userOpts);
-        default = { };
-        description = "Specification of one or more postgresql user/database pair to setup";
-      };
+  options.my-nixos.postgresql = mkOption {
+    type = types.attrsOf (
+      types.submodule (
+        { config, ... }:
+        {
+          options = {
+            ensure = mkOption {
+              description = "Ensure a postgresql database for the user.";
+              default = true;
+              type = types.bool;
+            };
+            name = mkOption {
+              description = "Name of the postgresql database/user-pair.";
+              type = types.nullOr types.str;
+              default = null;
+            };
+          };
+          config = {
+            name = mkDefault (config._module.args.name or null);
+          };
+        }
+      )
+    );
+    default = { };
+    description = "Specification of one or more postgresql user/database pair to setup";
   };
 
   config = mkIf (eachCfg != { }) {
@@ -47,10 +54,10 @@ in
       };
       postgresql = {
         enable = true;
-        package = pkgs.postgresql_14;
-        ensureDatabases = mapAttrsToList (user: cfg: user) eachCfg;
+        package = pkgs.postgresql_17;
+        ensureDatabases = mapAttrsToList (user: cfg: cfg.name) eachCfg;
         ensureUsers = mapAttrsToList (user: cfg: {
-          name = user;
+          name = cfg.name;
           ensureDBOwnership = true;
         }) eachCfg;
       };
