@@ -20,6 +20,7 @@
     ./mailserver.nix
     ./monitor.nix
     ./mysql.nix
+    ./nextcloud.nix
     ./nginx.nix
     ./nix.nix
     ./postgresql.nix
