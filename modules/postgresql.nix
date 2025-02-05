@@ -48,10 +48,6 @@ in
 
   config = mkIf (eachCfg != { }) {
     services = {
-      prometheus.exporters.postgres = {
-        enable = true;
-        runAsLocalSuperUser = true;
-      };
       postgresql = {
         enable = true;
         package = pkgs.postgresql_17;
