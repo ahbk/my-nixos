@@ -3,6 +3,7 @@ let
   sites = import ../sites.nix;
 in
 {
+
   boot.loader.grub = {
     enable = true;
     device = "/dev/sda";
@@ -30,8 +31,8 @@ in
     }
   ];
 
-  my-nixos = with users; {
-    users = {
+  my-nixos = {
+    users = with users; {
       inherit
         alex
         backup
@@ -63,11 +64,26 @@ in
       target = "backup.ahbk";
     };
 
+    nextcloud.sites."admin.sverigesval.org" = {
+      enable = true;
+      user = "sverigesval-nextcloud";
+      ssl = true;
+      subnet = false;
+      port = 2007;
+      uid = 978;
+    };
+
+    collabora = {
+      enable = true;
+      subnet = false;
+      host = "collabora.ahbk.se";
+    };
+
     wireguard.wg0.enable = true;
 
     nginx = {
       enable = true;
-      email = alex.email;
+      email = users.alex.email;
     };
 
     mailserver = {

@@ -1,9 +1,3 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
 let
   users = import ../users.nix;
 in
@@ -41,44 +35,6 @@ in
     '';
   };
 
-  my-nixos.ahbk-cert.enable = true;
-
-  age.secrets = {
-    nextcloud = {
-      file = ../secrets/nextcloud-pass.age;
-      owner = "nextcloud";
-      group = "nextcloud";
-    };
-  };
-
-  services.collabora-online = {
-    enable = true;
-    settings.ssl = rec {
-      ca_file_path = cert_file_path;
-      cert_file_path = config.age.secrets.ahbk-cert.path;
-      key_file_path = config.age.secrets.ahbk-cert-key.path;
-    };
-    aliasGroups = [ { host = "https://collabora.ahbk:9980"; } ];
-  };
-
-  services.nginx.virtualHosts."nextcloud.ahbk" = {
-    forceSSL = true;
-    sslCertificate = config.age.secrets.ahbk-cert.path;
-    sslCertificateKey = config.age.secrets.ahbk-cert-key.path;
-  };
-
-  services.nextcloud = {
-    enable = true;
-    https = true;
-    hostName = "nextcloud.ahbk";
-    package = pkgs.nextcloud30;
-    database.createLocally = true;
-    config = {
-      dbtype = "pgsql";
-      adminpassFile = config.age.secrets.nextcloud.path;
-    };
-  };
-
   networking = {
     useDHCP = false;
     enableIPv6 = false;
@@ -101,6 +57,7 @@ in
     users = with users; {
       inherit alex frans;
     };
+
     shell.alex.enable = true;
     hm.alex.enable = true;
     ide.alex = {
@@ -109,6 +66,8 @@ in
       mysql = true;
     };
 
+    ahbk-cert.enable = true;
+
     backup.local = {
       enable = true;
       target = "backup.ahbk";
@@ -116,6 +75,21 @@ in
     };
 
     monitor.enable = true;
+
+    nextcloud.sites."nextcloud.ahbk" = {
+      enable = true;
+      user = "nextcloud-ahbk";
+      ssl = true;
+      subnet = true;
+      port = 2006;
+      uid = 981;
+    };
+
+    collabora = {
+      enable = true;
+      subnet = true;
+      host = "collabora.ahbk";
+    };
 
     glesys.updaterecord = {
       enable = true;

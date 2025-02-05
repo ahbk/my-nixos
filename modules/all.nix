@@ -7,6 +7,7 @@
     inputs.nixvim.nixosModules.nixvim
     ./ahbk-cert.nix
     ./backup.nix
+    ./collabora.nix
     ./desktop-env.nix
     ./django-react.nix
     ./django-svelte.nix

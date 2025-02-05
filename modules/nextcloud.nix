@@ -128,8 +128,6 @@ in
         autoStart = true;
 
         bindMounts = {
-          "/etc/ssh/ssh_host_ed25519_key".isReadOnly = true;
-          "/run/postgresql/".isReadOnly = false;
           "/var/lib/nextcloud/" = {
             isReadOnly = false;
             hostPath = stateDir hostname;
@@ -142,8 +140,6 @@ in
 
         config = {
           system.stateVersion = config.system.stateVersion;
-
-          environment.systemPackages = [ pkgs.postgresql_15 ];
 
           users.users.nextcloud.uid = cfg.uid;
           users.groups.nextcloud.gid = cfg.uid;

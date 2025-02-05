@@ -91,14 +91,6 @@ in
           termination = true;
         };
       };
-      aliasGroups = [
-        {
-          host = "https://collabora.ahbk:443";
-          aliases = [
-            "https://nextcloud.ahbk"
-          ];
-        }
-      ];
     };
   };
 }
