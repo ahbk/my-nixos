@@ -460,12 +460,19 @@ in
         "$mainMod" = "SUPER";
 
         bind =
+          let
+            e = lib.getExe;
+            hyprctl = "${pkgs.hyprland}/bin/hyprctl";
+            activeMonitor = "${hyprctl} monitors | ${e pkgs.gawk} '/Monitor/{mon=$2} /focused: yes/{print mon}'";
+            workspaces = builtins.genList (x: x) 10;
+          in
+          with pkgs;
           [
-            "$mainMod, i, exec, ${lib.getExe pkgs.foot}"
-            "$mainMod, o, exec, ${lib.getExe pkgs.qutebrowser}"
-            "$mainMod, r, exec, ${lib.getExe pkgs.fuzzel}"
-            ''$mainMod, p, exec, ${lib.getExe pkgs.grim} -g "$(${lib.getExe pkgs.slurp})" - | ${lib.getExe pkgs.swappy} -f -''
-            ", PRINT, exec, ${lib.getExe pkgs.grim} - | ${pkgs.wl-clipboard}/bin/wl-copy"
+            "$mainMod, i, exec, ${e foot}"
+            "$mainMod, o, exec, ${e qutebrowser}"
+            "$mainMod, r, exec, ${e fuzzel}"
+            ''$mainMod, p, exec, ${e grim} -g "$(${e slurp})" - | ${e swappy} -f -''
+            '', PRINT, exec, ${e grim} -o "$(${activeMonitor})" - | ${e swappy} -f -''
             "$mainMod, return, togglefloating,"
             "$mainMod, c, killactive,"
             "$mainMod, q, exit,"
@@ -479,28 +486,8 @@ in
             "$mainMod, mouse_down, workspace, e+1"
             "$mainMod, mouse_up, workspace, e-1"
           ]
-          ++ map (i: "$mainMod, ${toString i}, workspace, ${toString i}") [
-            1
-            2
-            3
-            4
-            5
-            6
-            7
-            8
-            9
-          ]
-          ++ map (i: "$mainMod SHIFT, ${toString i}, movetoworkspacesilent, ${toString i}") [
-            1
-            2
-            3
-            4
-            5
-            6
-            7
-            8
-            9
-          ];
+          ++ map (i: "$mainMod, ${toString i}, workspace, ${toString i}") workspaces
+          ++ map (i: "$mainMod SHIFT, ${toString i}, movetoworkspacesilent, ${toString i}") workspaces;
 
         bindm = [
           "$mainMod, mouse:272, movewindow"
