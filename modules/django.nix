@@ -142,7 +142,7 @@ in
       "${hostname}-django" = {
         description = "serve ${hostname}-django";
         serviceConfig = {
-          ExecStart = "${(djangoPkgs hostname).app.dependencyEnv}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
+          ExecStart = "${(djangoPkgs hostname).app}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
           User = cfg.user;
           Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
@@ -154,7 +154,7 @@ in
         description = "migrate ${hostname}-django";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${(djangoPkgs hostname).app.dependencyEnv}/bin/django-admin migrate";
+          ExecStart = "${(djangoPkgs hostname).app}/bin/django-admin migrate";
           User = cfg.user;
           Group = cfg.user;
           EnvironmentFile = "${envs.${hostname}}";
