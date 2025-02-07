@@ -64,6 +64,7 @@ let
       SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret_key".path;
       SSL = if cfg.ssl then "true" else "false";
       STATE_DIR = stateDir hostname;
+      ALEMBIC_CONFIG = "${(fastapiPkgs hostname).alembic}/alembic.ini";
     })
   ) eachSite;
 
