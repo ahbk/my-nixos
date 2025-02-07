@@ -77,6 +77,7 @@ in
       enable = true;
       subnet = false;
       host = "collabora.ahbk.se";
+      allowedHosts = [ "admin.sverigesval.org" ];
     };
 
     wireguard.wg0.enable = true;

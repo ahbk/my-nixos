@@ -12,15 +12,17 @@ in
   options = {
     my-nixos.collabora = {
       enable = mkEnableOption "collabora-online on this server";
-
       subnet = mkOption {
         description = "Use self-signed certificates";
         type = types.bool;
       };
-
       host = mkOption {
         description = "Public hostname";
         type = types.str;
+      };
+      allowedHosts = mkOption {
+        description = "Accept WOPI from these hosts";
+        type = types.listOf types.str;
       };
     };
   };
@@ -85,10 +87,18 @@ in
 
     services.collabora-online = {
       enable = true;
+      aliasGroups = map (host: {
+        host = "https://nextcloud.ahbk";
+      }) cfg.allowedHosts;
+
       settings = {
         ssl = {
           enable = false;
           termination = true;
+        };
+        net = {
+          proto = "IPv4";
+          listen = "loopback";
         };
       };
     };

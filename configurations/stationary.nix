@@ -76,19 +76,20 @@ in
 
     monitor.enable = true;
 
-    nextcloud.sites."nextcloud.ahbk" = {
+    nextcloud.sites."nextcloud.ahbk.se" = {
       enable = true;
       user = "nextcloud-ahbk";
       ssl = true;
-      subnet = true;
+      subnet = false;
       port = 2006;
       uid = 981;
     };
 
     collabora = {
       enable = true;
-      subnet = true;
-      host = "collabora.ahbk";
+      subnet = false;
+      host = "collabora.stationary.ahbk.se";
+      allowedHosts = [ "nextcloud.ahbk.se" ];
     };
 
     glesys.updaterecord = {

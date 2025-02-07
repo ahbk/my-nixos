@@ -31,7 +31,7 @@ in
   "linux-passwd-plain-olof.age".publicKeys = all;
   "linux-passwd-plain-rolf.age".publicKeys = all;
 
-  "nextcloud-pass-nextcloud.ahbk.age".publicKeys = all;
+  "nextcloud-pass-nextcloud.ahbk.se.age".publicKeys = all;
   "nextcloud-pass-admin.sverigesval.org.age".publicKeys = all;
 
   "mail-hashed-alex.age".publicKeys = all;
