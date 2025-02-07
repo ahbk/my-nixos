@@ -26,9 +26,11 @@ in
       eza
       fd
       imagemagick
+      iproute2
       lazygit
       less
       nethogs
+      nmap
       openssl
       ranger
       ripgrep
