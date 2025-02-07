@@ -47,6 +47,7 @@ in
       php
       pyright
       (sqlite.override { interactive = true; })
+      uv
       xh
     ];
 
@@ -182,6 +183,7 @@ in
         colorizer.enable = true;
         fugitive.enable = true;
         gitignore.enable = false;
+        direnv.enable = true;
 
         # enable on next update
         rest = {
