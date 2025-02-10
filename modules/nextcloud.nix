@@ -9,6 +9,7 @@ let
   inherit (lib)
     filterAttrs
     flatten
+    getExe
     mapAttrs
     mapAttrs'
     mapAttrsToList
@@ -100,6 +101,32 @@ in
     my-nixos.postgresql = mapAttrs (hostname: cfg: {
       ensure = true;
       name = cfg.user;
+    }) eachSite;
+
+    services.restic.backups.local.paths = flatten (
+      mapAttrsToList (hostname: cfg: [ (stateDir hostname) ]) eachSite
+    );
+
+    systemd.services = lib'.mergeAttrs (hostname: cfg: {
+      "${hostname}-pgsql-dump" = {
+        description = "dump a snapshot of the postgresql database";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -U ${cfg.user} ${cfg.user} > ${stateDir hostname}/dbdump.sql'";
+          User = cfg.user;
+          Group = cfg.user;
+        };
+      };
+
+      "${hostname}-pgsql-restore" = {
+        description = "restore postgresql database from snapshot";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${cfg.user} ${cfg.user} < ${stateDir hostname}/dbdump.sql'";
+          User = cfg.user;
+          Group = cfg.user;
+        };
+      };
     }) eachSite;
 
     services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
