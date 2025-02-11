@@ -13,7 +13,7 @@
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay-domains";
+    nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
 
     sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
