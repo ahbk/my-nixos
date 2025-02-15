@@ -396,10 +396,19 @@ in
       enable = true;
       settings = {
         monitor = ",preferred,auto,1";
-        exec-once = [
-          "${getExe pkgs.swaybg} -i ${config.home.file.wallpaper.target}"
-          "${getExe pkgs.waybar}"
-        ];
+        exec-once =
+          let
+            start-waybar = pkgs.writeShellScriptBin "start-waybar" ''
+              while [ ! -S "/run/user/${toString config.my-nixos-hm.user.uid}/hypr/''${HYPRLAND_INSTANCE_SIGNATURE}/.socket.sock" ]; do
+                sleep 0.1
+              done
+              ${getExe pkgs.waybar}
+            '';
+          in
+          [
+            "${getExe pkgs.swaybg} -i ${config.home.file.wallpaper.target}"
+            "${start-waybar}/bin/start-waybar"
+          ];
 
         general = {
           gaps_out = 10;
