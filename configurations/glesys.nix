@@ -99,6 +99,7 @@ in
         "ahbk.se".mailbox = true;
         "chatddx.com".mailbox = true;
         "sverigesval.org".mailbox = true;
+        "kompismoln.se".mailbox = true;
         "esse.nu".mailbox = false;
       };
     };
