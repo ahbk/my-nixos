@@ -15,7 +15,7 @@ let
 in
 {
   options.my-nixos.ahbk-cert = {
-    enable = mkEnableOption "desktop environment for this user";
+    enable = mkEnableOption "make self-signed certificates available for ssl on local subnet";
   };
 
   config = mkIf (cfg.enable) {
