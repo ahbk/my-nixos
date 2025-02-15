@@ -89,19 +89,20 @@ in
         homeMode = "755";
         createHome = true;
         group = hostname;
-        extraGroups = [ webserver.group ];
         packages = with pkgs; [
           git
           wp-cli
         ];
       };
-      groups.${hostname} = { };
+      groups.${hostname}.members = [
+        hostname
+        webserver.group
+      ];
     }) eachSite;
 
     systemd.tmpfiles.rules = flatten (
       mapAttrsToList (hostname: cfg: [
         "d '${stateDir hostname}' 0750 ${hostname} ${webserver.group} - -"
-        "Z '${stateDir hostname}' 0750 ${hostname} ${webserver.group} - -"
       ]) eachSite
     );
 
@@ -214,7 +215,7 @@ in
 
     services.phpfpm.pools = mapAttrs (hostname: cfg: {
       user = hostname;
-      group = webserver.group;
+      group = hostname;
       phpPackage = wpPhp;
       phpOptions = ''
         upload_max_filesize = 16M;
