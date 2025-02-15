@@ -120,6 +120,7 @@ in
         escapeTime = 10;
         baseIndex = 1;
         extraConfig = with colors; ''
+          set -g update-environment "SSH_AUTH_SOCK"
           set-option -ga terminal-features ',foot:RGB'
           set-option -g status-right "#{user}@#{host}"
           set -ga terminal-overrides ",256col:Tc"
