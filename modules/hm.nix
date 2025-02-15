@@ -40,7 +40,10 @@ in
         inherit inputs;
       };
       sharedModules = [ ../hm-modules/all.nix ];
-      users = mapAttrs (user: cfg: { home.stateVersion = host.stateVersion; }) eachUser;
+      users = mapAttrs (user: cfg: {
+        home.stateVersion = host.stateVersion;
+        home.username = user;
+      }) eachUser;
     };
   };
 }
