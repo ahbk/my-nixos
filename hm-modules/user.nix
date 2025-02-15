@@ -19,11 +19,15 @@ let
   cfg = config.my-nixos-hm.user;
 in
 {
-  options.my-nixos-hm.user = with types; {
+  options.my-nixos-hm.user = {
     enable = mkEnableOption "home-manager for this user";
+    uid = mkOption {
+      description = "User id.";
+      type = types.int;
+    };
     name = mkOption {
       description = "Name for the user.";
-      type = str;
+      type = types.str;
     };
   };
 

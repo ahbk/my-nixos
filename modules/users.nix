@@ -74,6 +74,7 @@ in
           my-nixos-hm.user = {
             enable = true;
             name = user;
+            uid = cfg.uid;
           };
         })
         (
