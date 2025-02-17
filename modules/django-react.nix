@@ -29,8 +29,12 @@ let
         description = "Whether to enable SSL (https) support.";
         type = bool;
       };
-      user = mkOption {
-        description = "Username for app owner";
+      appname = mkOption {
+        description = "Internal namespace";
+        type = str;
+      };
+      hostname = mkOption {
+        description = "Network namespace";
         type = str;
       };
     };
@@ -47,17 +51,20 @@ in
 
   config = mkIf (eachSite != { }) {
 
-    my-nixos.django.sites = mapAttrs (hostname: cfg: {
+    my-nixos.django.sites = mapAttrs (name: cfg: {
       enable = cfg.enable;
-      user = cfg.user;
+      appname = cfg.appname;
+      hostname = cfg.hostname;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
     }) eachSite;
 
-    my-nixos.react.sites = mapAttrs (hostname: cfg: {
+    my-nixos.react.sites = mapAttrs (name: cfg: {
       enable = cfg.enable;
       ssl = cfg.ssl;
-      api = "${if cfg.ssl then "https" else "http"}://${hostname}/api";
+      api = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}/api";
+      appname = cfg.appname;
+      hostname = cfg.hostname;
     }) eachSite;
   };
 }

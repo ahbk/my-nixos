@@ -9,20 +9,18 @@
 
 let
   inherit (lib)
-    elemAt
     filterAttrs
     mapAttrs
     mkEnableOption
     mkIf
     mkOption
-    splitString
     types
     ;
 
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.react;
 
-  eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
+  eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
 
   siteOpts = {
     options = with types; {
@@ -40,12 +38,20 @@ let
         description = "URL for the API endpoint";
         type = str;
       };
+      appname = mkOption {
+        description = "Internal namespace";
+        type = str;
+      };
+      hostname = mkOption {
+        description = "Network namespace";
+        type = str;
+      };
     };
   };
 
-  reactPkgs = hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.react;
+  reactPkgs = appname: inputs.${appname}.packages.${host.system}.react;
 
-  envs = mapAttrs (hostname: cfg: (lib'.mkEnv hostname { VITE_API_ENDPOINT = cfg.api; })) eachSite;
+  envs = mapAttrs (name: cfg: (lib'.mkEnv cfg.appname { VITE_API_ENDPOINT = cfg.api; })) eachSite;
 in
 {
 
@@ -60,11 +66,11 @@ in
   };
 
   config = mkIf (eachSite != { }) {
-    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
-      serverName = hostname;
+    services.nginx.virtualHosts = mapAttrs (name: cfg: {
+      serverName = cfg.hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      root = "${(reactPkgs hostname).app.overrideAttrs { env = envs.${hostname}; }}/dist";
+      root = "${(reactPkgs cfg.appname).app.overrideAttrs { env = envs.${cfg.appname}; }}/dist";
       locations."${cfg.location}" = {
         index = "index.html";
         extraConfig = ''

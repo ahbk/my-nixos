@@ -28,8 +28,12 @@ let
           8001
         ];
       };
-      user = mkOption {
-        description = "Username for app owner";
+      appname = mkOption {
+        description = "Internal namespace";
+        type = str;
+      };
+      hostname = mkOption {
+        description = "Network namespace";
         type = str;
       };
     };
@@ -45,19 +49,21 @@ in
   };
 
   config = mkIf (eachSite != { }) {
-    my-nixos.fastapi.sites = mapAttrs (hostname: cfg: {
+    my-nixos.fastapi.sites = mapAttrs (name: cfg: {
       enable = cfg.enable;
-      user = cfg.user;
+      appname = cfg.appname;
+      hostname = cfg.hostname;
       port = elemAt cfg.ports 0;
       ssl = cfg.ssl;
     }) eachSite;
 
-    my-nixos.svelte.sites = mapAttrs (hostname: cfg: {
+    my-nixos.svelte.sites = mapAttrs (name: cfg: {
       enable = cfg.enable;
-      user = cfg.user;
+      appname = cfg.appname;
+      hostname = cfg.hostname;
       port = elemAt cfg.ports 1;
       ssl = cfg.ssl;
-      api = "${if cfg.ssl then "https" else "http"}://${hostname}";
+      api = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}";
       api_ssr = "http://localhost:${toString (elemAt cfg.ports 0)}";
     }) eachSite;
   };

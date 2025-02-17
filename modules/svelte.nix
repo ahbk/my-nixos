@@ -9,7 +9,6 @@
 
 let
   inherit (lib)
-    elemAt
     filterAttrs
     mapAttrs
     mapAttrs'
@@ -17,7 +16,6 @@ let
     mkIf
     mkOption
     nameValuePair
-    splitString
     types
     ;
 
@@ -50,19 +48,23 @@ let
         description = "Server side URL for the API endpoint";
         type = str;
       };
-      user = mkOption {
-        description = "Username for app owner";
+      appname = mkOption {
+        description = "Internal namespace";
+        type = str;
+      };
+      hostname = mkOption {
+        description = "Network namespace";
         type = str;
       };
     };
   };
 
-  sveltePkgs = hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.svelte;
+  sveltePkgs = appname: inputs.${appname}.packages.${host.system}.svelte;
 
   envs = mapAttrs (
-    hostname: cfg:
-    (lib'.mkEnv hostname {
-      ORIGIN = "${if cfg.ssl then "https" else "http"}://${hostname}";
+    name: cfg:
+    (lib'.mkEnv cfg.appname {
+      ORIGIN = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}";
       PUBLIC_API = cfg.api;
       PUBLIC_API_SSR = cfg.api_ssr;
       PORT = toString cfg.port;
@@ -82,16 +84,16 @@ in
   };
 
   config = mkIf (eachSite != { }) {
-    users = lib'.mergeAttrs (hostname: cfg: {
-      users.${cfg.user} = {
+    users = lib'.mergeAttrs (name: cfg: {
+      users.${cfg.appname} = {
         isSystemUser = true;
-        group = cfg.user;
+        group = cfg.appname;
       };
-      groups.${cfg.user} = { };
+      groups.${cfg.appname} = { };
     }) eachSite;
 
-    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
-      serverName = hostname;
+    services.nginx.virtualHosts = mapAttrs (name: cfg: {
+      serverName = cfg.hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
       locations."${cfg.location}" = {
@@ -101,16 +103,16 @@ in
     }) eachSite;
 
     systemd.services = mapAttrs' (
-      hostname: cfg:
-      (nameValuePair "${hostname}-svelte" {
-        description = "serve ${hostname}-svelte";
+      name: cfg:
+      (nameValuePair "${cfg.appname}-svelte" {
+        description = "serve ${cfg.appname}-svelte";
         serviceConfig = {
           ExecStart = "${pkgs.nodejs_20}/bin/node ${
-            (sveltePkgs hostname).app.overrideAttrs { env = envs.${hostname}; }
+            (sveltePkgs cfg.appname).app.overrideAttrs { env = envs.${cfg.appname}; }
           }/build";
-          User = cfg.user;
-          Group = cfg.user;
-          EnvironmentFile = "${envs.${hostname}}";
+          User = cfg.appname;
+          Group = cfg.appname;
+          EnvironmentFile = "${envs.${cfg.appname}}";
         };
         wantedBy = [ "multi-user.target" ];
       })

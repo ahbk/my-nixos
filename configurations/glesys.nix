@@ -43,11 +43,6 @@ in
     };
     shell.alex.enable = true;
     hm.alex.enable = true;
-    ide.alex = {
-      enable = true;
-      postgresql = false;
-      mysql = false;
-    };
 
     fail2ban = {
       enable = true;
@@ -104,13 +99,13 @@ in
       };
     };
 
-    django-svelte.sites."chatddx.com" = sites."chatddx.com";
-    django.sites."chatddx.com".locationProxy = "/admin";
+    django-svelte.sites."chatddx" = sites."chatddx";
+    django.sites."chatddx".locationProxy = "/admin";
 
-    django-react.sites."sysctl-user-portal.curetheweb.se" = sites."sysctl-user-portal.curetheweb.se";
-    django.sites."sysctl-user-portal.curetheweb.se".locationProxy = "~ ^/(api|admin)";
+    django-react.sites."sysctl-user-portal" = sites."sysctl-user-portal";
+    django.sites."sysctl-user-portal".locationProxy = "~ ^/(api|admin)";
 
-    fastapi-svelte.sites."sverigesval.org" = sites."sverigesval.org";
+    fastapi-svelte.sites."sverigesval" = sites."sverigesval";
     wordpress.sites."esse.nu" = sites."esse.nu";
   };
 }

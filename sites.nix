@@ -13,9 +13,10 @@
     www = true;
   };
 
-  "sverigesval.org" = {
+  "sverigesval" = {
     enable = true;
-    user = "sverigesval.org";
+    hostname = "sverigesval.org";
+    appname = "sverigesval";
     ssl = true;
     ports = [
       2000
@@ -23,9 +24,10 @@
     ];
   };
 
-  "chatddx.com" = {
+  "chatddx" = {
     enable = true;
-    user = "chatddx.com";
+    hostname = "chatddx.com";
+    appname = "chatddx";
     ssl = true;
     ports = [
       2002
@@ -33,9 +35,10 @@
     ];
   };
 
-  "sysctl-user-portal.curetheweb.se" = {
+  "sysctl-user-portal" = {
     enable = true;
-    user = "sysctl-user-portal";
+    hostname = "sysctl-user-portal.curetheweb.se";
+    appname = "sysctl-user-portal";
     ssl = true;
     ports = [
       2004

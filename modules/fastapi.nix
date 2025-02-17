@@ -9,7 +9,6 @@
 
 let
   inherit (lib)
-    elemAt
     filterAttrs
     flatten
     getExe
@@ -20,7 +19,6 @@ let
     mkIf
     mkOption
     nameValuePair
-    splitString
     types
     ;
 
@@ -42,37 +40,41 @@ let
         description = "Whether to enable SSL (https) support.";
         type = bool;
       };
-      user = mkOption {
-        description = "Username for app owner";
+      appname = mkOption {
+        description = "Internal namespace";
+        type = str;
+        default = null;
+      };
+      hostname = mkOption {
+        description = "Network namespace";
         type = str;
         default = null;
       };
     };
   };
 
-  fastapiPkgs =
-    hostname: inputs.${elemAt (splitString "." hostname) 0}.packages.${host.system}.fastapi;
+  fastapiPkgs = appname: inputs.${appname}.packages.${host.system}.fastapi;
 
   envs = mapAttrs (
-    hostname: cfg:
-    (lib'.mkEnv hostname {
-      ALLOW_ORIGINS = "'[\"${if cfg.ssl then "https" else "http"}://${hostname}\"]'";
-      DB_DSN = "postgresql+psycopg2://${hostname}@:5432/${hostname}";
+    name: cfg:
+    (lib'.mkEnv cfg.appname {
+      ALLOW_ORIGINS = "'[\"${if cfg.ssl then "https" else "http"}://${cfg.hostname}\"]'";
+      DB_DSN = "postgresql+psycopg2://${cfg.appname}@:5432/${cfg.appname}";
       ENV = "production";
-      HOSTNAME = hostname;
+      HOSTNAME = cfg.hostname;
       LOG_LEVEL = "error";
-      SECRETS_DIR = builtins.dirOf config.age.secrets."${hostname}/secret_key".path;
+      SECRETS_DIR = builtins.dirOf config.age.secrets."${cfg.appname}/secret_key".path;
       SSL = if cfg.ssl then "true" else "false";
-      STATE_DIR = stateDir hostname;
-      ALEMBIC_CONFIG = "${(fastapiPkgs hostname).alembic}/alembic.ini";
+      STATE_DIR = stateDir cfg.appname;
+      ALEMBIC_CONFIG = "${(fastapiPkgs cfg.appname).alembic}/alembic.ini";
     })
   ) eachSite;
 
   bins = mapAttrs (
-    hostname: cfg:
-    ((fastapiPkgs hostname).bin.overrideAttrs {
-      env = envs.${hostname};
-      name = "${hostname}-manage";
+    name: cfg:
+    ((fastapiPkgs cfg.appname).bin.overrideAttrs {
+      env = envs.${cfg.appname};
+      name = "${cfg.appname}-manage";
     })
   ) eachSite;
 in
@@ -88,36 +90,36 @@ in
 
   config = mkIf (eachSite != { }) {
 
-    environment.systemPackages = mapAttrsToList (hostname: bin: bin) bins;
+    environment.systemPackages = mapAttrsToList (name: bin: bin) bins;
 
     age.secrets = mapAttrs' (
-      hostname: cfg:
-      (nameValuePair "${hostname}/secret_key" {
-        file = ../secrets/webapp-key-${hostname}.age;
-        owner = cfg.user;
-        group = cfg.user;
+      name: cfg:
+      (nameValuePair "${cfg.appname}/secret_key" {
+        file = ../secrets/webapp-key-${cfg.appname}.age;
+        owner = cfg.appname;
+        group = cfg.appname;
       })
     ) eachSite;
 
-    users = lib'.mergeAttrs (hostname: cfg: {
-      users.${cfg.user} = {
+    users = lib'.mergeAttrs (name: cfg: {
+      users.${cfg.appname} = {
         isSystemUser = true;
-        group = cfg.user;
+        group = cfg.appname;
       };
-      groups.${cfg.user} = { };
+      groups.${cfg.appname} = { };
     }) eachSite;
 
-    my-nixos.postgresql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
+    my-nixos.postgresql = mapAttrs (name: cfg: { ensure = true; }) eachSite;
 
     systemd.tmpfiles.rules = flatten (
-      mapAttrsToList (hostname: cfg: [
-        "d '${stateDir hostname}' 0750 ${cfg.user} ${cfg.user} - -"
-        "Z '${stateDir hostname}' 0750 ${cfg.user} ${cfg.user} - -"
+      mapAttrsToList (name: cfg: [
+        "d '${stateDir cfg.appname}' 0750 ${cfg.appname} ${cfg.appname} - -"
+        "Z '${stateDir cfg.appname}' 0750 ${cfg.appname} ${cfg.appname} - -"
       ]) eachSite
     );
 
-    services.nginx.virtualHosts = mapAttrs (hostname: cfg: {
-      serverName = hostname;
+    services.nginx.virtualHosts = mapAttrs (name: cfg: {
+      serverName = cfg.hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
       locations."/api" = {
@@ -126,68 +128,68 @@ in
       };
     }) eachSite;
 
-    systemd.services = lib'.mergeAttrs (hostname: cfg: {
-      "${hostname}-fastapi" = {
-        description = "serve ${hostname}-fastapi";
+    systemd.services = lib'.mergeAttrs (name: cfg: {
+      "${cfg.appname}-fastapi" = {
+        description = "serve ${cfg.appname}-fastapi";
         serviceConfig = {
-          ExecStart = "${(fastapiPkgs hostname).app}/bin/uvicorn app.main:fastapi --host localhost --port ${toString cfg.port}";
-          User = cfg.user;
-          Group = cfg.user;
-          EnvironmentFile = "${envs.${hostname}}";
+          ExecStart = "${(fastapiPkgs cfg.appname).app}/bin/uvicorn app.main:fastapi --host localhost --port ${toString cfg.port}";
+          User = cfg.appname;
+          Group = cfg.appname;
+          EnvironmentFile = "${envs.${cfg.appname}}";
         };
         wantedBy = [ "multi-user.target" ];
       };
 
-      "${hostname}-fastapi-migrate" = {
+      "${cfg.appname}-fastapi-migrate" = {
         path = [ pkgs.bash ];
-        description = "migrate ${hostname}-fastapi";
+        description = "migrate ${cfg.appname}-fastapi";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${bins.${hostname}}/bin/${hostname}-manage migrate";
-          User = cfg.user;
-          Group = cfg.user;
-          EnvironmentFile = "${envs.${hostname}}";
+          ExecStart = "${bins.${cfg.appname}}/bin/${cfg.appname}-manage migrate";
+          User = cfg.appname;
+          Group = cfg.appname;
+          EnvironmentFile = "${envs.${cfg.appname}}";
         };
       };
 
-      "${hostname}-pgsql-dump" = {
+      "${cfg.appname}-pgsql-dump" = {
         description = "dump a snapshot of the postgresql database";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -U ${hostname} ${hostname} > ${stateDir hostname}/dbdump.sql'";
-          User = cfg.user;
-          Group = cfg.user;
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -U ${cfg.appname} ${cfg.appname} > ${stateDir cfg.appname}/dbdump.sql'";
+          User = cfg.appname;
+          Group = cfg.appname;
         };
       };
-      "${hostname}-pgsql-restore" = {
+      "${cfg.appname}-pgsql-restore" = {
         description = "restore postgresql database from snapshot";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${hostname} ${hostname} < ${stateDir hostname}/dbdump.sql'";
-          User = cfg.user;
-          Group = cfg.user;
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${cfg.appname} ${cfg.appname} < ${stateDir cfg.appname}/dbdump.sql'";
+          User = cfg.appname;
+          Group = cfg.appname;
         };
       };
     }) eachSite;
 
-    systemd.timers = lib'.mergeAttrs (hostname: cfg: {
-      "${hostname}-pgsql-dump" = {
+    systemd.timers = lib'.mergeAttrs (name: cfg: {
+      "${cfg.appname}-pgsql-dump" = {
         description = "Scheduled PostgreSQL database dump";
         wantedBy = [ "timers.target" ];
         timerConfig = {
           OnCalendar = "daily";
-          Unit = "${hostname}-pgsql-dump";
+          Unit = "${cfg.appname}-pgsql-dump";
         };
       };
     }) eachSite;
 
     services.restic.backups.local.paths = flatten (
-      mapAttrsToList (hostname: cfg: [ (stateDir hostname) ]) eachSite
+      mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
 
-    system.activationScripts = mapAttrs (hostname: cfg: {
+    system.activationScripts = mapAttrs (name: cfg: {
       text = ''
-        ${pkgs.systemd}/bin/systemctl start ${hostname}-fastapi-migrate
+        ${pkgs.systemd}/bin/systemctl start ${cfg.appname}-fastapi-migrate
       '';
     }) eachSite;
   };
