@@ -215,7 +215,7 @@ in
 
     services.phpfpm.pools = mapAttrs (hostname: cfg: {
       user = hostname;
-      group = hostname;
+      group = webserver.group;
       phpPackage = wpPhp;
       phpOptions = ''
         upload_max_filesize = 16M;
