@@ -402,6 +402,7 @@ in
               while [ ! -S "/run/user/${toString config.my-nixos-hm.user.uid}/hypr/''${HYPRLAND_INSTANCE_SIGNATURE}/.socket.sock" ]; do
                 sleep 0.1
               done
+              sleep 0.5
               ${getExe pkgs.waybar}
             '';
           in
