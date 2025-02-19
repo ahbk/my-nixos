@@ -100,7 +100,13 @@ in
     };
 
     django-svelte.sites."chatddx" = sites."chatddx";
-    django.sites."chatddx".locationProxy = "/admin";
+    django.sites."chatddx" = {
+      celery = {
+        enable = true;
+        port = 2008;
+      };
+      locationProxy = "/admin";
+    };
 
     django-react.sites."sysctl-user-portal" = sites."sysctl-user-portal";
     django.sites."sysctl-user-portal".locationProxy = "~ ^/(api|admin)";
