@@ -24,6 +24,7 @@ let
       enable = mkEnableOption "IDE for this user";
       postgresql = mkEnableOption "a postgres db with same name";
       mysql = mkEnableOption "a mysql db with same name";
+      redis = mkEnableOption "a redis db";
     };
   };
 in
@@ -47,6 +48,11 @@ in
     virtualisation.docker = {
       enable = true;
     };
+
+    services.redis.servers = mapAttrs (user: cfg: {
+      enable = cfg.redis;
+      user = user;
+    }) eachUser;
 
     programs.vim = {
       enable = true;
