@@ -14,6 +14,7 @@ in
       enable = true;
       postgresql = true;
       mysql = true;
+      redis = true;
     };
     hm.alex.enable = true;
     desktop-env.alex.enable = true;
