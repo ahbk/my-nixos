@@ -45,7 +45,6 @@ in
       nodePackages.typescript-language-server
       npm-check-updates
       php
-      pyright
       (sqlite.override { interactive = true; })
       uv
       xh
@@ -185,10 +184,9 @@ in
         gitignore.enable = false;
         direnv.enable = true;
 
-        # enable on next update
         rest = {
           enable = true;
-          #enableTelescope = true;
+          enableTelescope = true;
         };
 
         treesitter = {
@@ -216,7 +214,7 @@ in
             ts_ls.enable = true;
             svelte.enable = true;
             tailwindcss.enable = true;
-            pyright.enable = true;
+            basedpyright.enable = true;
             nixd.enable = true;
           };
           keymaps = {

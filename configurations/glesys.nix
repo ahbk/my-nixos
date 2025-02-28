@@ -101,6 +101,7 @@ in
 
     django-svelte.sites."chatddx" = sites."chatddx";
     django.sites."chatddx" = {
+      packagename = "chatddx_backend";
       celery = {
         enable = true;
         port = 2008;

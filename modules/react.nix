@@ -70,7 +70,7 @@ in
       serverName = cfg.hostname;
       forceSSL = cfg.ssl;
       enableACME = cfg.ssl;
-      root = "${(reactPkgs cfg.appname).app.overrideAttrs { env = envs.${cfg.appname}; }}/dist";
+      root = "${(reactPkgs cfg.appname).overrideAttrs { env = envs.${cfg.appname}; }}/dist";
       locations."${cfg.location}" = {
         index = "index.html";
         extraConfig = ''

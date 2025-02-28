@@ -108,7 +108,7 @@ in
         description = "serve ${cfg.appname}-svelte";
         serviceConfig = {
           ExecStart = "${pkgs.nodejs_20}/bin/node ${
-            (sveltePkgs cfg.appname).app.overrideAttrs { env = envs.${cfg.appname}; }
+            (sveltePkgs cfg.appname).overrideAttrs { env = envs.${cfg.appname}; }
           }/build";
           User = cfg.appname;
           Group = cfg.appname;

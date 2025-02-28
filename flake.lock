@@ -49,11 +49,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1739921876,
-        "narHash": "sha256-mZ1ck6z4quRq5iP3Md9SYKCTC49F0tdtW3Q9fUNZKi0=",
+        "lastModified": 1740778305,
+        "narHash": "sha256-2xgcCoe87W1uyEtXltDQCZHU1DdfDQVW4JhVETs4xkk=",
         "ref": "refs/heads/main",
-        "rev": "af4d9dcbcff1899b117cdc14c416672c23e0bec7",
-        "revCount": 119,
+        "rev": "06a5f159e35c22b302c1cc5c18ba5b874ab58e81",
+        "revCount": 123,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
@@ -611,11 +611,11 @@
         "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "lastModified": 1738952650,
-        "narHash": "sha256-mbg5YeFGze4Wrb6VBfqUacd/yvfqE/e9Wr58vu7R9L4=",
+        "lastModified": 1740779365,
+        "narHash": "sha256-clCDE1aQ2osSNrqleS30cSPG51WqhEMaltqdiPn0t+E=",
         "ref": "refs/heads/main",
-        "rev": "ce47098166105a2b401d1ebd7e27cf1d07697dbf",
-        "revCount": 129,
+        "rev": "7e6cbd9f8643886fdd33901f090980cc3d06e98c",
+        "revCount": 130,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },
@@ -634,11 +634,11 @@
         "uv2nix": "uv2nix_3"
       },
       "locked": {
-        "lastModified": 1738942805,
-        "narHash": "sha256-hWLYshaemHVtt6G/t8fDzA5yMC2lQENfA6BHoaNTEx0=",
+        "lastModified": 1740779120,
+        "narHash": "sha256-GEsnV1BDIn9DubCr9wOy2EVh67u1wYz82usqJjhY/EQ=",
         "ref": "refs/heads/main",
-        "rev": "e638455562708e275d01f994e202cad8f6bba09a",
-        "revCount": 63,
+        "rev": "6e1195808f335a49afba341db3d234dfa65969ea",
+        "revCount": 64,
         "type": "git",
         "url": "ssh://git@github.com/PelleHanspers/sysctl_userportal"
       },

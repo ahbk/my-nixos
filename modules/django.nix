@@ -55,6 +55,11 @@ let
           description = "Namespace identifying the app on the system for logging, database, paths etc.";
           type = types.str;
         };
+        packagename = mkOption {
+          description = "The python name of the django application";
+          type = types.str;
+          default = "app";
+        };
         locationStatic = mkOption {
           description = "Location pattern for static files, empty string -> no static";
           type = types.str;
@@ -77,7 +82,7 @@ let
       };
     };
 
-  djangoPkgs = appname: inputs.${appname}.packages.${host.system}.django;
+  djangoPkgs = appname: inputs.${appname}.djangoPkgs.${host.system};
 
   envs = mapAttrs (
     name: cfg:
@@ -87,7 +92,7 @@ let
         DB_USER = cfg.appname;
         DB_HOST = "/run/postgresql";
         DEBUG = "false";
-        DJANGO_SETTINGS_MODULE = "app.settings";
+        DJANGO_SETTINGS_MODULE = "${cfg.packagename}.settings";
         HOST = cfg.hostname;
         LOG_LEVEL = "WARNING";
         SCHEME = if cfg.ssl then "https" else "http";
@@ -104,7 +109,7 @@ let
   bins = mapAttrs (
     name: cfg:
     ((djangoPkgs cfg.appname).bin.overrideAttrs {
-      env = envs.${cfg.appname};
+      django_env = envs.${cfg.appname};
       name = "${cfg.appname}-manage";
     })
   ) eachSite;
@@ -191,7 +196,7 @@ in
       "${cfg.appname}-django" = {
         description = "serve ${cfg.appname}-django";
         serviceConfig = {
-          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/gunicorn app.wsgi:application --bind localhost:${toString cfg.port}";
+          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/gunicorn ${cfg.packagename}.wsgi:application --bind localhost:${toString cfg.port}";
           User = cfg.appname;
           Group = cfg.appname;
           EnvironmentFile = envs.${cfg.appname};
@@ -202,7 +207,7 @@ in
       "${cfg.appname}-celery" = mkIf cfg.celery.enable {
         description = "start ${cfg.appname}-celery";
         serviceConfig = {
-          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/celery -A app worker -l warning";
+          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/celery -A ${cfg.packagename} worker -l warning";
           User = cfg.appname;
           Group = cfg.appname;
           EnvironmentFile = envs.${cfg.appname};
@@ -213,7 +218,7 @@ in
       "${cfg.appname}-flower" = mkIf cfg.celery.enable {
         description = "start ${cfg.appname}-flower";
         serviceConfig = {
-          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/celery -A app flower --port=5555";
+          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/celery -A ${cfg.packagename} flower --port=5555";
           User = cfg.appname;
           Group = cfg.appname;
           EnvironmentFile = envs.${cfg.appname};
