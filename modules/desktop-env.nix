@@ -9,6 +9,7 @@ let
   inherit (lib)
     filterAttrs
     flatten
+    hasAttr
     types
     mapAttrs
     mapAttrsToList
@@ -19,7 +20,9 @@ let
 
   cfg = config.my-nixos.desktop-env;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
-  eachHMUser = filterAttrs (user: cfg: config.my-nixos.hm.${user}.enable) eachUser;
+  eachHMUser = filterAttrs (
+    user: cfg: hasAttr user config.my-nixos.hm && config.my-nixos.hm.${user}.enable
+  ) eachUser;
 
   userOpts = {
     options.enable = mkEnableOption "desktop environment for this user";
@@ -48,7 +51,7 @@ in
       ];
     }) eachUser;
 
-    services.restic.backups.local.paths = flatten (
+    my-nixos.backup.local.paths = flatten (
       mapAttrsToList (user: cfg: [ "/home/${user}/.local/share/qutebrowser/history.sqlite" ]) eachUser
     );
 

@@ -31,6 +31,24 @@ in
     }
   ];
 
+  services.mobilizon = {
+    enable = true;
+    settings.":mobilizon" = {
+      "Mobilizon.Web.Endpoint" = {
+        url.host = "mobilizon.kompismoln.se";
+        http.port = 4000;
+      };
+      "Mobilizon.Storage.Repo" = {
+      };
+      ":instance" = {
+        name = "sweclimate";
+        hostname = "mobilizon.kompismoln.se";
+        email_from = "mobilizon@kompismoln.se";
+        email_reply_to = "mobilizon@kompismoln.se";
+      };
+    };
+  };
+
   my-nixos = {
     users = with users; {
       inherit

@@ -14,6 +14,10 @@ let
   targetOpts = {
     options = with types; {
       enable = mkEnableOption ''this backup target'';
+      paths = mkOption {
+        type = listOf str;
+        default = [ ];
+      };
       target = mkOption {
         type = str;
         default = "localhost";
@@ -63,7 +67,7 @@ in
         };
 
         backups.local = {
-          paths = [ ];
+          paths = cfg.local.paths;
           exclude = [ ];
           pruneOpts = [
             "--keep-daily 7"

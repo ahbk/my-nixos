@@ -32,6 +32,15 @@ in
     stateVersion = "23.11";
   };
 
+  friday = rec {
+    name = "friday";
+    wgKey = key "wg" name;
+    sshKey = key "ssh-host" name;
+    address = "10.0.0.6";
+    system = "x86_64-linux";
+    stateVersion = "20.03";
+  };
+
   phone = rec {
     name = "phone";
     wgKey = key "wg" name;
@@ -46,4 +55,5 @@ in
     system = "x86_64-linux";
     stateVersion = "24.05";
   };
+
 }

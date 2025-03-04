@@ -31,6 +31,7 @@ in
       less
       nethogs
       nmap
+      ntfs3g
       openssl
       ranger
       ripgrep

@@ -11,6 +11,7 @@ let
   inherit (lib)
     filterAttrs
     flatten
+    hasAttr
     mapAttrs
     mapAttrsToList
     mkEnableOption
@@ -21,6 +22,9 @@ let
 
   cfg = config.my-nixos.shell;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
+  eachHMUser = filterAttrs (
+    user: cfg: hasAttr user config.my-nixos.hm && config.my-nixos.hm.${user}.enable
+  ) eachUser;
 
   userOpts = {
     options.enable = mkEnableOption "shell for this user";
@@ -36,11 +40,11 @@ in
     };
   config = mkIf (eachUser != { }) {
 
-    services.restic.backups.local.paths = flatten (
+    my-nixos.backup.local.paths = flatten (
       mapAttrsToList (user: cfg: [ "/home/${user}/.bash_history" ]) eachUser
     );
 
-    home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.shell.enable = true; }) eachUser;
+    home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.shell.enable = true; }) eachHMUser;
 
     documentation.man.generateCaches = true;
 

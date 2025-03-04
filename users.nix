@@ -12,6 +12,8 @@
       "abuse@ahbk.se"
       "info@ahbk.se"
       "alex@sverigesval.org"
+      "hej@kompismoln.se"
+      "mobilizon@kompismoln.se"
     ];
   };
 

@@ -28,6 +28,7 @@ in
       hints['stationary.ahbk'] = '10.0.0.1'
       hints['glesys.ahbk'] = '10.0.0.3'
       hints['laptop.ahbk'] = '10.0.0.2'
+      hints['friday.ahbk'] = '10.0.0.6'
       hints['phone.ahbk'] = '10.0.0.4'
       hints['backup.ahbk'] = '10.0.0.1'
       hints['nextcloud.ahbk'] = '10.0.0.1'
@@ -118,6 +119,6 @@ in
       email = users.alex.email;
     };
 
-    #wordpress.sites."test.esse.nu" = sites."test.esse.nu";
+    wordpress.sites."test.esse.nu" = (import ../sites.nix)."test.esse.nu";
   };
 }
