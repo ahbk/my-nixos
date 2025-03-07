@@ -26,6 +26,7 @@ in
       modules = { 'hints > iterate' }
       hints['invoiceplane.ahbk'] = '10.0.0.1'
       hints['stationary.ahbk'] = '10.0.0.1'
+      hints['dev.ahbk'] = '10.0.0.1'
       hints['glesys.ahbk'] = '10.0.0.3'
       hints['laptop.ahbk'] = '10.0.0.2'
       hints['friday.ahbk'] = '10.0.0.6'
@@ -35,6 +36,8 @@ in
       hints['collabora.ahbk'] = '10.0.0.1'
     '';
   };
+
+  users.users.alex.extraGroups = [ "nextcloud-ahbk" ];
 
   networking = {
     useDHCP = false;
