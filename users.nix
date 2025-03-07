@@ -60,4 +60,11 @@
       "info@sverigesva.org"
     ];
   };
+
+  johanna = {
+    enable = true;
+    uid = 1102;
+    name = "Johanna Landberg";
+    email = "landberg@gmail.com";
+  };
 }
