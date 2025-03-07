@@ -23,12 +23,14 @@ in
   "linux-passwd-hashed-alex.age".publicKeys = all ++ [ friday ];
   "linux-passwd-hashed-backup.age".publicKeys = all;
   "linux-passwd-hashed-frans.age".publicKeys = all;
+  "linux-passwd-hashed-johanna.age".publicKeys = all ++ [ friday ];
   "linux-passwd-hashed-olof.age".publicKeys = all;
   "linux-passwd-hashed-rolf.age".publicKeys = all;
 
   "linux-passwd-plain-alex.age".publicKeys = all ++ [ friday ];
   "linux-passwd-plain-backup.age".publicKeys = all;
   "linux-passwd-plain-frans.age".publicKeys = all;
+  "linux-passwd-plain-johanna.age".publicKeys = all ++ [ friday ];
   "linux-passwd-plain-olof.age".publicKeys = all;
   "linux-passwd-plain-rolf.age".publicKeys = all;
 
