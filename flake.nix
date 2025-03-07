@@ -16,8 +16,11 @@
     nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
 
-    sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
+    sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org?ref=retired";
     sverigesval.inputs.nixpkgs.follows = "nixpkgs";
+
+    sverigesval-new.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
+    sverigesval-new.inputs.nixpkgs.follows = "nixpkgs";
 
     chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
@@ -69,7 +72,11 @@
         packages = [
           (pkgs.writeShellScriptBin "deploy" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --flake ./ --build-host $1 --target-host $1
+            nixos-rebuild switch --use-remote-sudo --flake ./ --build-host stationary.ahbk --target-host $1
+          '')
+          (pkgs.writeShellScriptBin "switch" ''
+            #!/usr/bin/env bash
+            nixos-rebuild switch --use-remote-sudo --build-host stationary.ahbk --show-trace --print-build-logs --verbose;
           '')
         ];
       };

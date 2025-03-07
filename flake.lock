@@ -500,6 +500,35 @@
     "pyproject-build-systems_3": {
       "inputs": {
         "nixpkgs": [
+          "sverigesval-new",
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "sverigesval-new",
+          "pyproject-nix"
+        ],
+        "uv2nix": [
+          "sverigesval-new",
+          "uv2nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1737338290,
+        "narHash": "sha256-gnXlfFEHA+/jMH7R+7y3JxrI3WfOjgBhzzJNuFW70UU=",
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "rev": "e1487e5cefda0c7990bdd2e660bee20971680e45",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "type": "github"
+      }
+    },
+    "pyproject-build-systems_4": {
+      "inputs": {
+        "nixpkgs": [
           "sysctl-user-portal",
           "nixpkgs"
         ],
@@ -571,6 +600,27 @@
     "pyproject-nix_3": {
       "inputs": {
         "nixpkgs": [
+          "sverigesval-new",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1738204167,
+        "narHash": "sha256-J5M2sj3x4ocM93shScT/3Z4XWHZhwwW1NyQK+C+8Mys=",
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "rev": "0d9f4b90cee1b5c5d6c142ef22de1e246e003ccc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "type": "github"
+      }
+    },
+    "pyproject-nix_4": {
+      "inputs": {
+        "nixpkgs": [
           "sysctl-user-portal",
           "nixpkgs"
         ]
@@ -598,6 +648,7 @@
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
         "sverigesval": "sverigesval",
+        "sverigesval-new": "sverigesval-new",
         "sysctl-user-portal": "sysctl-user-portal"
       }
     },
@@ -613,9 +664,33 @@
       "locked": {
         "lastModified": 1740779365,
         "narHash": "sha256-clCDE1aQ2osSNrqleS30cSPG51WqhEMaltqdiPn0t+E=",
-        "ref": "refs/heads/main",
+        "ref": "retired",
         "rev": "7e6cbd9f8643886fdd33901f090980cc3d06e98c",
         "revCount": 130,
+        "type": "git",
+        "url": "ssh://git@github.com/ahbk/sverigesval.org"
+      },
+      "original": {
+        "ref": "retired",
+        "type": "git",
+        "url": "ssh://git@github.com/ahbk/sverigesval.org"
+      }
+    },
+    "sverigesval-new": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pyproject-build-systems": "pyproject-build-systems_3",
+        "pyproject-nix": "pyproject-nix_3",
+        "uv2nix": "uv2nix_3"
+      },
+      "locked": {
+        "lastModified": 1741358388,
+        "narHash": "sha256-8bSqZDWUsJpAq6lG3FPs/tcQvo6drVkDXr4kgd+u4dw=",
+        "ref": "refs/heads/main",
+        "rev": "0e58c2c67fb62024e293e9fcec3d552ff3a1e16d",
+        "revCount": 133,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },
@@ -629,9 +704,9 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "pyproject-build-systems": "pyproject-build-systems_3",
-        "pyproject-nix": "pyproject-nix_3",
-        "uv2nix": "uv2nix_3"
+        "pyproject-build-systems": "pyproject-build-systems_4",
+        "pyproject-nix": "pyproject-nix_4",
+        "uv2nix": "uv2nix_4"
       },
       "locked": {
         "lastModified": 1740779120,
@@ -749,6 +824,31 @@
       }
     },
     "uv2nix_3": {
+      "inputs": {
+        "nixpkgs": [
+          "sverigesval-new",
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "sverigesval-new",
+          "pyproject-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1738200085,
+        "narHash": "sha256-Lwb86tkHoeJdjYaAHYZPkUZJoWXNHb5IQjzDyd4Vxno=",
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "rev": "fd41fdec2fed599ba884bc2706c2263f01e2183c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "type": "github"
+      }
+    },
+    "uv2nix_4": {
       "inputs": {
         "nixpkgs": [
           "sysctl-user-portal",

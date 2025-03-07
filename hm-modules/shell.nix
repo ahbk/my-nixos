@@ -63,7 +63,6 @@ in
           ll = "eza";
           cd = "z";
           grep = "grep --color=auto";
-          switch = "nixos-rebuild switch --use-remote-sudo --show-trace --print-build-logs --verbose";
           needs-reboot =
             let
               booted = "<(readlink /run/booted-system/{initrd,kernel,kernel-modules})";
