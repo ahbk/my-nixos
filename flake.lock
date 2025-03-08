@@ -686,11 +686,11 @@
         "uv2nix": "uv2nix_3"
       },
       "locked": {
-        "lastModified": 1741358388,
-        "narHash": "sha256-8bSqZDWUsJpAq6lG3FPs/tcQvo6drVkDXr4kgd+u4dw=",
+        "lastModified": 1741454068,
+        "narHash": "sha256-bVXcZCtn0ODEqme8ISoMbaIk2llLU9mE8hH2/RFtNfA=",
         "ref": "refs/heads/main",
-        "rev": "0e58c2c67fb62024e293e9fcec3d552ff3a1e16d",
-        "revCount": 133,
+        "rev": "f9fb281b0e12ae1086d462113ef1f4a13b5fd768",
+        "revCount": 142,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },

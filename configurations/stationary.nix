@@ -72,6 +72,16 @@ in
 
     ahbk-cert.enable = true;
 
+    nextcloud-rolf.sites."sverigesval-sync" = {
+      enable = true;
+      siteRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/_pub/_site";
+      sourceRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/_pub/_source";
+      hostname = "stationary.ahbk.se";
+      username = "nextcloud-ahbk";
+      subnet = false;
+      ssl = true;
+    };
+
     backup.local = {
       enable = true;
       target = "backup.ahbk";
@@ -80,9 +90,9 @@ in
 
     monitor.enable = true;
 
-    nextcloud.sites."nextcloud.ahbk.se" = {
+    nextcloud.sites."nextcloud-ahbk" = {
       enable = true;
-      user = "nextcloud-ahbk";
+      hostname = "nextcloud.ahbk.se";
       ssl = true;
       subnet = false;
       port = 2006;

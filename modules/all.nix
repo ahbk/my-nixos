@@ -22,6 +22,7 @@
     ./monitor.nix
     ./mysql.nix
     ./nextcloud.nix
+    ./nextcloud-rolf.nix
     ./nginx.nix
     ./nix.nix
     ./postgresql.nix
