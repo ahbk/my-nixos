@@ -52,7 +52,7 @@ let
           type = types.str;
         };
         appname = mkOption {
-          description = "Namespace identifying the app on the system for logging, database, paths etc.";
+          description = "Namespace identifying the app on the system (user, logging, database, paths etc.)";
           type = types.str;
         };
         packagename = mkOption {
@@ -162,35 +162,37 @@ in
       ]) eachSite
     );
 
-    services.nginx.virtualHosts = mapAttrs (name: cfg: {
-      serverName = cfg.hostname;
-      forceSSL = cfg.ssl;
-      enableACME = cfg.ssl;
-      locations =
-        optionalAttrs (cfg.locationProxy != "") {
-          ${cfg.locationProxy} = {
-            recommendedProxySettings = true;
-            proxyPass = "http://localhost:${toString cfg.port}";
+    services.nginx.virtualHosts = mapAttrs' (
+      name: cfg:
+      nameValuePair cfg.hostname {
+        forceSSL = cfg.ssl;
+        enableACME = cfg.ssl;
+        locations =
+          optionalAttrs (cfg.locationProxy != "") {
+            ${cfg.locationProxy} = {
+              recommendedProxySettings = true;
+              proxyPass = "http://localhost:${toString cfg.port}";
+            };
+          }
+          // optionalAttrs (cfg.locationStatic != "") {
+            ${cfg.locationStatic} = {
+              alias = "${(djangoPkgs cfg.appname).static}/";
+            };
+          }
+          // optionalAttrs (cfg.celery.enable) {
+            "/auth" = {
+              recommendedProxySettings = true;
+              proxyPass = "http://localhost:${toString cfg.port}";
+            };
+            "/flower/" = {
+              proxyPass = "http://localhost:5555";
+              extraConfig = ''
+                auth_request /auth/;
+              '';
+            };
           };
-        }
-        // optionalAttrs (cfg.locationStatic != "") {
-          ${cfg.locationStatic} = {
-            alias = "${(djangoPkgs cfg.appname).static}/";
-          };
-        }
-        // optionalAttrs (cfg.celery.enable) {
-          "/auth" = {
-            recommendedProxySettings = true;
-            proxyPass = "http://localhost:${toString cfg.port}";
-          };
-          "/flower/" = {
-            proxyPass = "http://localhost:5555";
-            extraConfig = ''
-              auth_request /auth/;
-            '';
-          };
-        };
-    }) eachSite;
+      }
+    ) eachSite;
 
     systemd.services = lib'.mergeAttrs (name: cfg: {
       "${cfg.appname}-django" = {
