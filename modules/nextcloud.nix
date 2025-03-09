@@ -15,6 +15,7 @@ let
     mapAttrsToList
     mkDefault
     mkEnableOption
+    mkForce
     mkIf
     mkOption
     nameValuePair
@@ -193,12 +194,33 @@ in
             ];
           };
 
+          services.redis.servers.nextcloud = {
+            unixSocketPerm = 666;
+          };
+          systemd.services.nextcloud-setup = {
+            after = [
+              "redis-nextcloud.service"
+            ];
+            requires = [
+              "redis-nextcloud.service"
+            ];
+          };
+
           services.nextcloud = {
             enable = true;
             hostName = "localhost";
             package = pkgs.nextcloud30;
             settings = {
               trusted_domains = [ cfg.hostname ];
+            };
+            phpOptions = {
+              memory_limit = mkForce "2048M";
+              "opcache.interned_strings_buffer" = 23;
+            };
+            configureRedis = true;
+            caching = {
+              redis = true;
+              memcached = true;
             };
             config = {
               dbtype = "pgsql";
