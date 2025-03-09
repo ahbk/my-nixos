@@ -94,7 +94,9 @@ in
               $src/bin/sverigesval-sync \
               $out/bin/sverigesval-sync \
                 --append-flags ${cfg.sourceRoot} \
-                --append-flags ${cfg.siteRoot}
+                --append-flags ${cfg.sourceRoot}/_src \
+                --append-flags ${cfg.siteRoot} \
+                --append-flags --watch
           ''
       ) eachSite;
     in

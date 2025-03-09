@@ -74,8 +74,8 @@ in
 
     nextcloud-rolf.sites."sverigesval-sync" = {
       enable = true;
-      siteRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/_pub/_site";
-      sourceRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/_pub/_source";
+      siteRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/+pub/_site";
+      sourceRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/+pub";
       hostname = "stationary.ahbk.se";
       username = "nextcloud-ahbk";
       subnet = false;
