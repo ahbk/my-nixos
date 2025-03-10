@@ -52,6 +52,7 @@ in
       inputs.agenix.packages.${host.system}.default
       w3m
       git
+      vim
     ];
   };
 }

@@ -26,6 +26,7 @@ in
       eza
       fd
       imagemagick
+      inotify-tools
       iproute2
       lazygit
       less
