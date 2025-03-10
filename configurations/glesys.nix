@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 let
   users = import ../users.nix;
   sites = import ../sites.nix;
@@ -56,6 +57,27 @@ in
     locations."/".return = "301 https://nc.kompismoln.se$request_uri";
   };
 
+  security.sudo.extraRules = [
+    {
+      users = [
+        "ludvig"
+        "alex"
+      ];
+      runAs = "ALL:(mobilizon)";
+      commands = [ "psql" ];
+    }
+    {
+      users = [
+        "ludvig"
+        "alex"
+      ];
+      commands = [
+        "${pkgs.systemd}/bin/systemctl restart mobilizon.service"
+        "${pkgs.systemd}/bin/systemctl stop mobilizon.service"
+        "${pkgs.systemd}/bin/systemctl start mobilizon.service"
+      ];
+    }
+  ];
   my-nixos = {
     users = with users; {
       inherit

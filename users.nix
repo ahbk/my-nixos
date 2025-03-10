@@ -13,7 +13,7 @@
       "info@ahbk.se"
       "alex@sverigesval.org"
       "hej@kompismoln.se"
-      "mobilizon@kompismoln.se"
+      "klimatkalendern@kompismoln.se"
     ];
   };
 
@@ -66,5 +66,14 @@
     uid = 1102;
     name = "Johanna Landberg";
     email = "landberg@gmail.com";
+  };
+
+  ludvig = {
+    enable = true;
+    groups = [ "mobilizon" ];
+    uid = 1103;
+    name = "ludvig";
+    email = "ludvig.janiuk@proton.me";
+    keys = [ ./keys/ssh-user-ludvig.pub ];
   };
 }

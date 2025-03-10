@@ -26,6 +26,7 @@ in
   "linux-passwd-hashed-johanna.age".publicKeys = all ++ [ friday ];
   "linux-passwd-hashed-olof.age".publicKeys = all;
   "linux-passwd-hashed-rolf.age".publicKeys = all;
+  "linux-passwd-hashed-ludvig.age".publicKeys = all;
 
   "linux-passwd-plain-alex.age".publicKeys = all ++ [ friday ];
   "linux-passwd-plain-backup.age".publicKeys = all;
@@ -33,9 +34,10 @@ in
   "linux-passwd-plain-johanna.age".publicKeys = all ++ [ friday ];
   "linux-passwd-plain-olof.age".publicKeys = all;
   "linux-passwd-plain-rolf.age".publicKeys = all;
+  "linux-passwd-plain-ludvig.age".publicKeys = all;
 
-  "nextcloud-ahbk-root".publicKeys = all;
-  "nextcloud-pass-admin.sverigesval.org.age".publicKeys = all;
+  "nextcloud-ahbk-root.age".publicKeys = all;
+  "nextcloud-kompismoln-root.age".publicKeys = all;
 
   "mail-hashed-alex.age".publicKeys = all;
   "mail-hashed-frans.age".publicKeys = all;

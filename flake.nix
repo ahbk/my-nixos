@@ -72,7 +72,7 @@
         packages = [
           (pkgs.writeShellScriptBin "deploy" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --flake ./ --build-host stationary.ahbk --target-host $1
+            nixos-rebuild switch --use-remote-sudo --flake ./ --build-host $1 --target-host $1
           '')
           (pkgs.writeShellScriptBin "switch" ''
             #!/usr/bin/env bash
