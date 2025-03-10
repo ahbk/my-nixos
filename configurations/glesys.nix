@@ -35,18 +35,25 @@ in
     enable = true;
     settings.":mobilizon" = {
       "Mobilizon.Web.Endpoint" = {
-        url.host = "mobilizon.kompismoln.se";
+        url.host = "klimatkalendern.kompismoln.se";
         http.port = 4000;
       };
       "Mobilizon.Storage.Repo" = {
+        database = "mobilizon";
       };
       ":instance" = {
-        name = "sweclimate";
-        hostname = "mobilizon.kompismoln.se";
-        email_from = "mobilizon@kompismoln.se";
-        email_reply_to = "mobilizon@kompismoln.se";
+        name = "klimatkalendern";
+        hostname = "klimatkalendern.kompismoln.se";
+        email_from = "klimatkalendern@kompismoln.se";
+        email_reply_to = "klimatkalendern@kompismoln.se";
       };
     };
+  };
+
+  services.nginx.virtualHosts."admin.sverigesval.org" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/".return = "301 https://nc.kompismoln.se$request_uri";
   };
 
   my-nixos = {
@@ -57,10 +64,14 @@ in
         frans
         olof
         rolf
+        ludvig
         ;
     };
     shell.alex.enable = true;
     hm.alex.enable = true;
+
+    shell.ludvig.enable = true;
+    hm.ludvig.enable = true;
 
     fail2ban = {
       enable = true;
@@ -77,9 +88,19 @@ in
       target = "backup.ahbk";
     };
 
-    nextcloud.sites."admin.sverigesval.org" = {
+    nextcloud-rolf.sites."sverigesval-sync" = {
       enable = true;
-      user = "sverigesval-nextcloud";
+      siteRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub/_site";
+      sourceRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub";
+      hostname = "dev.kompismoln.se";
+      username = "nextcloud-kompismoln";
+      subnet = false;
+      ssl = true;
+    };
+
+    nextcloud.sites."nextcloud-kompismoln" = {
+      enable = true;
+      hostname = "nc.kompismoln.se";
       ssl = true;
       subnet = false;
       port = 2007;
