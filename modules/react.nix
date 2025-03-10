@@ -11,9 +11,11 @@ let
   inherit (lib)
     filterAttrs
     mapAttrs
+    mapAttrs'
     mkEnableOption
     mkIf
     mkOption
+    nameValuePair
     types
     ;
 
@@ -66,17 +68,19 @@ in
   };
 
   config = mkIf (eachSite != { }) {
-    services.nginx.virtualHosts = mapAttrs (name: cfg: {
-      serverName = cfg.hostname;
-      forceSSL = cfg.ssl;
-      enableACME = cfg.ssl;
-      root = "${(reactPkgs cfg.appname).overrideAttrs { env = envs.${cfg.appname}; }}/dist";
-      locations."${cfg.location}" = {
-        index = "index.html";
-        extraConfig = ''
-          try_files $uri $uri/ /index.html;
-        '';
-      };
-    }) eachSite;
+    services.nginx.virtualHosts = mapAttrs' (
+      name: cfg:
+      nameValuePair cfg.hostname {
+        forceSSL = cfg.ssl;
+        enableACME = cfg.ssl;
+        root = "${(reactPkgs cfg.appname).overrideAttrs { env = envs.${cfg.appname}; }}/dist";
+        locations."${cfg.location}" = {
+          index = "index.html";
+          extraConfig = ''
+            try_files $uri $uri/ /index.html;
+          '';
+        };
+      }
+    ) eachSite;
   };
 }

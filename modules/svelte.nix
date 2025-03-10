@@ -92,15 +92,17 @@ in
       groups.${cfg.appname} = { };
     }) eachSite;
 
-    services.nginx.virtualHosts = mapAttrs (name: cfg: {
-      serverName = cfg.hostname;
-      forceSSL = cfg.ssl;
-      enableACME = cfg.ssl;
-      locations."${cfg.location}" = {
-        recommendedProxySettings = true;
-        proxyPass = "http://localhost:${toString cfg.port}";
-      };
-    }) eachSite;
+    services.nginx.virtualHosts = mapAttrs' (
+      name: cfg:
+      nameValuePair cfg.hostname {
+        forceSSL = cfg.ssl;
+        enableACME = cfg.ssl;
+        locations."${cfg.location}" = {
+          recommendedProxySettings = true;
+          proxyPass = "http://localhost:${toString cfg.port}";
+        };
+      }
+    ) eachSite;
 
     systemd.services = mapAttrs' (
       name: cfg:
