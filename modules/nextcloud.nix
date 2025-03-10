@@ -139,6 +139,17 @@ in
       };
     }) eachSite;
 
+    systemd.timers = lib'.mergeAttrs (name: cfg: {
+      "${cfg.appname}-pgsql-dump" = {
+        description = "scheduled database dump";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "daily";
+          Unit = "${cfg.appname}-pgsql-dump";
+        };
+      };
+    }) eachSite;
+
     services.nginx.virtualHosts = mapAttrs' (
       name: cfg:
       nameValuePair cfg.hostname {
@@ -212,6 +223,8 @@ in
             package = pkgs.nextcloud30;
             settings = {
               trusted_domains = [ cfg.hostname ];
+              default_phone_region = "SE";
+              overwrite_protocol = "https";
             };
             phpOptions = {
               memory_limit = mkForce "2048M";
