@@ -38,6 +38,7 @@ in
 
   "nextcloud-ahbk-root.age".publicKeys = all;
   "nextcloud-kompismoln-root.age".publicKeys = all;
+  "klimatkalendern-mobilizon.age".publicKeys = all;
 
   "mail-hashed-alex.age".publicKeys = all;
   "mail-hashed-frans.age".publicKeys = all;

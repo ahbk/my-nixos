@@ -16,17 +16,17 @@
     nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
 
-    sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org?ref=retired";
+    sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
     sverigesval.inputs.nixpkgs.follows = "nixpkgs";
-
-    sverigesval-new.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
-    sverigesval-new.inputs.nixpkgs.follows = "nixpkgs";
 
     chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
 
     sysctl-user-portal.url = "git+ssh://git@github.com/PelleHanspers/sysctl_userportal";
     sysctl-user-portal.inputs.nixpkgs.follows = "nixpkgs";
+
+    klimatkalendern.url = "github:ahbk/klimatkalendern";
+    klimatkalendern.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

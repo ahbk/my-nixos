@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 let
   users = import ../users.nix;
   sites = import ../sites.nix;
@@ -32,25 +32,6 @@ in
     }
   ];
 
-  services.mobilizon = {
-    enable = true;
-    settings.":mobilizon" = {
-      "Mobilizon.Web.Endpoint" = {
-        url.host = "klimatkalendern.kompismoln.se";
-        http.port = 4000;
-      };
-      "Mobilizon.Storage.Repo" = {
-        database = "mobilizon";
-      };
-      ":instance" = {
-        name = "klimatkalendern";
-        hostname = "klimatkalendern.kompismoln.se";
-        email_from = "klimatkalendern@kompismoln.se";
-        email_reply_to = "klimatkalendern@kompismoln.se";
-      };
-    };
-  };
-
   services.nginx.virtualHosts."admin.sverigesval.org" = {
     forceSSL = true;
     enableACME = true;
@@ -63,8 +44,8 @@ in
         "ludvig"
         "alex"
       ];
-      runAs = "ALL:(mobilizon)";
-      commands = [ "psql" ];
+      runAs = "ALL:mobilizon";
+      commands = [ "${pkgs.postgresql}/bin/psql" ];
     }
     {
       users = [
@@ -78,6 +59,17 @@ in
       ];
     }
   ];
+  services.nginx.virtualHosts."kompismoln.se" = {
+    forceSSL = true;
+    enableACME = true;
+
+    root = "/var/lib/kompismoln";
+    locations."/" = {
+      index = "index.html";
+      tryFiles = "$uri $uri/ /404.html";
+    };
+  };
+
   my-nixos = {
     users = with users; {
       inherit
@@ -110,11 +102,22 @@ in
       target = "backup.ahbk";
     };
 
+    mobilizon.sites."klimatkalendern" = {
+      enable = true;
+      hostname = "klimatkalendern.kompismoln.se";
+      appname = "klimatkalendern";
+      port = 2009;
+      uid = 974;
+      ssl = true;
+      subnet = false;
+      containerConf = inputs.klimatkalendern.nixosModules.mobilizon;
+    };
+
     nextcloud-rolf.sites."sverigesval-sync" = {
       enable = true;
       siteRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub/_site";
       sourceRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub";
-      hostname = "dev.kompismoln.se";
+      hostname = "sverigesval.org";
       username = "nextcloud-kompismoln";
       subnet = false;
       ssl = true;
@@ -173,7 +176,6 @@ in
     django-react.sites."sysctl-user-portal" = sites."sysctl-user-portal";
     django.sites."sysctl-user-portal".locationProxy = "~ ^/(api|admin)";
 
-    fastapi-svelte.sites."sverigesval" = sites."sverigesval";
     wordpress.sites."esse.nu" = sites."esse.nu";
   };
 }

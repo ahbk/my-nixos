@@ -19,6 +19,7 @@
     ./hm.nix
     ./ide.nix
     ./mailserver.nix
+    ./mobilizon.nix
     ./monitor.nix
     ./mysql.nix
     ./nextcloud.nix

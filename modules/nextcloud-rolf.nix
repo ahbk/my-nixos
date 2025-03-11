@@ -84,7 +84,7 @@ in
         name: cfg:
         pkgs.runCommand cfg.appname
           {
-            src = inputs.sverigesval-new.packages.${host.system}.default;
+            src = inputs.sverigesval.packages.${host.system}.default;
             nativeBuildInputs = with pkgs; [ makeWrapper ];
           }
           ''
