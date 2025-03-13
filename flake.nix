@@ -16,8 +16,8 @@
     nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
 
-    sverigesval.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
-    sverigesval.inputs.nixpkgs.follows = "nixpkgs";
+    sverigesval-sync.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
+    sverigesval-sync.inputs.nixpkgs.follows = "nixpkgs";
 
     chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";

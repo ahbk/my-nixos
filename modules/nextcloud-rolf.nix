@@ -22,8 +22,9 @@ let
     ;
 
   cfg = config.my-nixos.nextcloud-rolf;
-
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
+
+  lib' = (import ../lib.nix) { inherit lib pkgs; };
 
   siteOpts =
     { name, ... }:
@@ -84,15 +85,15 @@ in
         name: cfg:
         pkgs.runCommand cfg.appname
           {
-            src = inputs.sverigesval.packages.${host.system}.default;
+            src = inputs.${cfg.appname}.packages.${host.system}.default;
             nativeBuildInputs = with pkgs; [ makeWrapper ];
           }
           ''
             mkdir -p $out/bin
 
             makeWrapper \
-              $src/bin/sverigesval-sync \
-              $out/bin/sverigesval-sync \
+              $src/bin/${cfg.appname} \
+              $out/bin/${cfg.appname} \
                 --append-flags ${cfg.sourceRoot} \
                 --append-flags ${cfg.sourceRoot}/_src \
                 --append-flags ${cfg.siteRoot} \
@@ -120,5 +121,43 @@ in
         }
       ) eachSite;
 
+      systemd.timers = mapAttrs' (
+        name: cfg:
+        nameValuePair "${cfg.appname}-build" {
+          description = "Scheduled building of todays articles";
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnCalendar = "01:00";
+            Unit = "${cfg.appname}-build";
+          };
+        }
+      ) eachSite;
+
+      systemd.services = lib'.mergeAttrs (name: cfg: {
+        "${cfg.appname}-build" = {
+          description = "run ${cfg.appname}-build";
+          serviceConfig = {
+            Type = "oneshot";
+            ExecStart =
+              let
+                inherit (inputs.${cfg.appname}.packages.${host.system}) gems;
+              in
+              "${gems}/bin/jekyll build -s ${cfg.sourceRoot}/_src -d ${cfg.siteRoot} --disable-disk-cache";
+            WorkingDirectory = "${cfg.sourceRoot}/_src";
+            User = cfg.username;
+            Group = cfg.username;
+          };
+        };
+        ${cfg.appname} = {
+          description = "run ${cfg.appname}";
+          serviceConfig = {
+            ExecStart = "${sync-commands.${cfg.appname}}/bin/${cfg.appname}";
+            WorkingDirectory = cfg.sourceRoot;
+            User = cfg.username;
+            Group = cfg.username;
+          };
+          wantedBy = [ "multi-user.target" ];
+        };
+      }) eachSite;
     };
 }

@@ -1,5 +1,7 @@
 {
-  "test.esse.nu" = {
+  "esse_test" = {
+    appname = "esse_test";
+    hostname = "test.esse.nu";
     enable = true;
     ssl = true;
     basicAuth = {
@@ -7,7 +9,9 @@
     };
   };
 
-  "esse.nu" = {
+  "esse" = {
+    appname = "esse";
+    hostname = "esse.nu";
     enable = true;
     ssl = true;
     www = true;

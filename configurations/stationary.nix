@@ -132,6 +132,6 @@ in
       email = users.alex.email;
     };
 
-    wordpress.sites."test.esse.nu" = (import ../sites.nix)."test.esse.nu";
+    wordpress.sites."esse_test" = (import ../sites.nix)."esse_test";
   };
 }

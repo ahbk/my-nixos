@@ -10,39 +10,52 @@ let
     filterAttrs
     flatten
     getExe
-    mapAttrs
+    mapAttrs'
     mapAttrsToList
+    mkDefault
     mkEnableOption
     mkIf
     mkOption
+    nameValuePair
     types
     ;
 
   lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.wordpress;
   webserver = config.services.nginx;
-  eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
-  stateDir = hostname: "/var/lib/${hostname}/wordpress";
+  eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
+  stateDir = appname: "/var/lib/${appname}/wordpress";
 
-  siteOpts = {
-    options = {
-      enable = mkEnableOption "wordpress on this host.";
-      ssl = mkOption {
-        description = "Enable HTTPS.";
-        type = types.bool;
-      };
-      www = mkOption {
-        description = "Prefix the url with www.";
-        default = false;
-        type = types.bool;
-      };
-      basicAuth = mkOption {
-        description = "Protect the site with basic auth.";
-        type = types.attrsOf types.str;
-        default = { };
+  siteOpts =
+    { name, ... }:
+    {
+      config.appname = mkDefault name;
+      options = {
+        enable = mkEnableOption "wordpress on this host.";
+        ssl = mkOption {
+          description = "Enable HTTPS.";
+          type = types.bool;
+        };
+        www = mkOption {
+          description = "Prefix the url with www.";
+          default = false;
+          type = types.bool;
+        };
+        basicAuth = mkOption {
+          description = "Protect the site with basic auth.";
+          type = types.attrsOf types.str;
+          default = { };
+        };
+        hostname = mkOption {
+          description = "Namespace identifying the service externally on the network.";
+          type = types.str;
+        };
+        appname = mkOption {
+          description = "Namespace identifying the app on the system (user, logging, database, paths etc.)";
+          type = types.str;
+        };
       };
     };
-  };
 
   wpPhp = pkgs.php.buildEnv {
     extensions =
@@ -81,28 +94,28 @@ in
       };
     };
 
-    users = lib'.mergeAttrs (hostname: cfg: {
-      users.${hostname} = {
+    users = lib'.mergeAttrs (name: cfg: {
+      users.${cfg.appname} = {
         isSystemUser = true;
-        home = "/var/lib/${hostname}";
+        home = "/var/lib/${cfg.appname}";
         shell = pkgs.bashInteractive;
         homeMode = "755";
         createHome = true;
-        group = hostname;
+        group = cfg.appname;
         packages = with pkgs; [
           git
           wp-cli
         ];
       };
-      groups.${hostname}.members = [
-        hostname
+      groups.${cfg.appname}.members = [
+        cfg.appname
         webserver.group
       ];
     }) eachSite;
 
     systemd.tmpfiles.rules = flatten (
-      mapAttrsToList (hostname: cfg: [
-        "d '${stateDir hostname}' 0750 ${hostname} ${webserver.group} - -"
+      mapAttrsToList (name: cfg: [
+        "d '${stateDir cfg.appname}' 0750 ${cfg.appname} ${webserver.group} - -"
       ]) eachSite
     );
 
@@ -121,10 +134,10 @@ in
     };
 
     services.nginx.virtualHosts = lib'.mergeAttrs (
-      hostname: cfg:
+      name: cfg:
       let
-        serverName = if cfg.www then "www.${hostname}" else hostname;
-        serverNameRedirect = if cfg.www then hostname else "www.${hostname}";
+        serverName = if cfg.www then "www.${cfg.hostname}" else cfg.hostname;
+        serverNameRedirect = if cfg.www then cfg.hostname else "www.${cfg.hostname}";
       in
       {
         ${serverNameRedirect} = {
@@ -136,7 +149,7 @@ in
         };
 
         ${serverName} = {
-          root = stateDir hostname;
+          root = stateDir cfg.appname;
           forceSSL = cfg.ssl;
           enableACME = cfg.ssl;
           basicAuth = mkIf (cfg.basicAuth != { }) cfg.basicAuth;
@@ -174,7 +187,7 @@ in
               priority = 300;
               extraConfig = ''
                 fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass unix:${config.services.phpfpm.pools.${hostname}.socket};
+                fastcgi_pass unix:${config.services.phpfpm.pools.${cfg.appname}.socket};
                 fastcgi_index index.php;
                 include ${config.services.nginx.package}/conf/fastcgi.conf;
                 fastcgi_intercept_errors on;
@@ -211,50 +224,53 @@ in
       }
     ) eachSite;
 
-    my-nixos.mysql = mapAttrs (hostname: cfg: { ensure = true; }) eachSite;
+    my-nixos.mysql = mapAttrs' (name: cfg: nameValuePair cfg.appname { ensure = true; }) eachSite;
 
-    services.phpfpm.pools = mapAttrs (hostname: cfg: {
-      user = hostname;
-      group = webserver.group;
-      phpPackage = wpPhp;
-      phpOptions = ''
-        upload_max_filesize = 16M;
-        post_max_size = 16M;
-        error_reporting = E_ALL;
-        display_errors = Off;
-        log_errors = On;
-        error_log = ${stateDir hostname}/error.log;
-        extension=${pkgs.phpExtensions.redis}/lib/php/extensions/redis.so
-      '';
-      settings = {
-        "listen.owner" = webserver.user;
-        "listen.group" = webserver.group;
-        "pm" = "dynamic";
-        "pm.max_children" = 32;
-        "pm.start_servers" = 2;
-        "pm.min_spare_servers" = 2;
-        "pm.max_spare_servers" = 4;
-        "pm.max_requests" = 500;
-      };
-    }) eachSite;
+    services.phpfpm.pools = mapAttrs' (
+      name: cfg:
+      nameValuePair cfg.appname {
+        user = cfg.appname;
+        group = webserver.group;
+        phpPackage = wpPhp;
+        phpOptions = ''
+          upload_max_filesize = 16M;
+          post_max_size = 16M;
+          error_reporting = E_ALL;
+          display_errors = Off;
+          log_errors = On;
+          error_log = ${stateDir cfg.appname}/error.log;
+          extension=${pkgs.phpExtensions.redis}/lib/php/extensions/redis.so
+        '';
+        settings = {
+          "listen.owner" = webserver.user;
+          "listen.group" = webserver.group;
+          "pm" = "dynamic";
+          "pm.max_children" = 32;
+          "pm.start_servers" = 2;
+          "pm.min_spare_servers" = 2;
+          "pm.max_spare_servers" = 4;
+          "pm.max_requests" = 500;
+        };
+      }
+    ) eachSite;
 
-    systemd.services = lib'.mergeAttrs (hostname: cfg: {
-      "${hostname}-mysql-dump" = {
+    systemd.services = lib'.mergeAttrs (name: cfg: {
+      "${cfg.appname}-mysql-dump" = {
         description = "dump a snapshot of the mysql database";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.mariadb}/bin/mysqldump -u ${hostname} ${hostname} > ${stateDir hostname}/dbdump.sql'";
-          User = hostname;
-          Group = hostname;
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.mariadb}/bin/mysqldump -u ${cfg.appname} ${cfg.appname} > ${stateDir cfg.appname}/dbdump.sql'";
+          User = cfg.appname;
+          Group = cfg.appname;
         };
       };
-      "${hostname}-mysql-restore" = {
+      "${cfg.appname}-mysql-restore" = {
         description = "restore mysql database from snapshot";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.mariadb}/bin/mysql -u ${hostname} ${hostname} < ${stateDir hostname}/dbdump.sql'";
-          User = hostname;
-          Group = hostname;
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.mariadb}/bin/mysql -u ${cfg.appname} ${cfg.appname} < ${stateDir cfg.appname}/dbdump.sql'";
+          User = cfg.appname;
+          Group = cfg.appname;
         };
       };
     }) eachSite;
@@ -267,16 +283,16 @@ in
     };
 
     services.restic.backups.local.paths = flatten (
-      mapAttrsToList (hostname: cfg: [ (stateDir hostname) ]) eachSite
+      mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
 
-    systemd.timers = lib'.mergeAttrs (hostname: cfg: {
-      "${hostname}-mysql-dump" = {
+    systemd.timers = lib'.mergeAttrs (name: cfg: {
+      "${cfg.appname}-mysql-dump" = {
         description = "scheduled database dump";
         wantedBy = [ "timers.target" ];
         timerConfig = {
           OnCalendar = "daily";
-          Unit = "${hostname}-mysql-dump";
+          Unit = "${cfg.appname}-mysql-dump";
         };
       };
     }) eachSite;

@@ -3,7 +3,10 @@
     enable = true;
     name = "Alexander Holmbäck";
     uid = 1001;
-    groups = [ "wheel" ];
+    groups = [
+      "wheel"
+      "nginx"
+    ];
     keys = [ ./keys/ssh-user-alex.pub ];
     email = "alex@ahbk.se";
     aliases = [
@@ -13,6 +16,7 @@
       "info@ahbk.se"
       "alex@sverigesval.org"
       "hej@kompismoln.se"
+      "alex@kompismoln.se"
       "klimatkalendern@kompismoln.se"
     ];
   };

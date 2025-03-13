@@ -176,6 +176,6 @@ in
     django-react.sites."sysctl-user-portal" = sites."sysctl-user-portal";
     django.sites."sysctl-user-portal".locationProxy = "~ ^/(api|admin)";
 
-    wordpress.sites."esse.nu" = sites."esse.nu";
+    wordpress.sites."esse" = sites."esse";
   };
 }

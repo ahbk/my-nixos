@@ -491,15 +491,15 @@
     "pyproject-build-systems_2": {
       "inputs": {
         "nixpkgs": [
-          "sverigesval",
+          "sverigesval-sync",
           "nixpkgs"
         ],
         "pyproject-nix": [
-          "sverigesval",
+          "sverigesval-sync",
           "pyproject-nix"
         ],
         "uv2nix": [
-          "sverigesval",
+          "sverigesval-sync",
           "uv2nix"
         ]
       },
@@ -570,7 +570,7 @@
     "pyproject-nix_2": {
       "inputs": {
         "nixpkgs": [
-          "sverigesval",
+          "sverigesval-sync",
           "nixpkgs"
         ]
       },
@@ -618,11 +618,11 @@
         "nixos-mailserver": "nixos-mailserver",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
-        "sverigesval": "sverigesval",
+        "sverigesval-sync": "sverigesval-sync",
         "sysctl-user-portal": "sysctl-user-portal"
       }
     },
-    "sverigesval": {
+    "sverigesval-sync": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -632,11 +632,11 @@
         "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "lastModified": 1741696086,
-        "narHash": "sha256-OQMnCYy/g5Xdj0VdCZlq5FZNzF05ISOKUPa2QtROCwQ=",
+        "lastModified": 1741822921,
+        "narHash": "sha256-KjX4cscHEJmMWHoGCSuMeSq/4SZxRrd1b/ZeQ8iNKmU=",
         "ref": "refs/heads/main",
-        "rev": "5a4ef17d5c25fadfb3e34be4e6454fb99510d3a5",
-        "revCount": 155,
+        "rev": "9017dfa5271e847d5c356c896600a66d53422945",
+        "revCount": 158,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },
@@ -747,11 +747,11 @@
     "uv2nix_2": {
       "inputs": {
         "nixpkgs": [
-          "sverigesval",
+          "sverigesval-sync",
           "nixpkgs"
         ],
         "pyproject-nix": [
-          "sverigesval",
+          "sverigesval-sync",
           "pyproject-nix"
         ]
       },
