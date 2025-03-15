@@ -24,9 +24,11 @@ if [[ "$1" = "mail" ]]; then
 fi
 
 if [[ "$1" = "wg" ]]; then
-  private_key=$(agenix -d "wg-key-$2.age")
+  private_key=$(wg genkey)
+  echo $private_key | agenix -e "wg-key-$2.age"
   public_key=$(echo "$private_key" | wg pubkey)
-  echo "$public_key" > ../keys/wg-key-$2.pub
-  printf "'wg-key-$2.age' generated."
+  echo "$public_key" > ../keys/wg-$2.pub
+  printf "'./wg-key-$2.age' generated.\n"
+  printf "'../keys/wg-$2.age' generated."
   exit 1
 fi
