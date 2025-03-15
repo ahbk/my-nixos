@@ -41,6 +41,15 @@ in
     stateVersion = "20.03";
   };
 
+  lenovo = rec {
+    name = "lenovo";
+    wgKey = key "wg" name;
+    sshKey = key "ssh-host" name;
+    address = "10.0.0.7";
+    system = "x86_64-linux";
+    stateVersion = "24.11";
+  };
+
   phone = rec {
     name = "phone";
     wgKey = key "wg" name;

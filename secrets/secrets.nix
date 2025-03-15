@@ -8,6 +8,7 @@ let
   laptop = key "host-laptop";
   stationary = key "host-stationary";
   friday = key "host-friday";
+  lenovo = key "host-lenovo";
 
   all = [
     alex
@@ -20,7 +21,10 @@ in
   "ahbk-cert-key.age".publicKeys = all;
   "ahbk-cert.age".publicKeys = all;
 
-  "linux-passwd-hashed-alex.age".publicKeys = all ++ [ friday ];
+  "linux-passwd-hashed-alex.age".publicKeys = all ++ [
+    friday
+    lenovo
+  ];
   "linux-passwd-hashed-backup.age".publicKeys = all;
   "linux-passwd-hashed-frans.age".publicKeys = all;
   "linux-passwd-hashed-johanna.age".publicKeys = all ++ [ friday ];
@@ -28,7 +32,10 @@ in
   "linux-passwd-hashed-rolf.age".publicKeys = all;
   "linux-passwd-hashed-ludvig.age".publicKeys = all;
 
-  "linux-passwd-plain-alex.age".publicKeys = all ++ [ friday ];
+  "linux-passwd-plain-alex.age".publicKeys = all ++ [
+    friday
+    lenovo
+  ];
   "linux-passwd-plain-backup.age".publicKeys = all;
   "linux-passwd-plain-frans.age".publicKeys = all;
   "linux-passwd-plain-johanna.age".publicKeys = all ++ [ friday ];
@@ -74,6 +81,11 @@ in
   "wg-key-friday.age".publicKeys = [
     alex
     friday
+  ];
+
+  "wg-key-lenovo.age".publicKeys = [
+    alex
+    lenovo
   ];
 
   "api-key-glesys.age".publicKeys = [
