@@ -319,15 +319,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1741729063,
-        "narHash": "sha256-cn0x3VY7NvvsSrnUmMW4umJ6B4AfmrLK0O+1Wiwfuho=",
-        "owner": "ahbk",
+        "lastModified": 1741907341,
+        "narHash": "sha256-bGDD7cbmwSodgqkGRpoul7c8qUeuALAs5lqZznCBojE=",
+        "owner": "Kompismoln",
         "repo": "klimatkalendern",
-        "rev": "2504340a49a5dfb51ab17359d90a1dd1d18246b3",
+        "rev": "23d6c8cfd9179af00d379dc69e378fa9bd35756d",
         "type": "github"
       },
       "original": {
-        "owner": "ahbk",
+        "owner": "Kompismoln",
         "repo": "klimatkalendern",
         "type": "github"
       }

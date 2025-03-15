@@ -25,7 +25,7 @@
     sysctl-user-portal.url = "git+ssh://git@github.com/PelleHanspers/sysctl_userportal";
     sysctl-user-portal.inputs.nixpkgs.follows = "nixpkgs";
 
-    klimatkalendern.url = "github:ahbk/klimatkalendern";
+    klimatkalendern.url = "github:Kompismoln/klimatkalendern";
     klimatkalendern.inputs.nixpkgs.follows = "nixpkgs";
   };
 
