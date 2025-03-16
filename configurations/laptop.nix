@@ -7,7 +7,7 @@ in
 
   my-nixos = {
     users = with users; {
-      inherit alex frans backup;
+      inherit admin alex backup;
     };
     shell.alex.enable = true;
     ide.alex = {

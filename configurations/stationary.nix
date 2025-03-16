@@ -38,8 +38,6 @@ in
     '';
   };
 
-  users.users.alex.extraGroups = [ "nextcloud-ahbk" ];
-
   networking = {
     useDHCP = false;
     enableIPv6 = false;

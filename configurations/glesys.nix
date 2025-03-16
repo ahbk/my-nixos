@@ -73,11 +73,9 @@ in
   my-nixos = {
     users = with users; {
       inherit
+        admin
         alex
         backup
-        frans
-        olof
-        rolf
         ludvig
         ;
     };
@@ -149,10 +147,8 @@ in
     mailserver = {
       enable = true;
       users = {
+        "admin" = { };
         "alex" = { };
-        "frans" = { };
-        "olof" = { };
-        "rolf" = { };
       };
       domains = {
         "ahbk.se".mailbox = true;

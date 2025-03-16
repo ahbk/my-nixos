@@ -40,30 +40,6 @@
     ];
   };
 
-  olof = {
-    enable = true;
-    uid = 1100;
-    name = "Olof Silfver";
-    email = "olof@chatddx.com";
-    aliases = [
-      "postmaster@chatddx.com"
-      "abuse@chatddx.com"
-      "info@chatddx.com"
-    ];
-  };
-
-  rolf = {
-    enable = true;
-    uid = 1101;
-    name = "Rolf Norgberg";
-    email = "rolf@sverigesval.org";
-    aliases = [
-      "postmaster@sverigesval.org"
-      "abuse@sverigesval.org"
-      "info@sverigesva.org"
-    ];
-  };
-
   johanna = {
     enable = true;
     uid = 1102;

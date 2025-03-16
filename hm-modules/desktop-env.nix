@@ -261,6 +261,7 @@ in
           output = [
             "eDP-1"
             "HDMI-A-1"
+            "HDMI-A-2"
           ];
           modules-right = [
             "pulseaudio#source"
@@ -395,7 +396,7 @@ in
     wayland.windowManager.hyprland = {
       enable = true;
       settings = {
-        monitor = ",preferred,auto,1";
+        monitor = ",preferred,auto-left,1";
         exec-once =
           let
             start-waybar = pkgs.writeShellScriptBin "start-waybar" ''

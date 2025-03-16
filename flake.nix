@@ -77,7 +77,7 @@
           '')
           (pkgs.writeShellScriptBin "switch" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --build-host stationary.ahbk.se --show-trace --verbose;
+            nixos-rebuild switch --use-remote-sudo --build-host stationary.ahbk --show-trace --verbose;
           '')
         ];
       };

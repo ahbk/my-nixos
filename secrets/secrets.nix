@@ -4,6 +4,7 @@ let
 
   # keys
   alex = key "user-alex";
+  ludvig = key "user-ludvig";
   glesys = key "host-glesys";
   laptop = key "host-laptop";
   stationary = key "host-stationary";
@@ -15,81 +16,107 @@ let
     glesys
     laptop
     stationary
+    lenovo
+    friday
   ];
+
+  mail-host = glesys;
+  admin = alex;
 in
 {
+  # These play no role in security and can be accessed by all
   "ahbk-cert-key.age".publicKeys = all;
   "ahbk-cert.age".publicKeys = all;
 
-  "linux-passwd-hashed-alex.age".publicKeys = all ++ [
-    friday
-    lenovo
-  ];
-  "linux-passwd-hashed-backup.age".publicKeys = all;
-  "linux-passwd-hashed-frans.age".publicKeys = all;
-  "linux-passwd-hashed-johanna.age".publicKeys = all ++ [ friday ];
-  "linux-passwd-hashed-olof.age".publicKeys = all;
-  "linux-passwd-hashed-rolf.age".publicKeys = all;
-  "linux-passwd-hashed-ludvig.age".publicKeys = all;
-
-  "linux-passwd-plain-alex.age".publicKeys = all ++ [
-    friday
-    lenovo
-  ];
-  "linux-passwd-plain-backup.age".publicKeys = all;
+  # Every host needs admin or they will be inaccessible
+  "linux-passwd-hashed-admin.age".publicKeys = all;
   "linux-passwd-plain-admin.age".publicKeys = all;
-  "linux-passwd-plain-johanna.age".publicKeys = all ++ [ friday ];
-  "linux-passwd-plain-olof.age".publicKeys = all;
-  "linux-passwd-plain-rolf.age".publicKeys = all;
-  "linux-passwd-plain-ludvig.age".publicKeys = all;
-
-  "nextcloud-ahbk-root.age".publicKeys = all;
-  "nextcloud-kompismoln-root.age".publicKeys = all;
-  "klimatkalendern-mobilizon.age".publicKeys = all;
-
-  "mail-hashed-alex.age".publicKeys = all;
-  "mail-hashed-admin.age".publicKeys = all;
-  "mail-hashed-olof.age".publicKeys = all;
-  "mail-hashed-rolf.age".publicKeys = all;
-
-  "mail-plain-alex.age".publicKeys = all;
+  "mail-hashed-admin.age".publicKeys = [
+    admin
+    mail-host
+  ];
   "mail-plain-admin.age".publicKeys = all;
-  "mail-plain-olof.age".publicKeys = all;
-  "mail-plain-rolf.age".publicKeys = all;
 
-  "webapp-key-dev.chatddx.com.age".publicKeys = all;
-  "webapp-key-chatddx.com.age".publicKeys = all;
-  "webapp-key-dev.sverigesval.org.age".publicKeys = all;
-  "webapp-key-sverigesval.org.age".publicKeys = all;
-  "webapp-key-sysctl-user-portal.curetheweb.se.age".publicKeys = all;
+  "linux-passwd-hashed-alex.age".publicKeys = all;
+  "linux-passwd-plain-alex.age".publicKeys = all;
+  "mail-hashed-alex.age".publicKeys = [
+    admin
+    mail-host
+  ];
+  "mail-plain-alex.age".publicKeys = all;
+
+  "linux-passwd-hashed-johanna.age".publicKeys = [
+    admin
+    friday
+  ];
+
+  "linux-passwd-plain-johanna.age".publicKeys = [
+    admin
+    friday
+  ];
+
+  "linux-passwd-hashed-backup.age".publicKeys = all;
+  "linux-passwd-plain-backup.age".publicKeys = all;
+
+  "linux-passwd-hashed-ludvig.age".publicKeys = [
+    admin
+    ludvig
+    glesys
+  ];
+
+  "linux-passwd-plain-ludvig.age".publicKeys = [
+    admin
+    ludvig
+    glesys
+  ];
+
+  "nextcloud-kompismoln-root.age".publicKeys = [
+    admin
+    glesys
+  ];
+
+  "nextcloud-ahbk-root.age".publicKeys = [
+    admin
+    glesys
+  ];
+
+  "klimatkalendern-mobilizon.age".publicKeys = [
+    admin
+    ludvig
+    glesys
+    stationary
+  ];
+
+  "webapp-key-chatddx.age".publicKeys = all;
+  "webapp-key-sysctl-user-portal.age".publicKeys = all;
 
   "wg-key-laptop.age".publicKeys = [
-    alex
+    admin
     laptop
   ];
 
   "wg-key-stationary.age".publicKeys = [
-    alex
+    admin
     stationary
   ];
 
   "wg-key-glesys.age".publicKeys = [
-    alex
+    admin
     glesys
   ];
 
   "wg-key-friday.age".publicKeys = [
-    alex
+    admin
     friday
   ];
 
   "wg-key-lenovo.age".publicKeys = [
-    alex
+    admin
     lenovo
   ];
 
   "api-key-glesys.age".publicKeys = [
-    alex
+    admin
     stationary
   ];
 
