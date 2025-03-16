@@ -7,27 +7,16 @@ in
 
   my-nixos = {
     users = with users; {
-      inherit alex frans backup;
+      inherit admin alex;
     };
+    shell.admin.enable = true;
+
     shell.alex.enable = true;
-    ide.alex = {
-      enable = true;
-      postgresql = true;
-      mysql = true;
-      redis = true;
-    };
+    ide.alex.enable = true;
     hm.alex.enable = true;
     desktop-env.alex.enable = true;
-    vd.alex.enable = true;
 
     wireguard.wg0.enable = true;
-
-    sendmail.alex.enable = true;
-
-    backup.local = {
-      enable = true;
-      target = "backup.ahbk";
-    };
   };
 
   networking = {
@@ -36,7 +25,10 @@ in
       internalInterfaces = [ "ve-+" ];
       externalInterface = "wlp1s0";
     };
-    networkmanager.unmanaged = [ "interface-name:ve-*" ];
+    networkmanager = {
+      enable = true;
+      unmanaged = [ "interface-name:ve-*" ];
+    };
     firewall.allowedTCPPorts = [
       3000
       5173

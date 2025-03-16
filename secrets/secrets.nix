@@ -37,7 +37,7 @@ in
     lenovo
   ];
   "linux-passwd-plain-backup.age".publicKeys = all;
-  "linux-passwd-plain-frans.age".publicKeys = all;
+  "linux-passwd-plain-admin.age".publicKeys = all;
   "linux-passwd-plain-johanna.age".publicKeys = all ++ [ friday ];
   "linux-passwd-plain-olof.age".publicKeys = all;
   "linux-passwd-plain-rolf.age".publicKeys = all;
@@ -48,12 +48,12 @@ in
   "klimatkalendern-mobilizon.age".publicKeys = all;
 
   "mail-hashed-alex.age".publicKeys = all;
-  "mail-hashed-frans.age".publicKeys = all;
+  "mail-hashed-admin.age".publicKeys = all;
   "mail-hashed-olof.age".publicKeys = all;
   "mail-hashed-rolf.age".publicKeys = all;
 
   "mail-plain-alex.age".publicKeys = all;
-  "mail-plain-frans.age".publicKeys = all;
+  "mail-plain-admin.age".publicKeys = all;
   "mail-plain-olof.age".publicKeys = all;
   "mail-plain-rolf.age".publicKeys = all;
 

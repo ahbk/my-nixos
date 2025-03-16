@@ -1,4 +1,13 @@
 {
+  admin = {
+    enable = true;
+    uid = 1000;
+    name = "Administrator";
+    groups = [ "wheel" ];
+    keys = [ ./keys/ssh-user-alex.pub ];
+    email = "admin@ahbk.se";
+  };
+
   alex = {
     enable = true;
     name = "Alexander Holmbäck";
@@ -29,16 +38,6 @@
       ./keys/ssh-user-backup.pub
       ./keys/ssh-user-alex.pub
     ];
-  };
-
-  frans = {
-    enable = true;
-    uid = 1000;
-    name = "Mr. Admin";
-    groups = [ "wheel" ];
-    keys = [ ./keys/ssh-user-alex.pub ];
-    email = "frans@ahbk.se";
-    aliases = [ "admin@ahbk.se" ];
   };
 
   olof = {

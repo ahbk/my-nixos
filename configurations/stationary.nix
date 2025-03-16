@@ -60,7 +60,7 @@ in
 
   my-nixos = {
     users = with users; {
-      inherit alex frans;
+      inherit admin alex;
     };
 
     shell.alex.enable = true;

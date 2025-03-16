@@ -55,15 +55,16 @@
       ) (import ./hm-hosts.nix);
 
       nixosConfigurations = mapAttrs (
-        hostname: host:
+        name: cfg:
         nixosSystem {
           specialArgs = {
-            inherit inputs host;
+            inherit inputs;
+            host = cfg;
           };
           modules = [
-            ./configurations/${hostname}-hardware.nix
+            ./configurations/${cfg.name}-hardware.nix
             ./modules/all.nix
-            ./configurations/${hostname}.nix
+            ./configurations/${cfg.name}.nix
           ];
         }
       ) (import ./hosts.nix);
@@ -76,7 +77,7 @@
           '')
           (pkgs.writeShellScriptBin "switch" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --build-host stationary.ahbk --show-trace --print-build-logs --verbose;
+            nixos-rebuild switch --use-remote-sudo --build-host stationary.ahbk.se --show-trace --verbose;
           '')
         ];
       };
