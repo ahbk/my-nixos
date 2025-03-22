@@ -56,6 +56,30 @@ in
     };
   };
 
+  services.nfs.server = {
+    enable = true;
+    exports = ''
+      /mnt/t1/alex 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
+      /mnt/t1/johanna 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
+      /mnt/t1/chris 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
+      /mnt/t1/media 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
+    '';
+  };
+
+  users.users.nextcloud-kompismoln = {
+    uid = 978;
+    isSystemUser = true;
+    group = "nextcloud-kompismoln";
+  };
+  users.groups.nextcloud-kompismoln.gid = 978;
+
+  users.users.jellyfin = {
+    uid = 970;
+    isSystemUser = true;
+    group = "jellyfin";
+  };
+  users.groups.jellyfin.gid = 970;
+
   my-nixos = {
     users = with users; {
       inherit admin alex;
@@ -71,16 +95,6 @@ in
 
     ahbk-cert.enable = true;
 
-    nextcloud-rolf.sites."sverigesval-sync" = {
-      enable = true;
-      siteRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/+pub/_site";
-      sourceRoot = "/var/lib/nextcloud-ahbk/nextcloud/data/alex/files/+pub";
-      hostname = "stationary.ahbk.se";
-      username = "nextcloud-ahbk";
-      subnet = false;
-      ssl = true;
-    };
-
     backup.local = {
       enable = true;
       target = "backup.ahbk";
@@ -92,6 +106,7 @@ in
     nextcloud.sites."nextcloud-ahbk" = {
       enable = true;
       hostname = "nextcloud.ahbk.se";
+      collaboraHost = "collabora.stationary.ahbk.se";
       ssl = true;
       subnet = false;
       port = 2006;

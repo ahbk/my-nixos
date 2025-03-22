@@ -4,6 +4,7 @@ in
 {
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
+  programs.light.brightnessKeys.enable = true;
 
   my-nixos = {
     users = with users; {
@@ -12,7 +13,10 @@ in
     shell.admin.enable = true;
 
     shell.alex.enable = true;
-    ide.alex.enable = true;
+    ide.alex = {
+      enable = true;
+      postgresql = true;
+    };
     hm.alex.enable = true;
     desktop-env.alex.enable = true;
 
@@ -36,9 +40,17 @@ in
     ];
   };
 
-  boot.loader = {
-    systemd-boot.enable = true;
-    efi.canTouchEfiVariables = true;
+  boot = {
+    supportedFilesystems = [ "nfs" ];
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+  };
+
+  fileSystems."/mnt/t1/alex" = {
+    device = "stationary.ahbk:/mnt/t1/alex";
+    fsType = "nfs";
   };
 
   swapDevices = [

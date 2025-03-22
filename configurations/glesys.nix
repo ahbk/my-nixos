@@ -70,6 +70,22 @@ in
     };
   };
 
+  users.users.jellyfin = {
+    uid = 970;
+    isSystemUser = true;
+    group = "jellyfin";
+  };
+  users.groups.jellyfin.gid = 970;
+  services.jellyfin = {
+    enable = true;
+    openFirewall = true;
+  };
+
+  fileSystems."/var/lib/jellyfin/media" = {
+    device = "stationary.ahbk:/mnt/t1/media";
+    fsType = "nfs";
+  };
+
   my-nixos = {
     users = with users; {
       inherit
@@ -128,13 +144,19 @@ in
       subnet = false;
       port = 2007;
       uid = 978;
+      collaboraHost = "collabora.ahbk.se";
+      mounts = {
+        alex = "stationary.ahbk:/mnt/t1/alex";
+        johanna = "stationary.ahbk:/mnt/t1/johanna";
+        chris = "stationary.ahbk:/mnt/t1/chris";
+      };
     };
 
     collabora = {
       enable = true;
       subnet = false;
       host = "collabora.ahbk.se";
-      allowedHosts = [ "admin.sverigesval.org" ];
+      allowedHosts = [ ];
     };
 
     wireguard.wg0.enable = true;

@@ -15,7 +15,6 @@ let
     mapAttrsToList
     mkDefault
     mkEnableOption
-    mkForce
     mkIf
     mkOption
     nameValuePair
@@ -59,6 +58,15 @@ let
           description = "Userid is required to map user in container";
           type = types.int;
         };
+        collaboraHost = mkOption {
+          description = "The hostname of the collabora host";
+          type = types.str;
+        };
+        mounts = mkOption {
+          description = "Users with external storage";
+          type = types.attrsOf types.str;
+          default = { };
+        };
       };
     };
 in
@@ -74,6 +82,17 @@ in
   };
 
   config = mkIf (eachSite != { }) {
+
+    fileSystems = lib'.mergeAttrs (
+      name: cfg:
+      mapAttrs' (
+        name: device:
+        nameValuePair "${stateDir cfg.appname}/data/${name}" {
+          inherit device;
+          fsType = "nfs";
+        }
+      ) cfg.mounts
+    ) eachSite;
 
     users = lib'.mergeAttrs (name: cfg: {
       users.${cfg.appname} = {
@@ -113,9 +132,9 @@ in
       name = cfg.appname;
     }) eachSite;
 
-    services.restic.backups.local.paths = flatten (
-      mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
-    );
+    #services.restic.backups.local.paths = flatten (
+    #  mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
+    #);
 
     systemd.services = lib'.mergeAttrs (name: cfg: {
       "${cfg.appname}-pgsql-dump" = {
@@ -157,10 +176,13 @@ in
         sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
         sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
         enableACME = !cfg.subnet;
+        extraConfig = ''
+          client_max_body_size 1G;
+        '';
 
         locations = {
           "/" = {
-            proxyPass = "http://localhost:${toString cfg.port}";
+            proxyPass = "http://127.0.0.1:${toString cfg.port}";
           };
           "/.well-known/carddav" = {
             return = "301 $scheme://$host/remote.php/dav";
@@ -195,19 +217,23 @@ in
           users.users.nextcloud.uid = cfg.uid;
           users.groups.nextcloud.gid = cfg.uid;
 
-          services.nginx.virtualHosts.localhost = {
-            listen = [
-              {
-                addr = "127.0.0.1";
-                port = cfg.port;
-                ssl = false;
-              }
-            ];
+          services.nginx = {
+            virtualHosts.localhost = {
+              extraConfig = ''
+                set_real_ip_from 127.0.0.1/32;
+                real_ip_header X-Forwarded-For;
+                real_ip_recursive on;
+              '';
+              listen = [
+                {
+                  addr = "127.0.0.1";
+                  port = cfg.port;
+                  ssl = false;
+                }
+              ];
+            };
           };
 
-          services.redis.servers.nextcloud = {
-            unixSocketPerm = 666;
-          };
           systemd.services.nextcloud-setup = {
             after = [
               "redis-nextcloud.service"
@@ -219,15 +245,27 @@ in
 
           services.nextcloud = {
             enable = true;
+            https = true;
             hostName = "localhost";
             package = pkgs.nextcloud30;
+            appstoreEnable = true;
+            maxUploadSize = "1G";
+            extraApps = {
+              inherit (pkgs.nextcloud30Packages.apps) calendar;
+            };
             settings = {
-              trusted_domains = [ cfg.hostname ];
+              trusted_proxies = [
+                "127.0.0.1"
+              ];
+              trusted_domains = [
+                cfg.hostname
+                cfg.collaboraHost
+              ];
               default_phone_region = "SE";
-              overwrite_protocol = "https";
+              overwriteprotocol = "https";
+              forwarded_for_headers = [ "HTTP_X_FORWARDED_FOR" ];
             };
             phpOptions = {
-              memory_limit = mkForce "2048M";
               "opcache.interned_strings_buffer" = 23;
             };
             configureRedis = true;
