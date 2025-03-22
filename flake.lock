@@ -319,11 +319,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1741907341,
-        "narHash": "sha256-bGDD7cbmwSodgqkGRpoul7c8qUeuALAs5lqZznCBojE=",
+        "lastModified": 1742669800,
+        "narHash": "sha256-KbWBsTuzLfD0nrDiJ0zff8T2pNzHaNW+5Kq8nVUc35Q=",
         "owner": "Kompismoln",
         "repo": "klimatkalendern",
-        "rev": "23d6c8cfd9179af00d379dc69e378fa9bd35756d",
+        "rev": "d6bee849f12650ce93e43fce55f978d02ea6bace",
         "type": "github"
       },
       "original": {
@@ -632,11 +632,11 @@
         "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "lastModified": 1741822921,
-        "narHash": "sha256-KjX4cscHEJmMWHoGCSuMeSq/4SZxRrd1b/ZeQ8iNKmU=",
+        "lastModified": 1742376942,
+        "narHash": "sha256-vd4H7kI9ZKAZmDOM2SJnVpX9IvsKJUObdQxU38E07LA=",
         "ref": "refs/heads/main",
-        "rev": "9017dfa5271e847d5c356c896600a66d53422945",
-        "revCount": 158,
+        "rev": "ddba46e1693d8b0bd5260154ed9cff0209be370f",
+        "revCount": 159,
         "type": "git",
         "url": "ssh://git@github.com/ahbk/sverigesval.org"
       },

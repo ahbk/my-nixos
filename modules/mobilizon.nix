@@ -38,14 +38,25 @@ let
 
         containerConf = {
           system.stateVersion = mkForce hostConfig.system.stateVersion;
-          users.users.mobilizon.uid = mkForce config.uid;
-          users.groups.mobilizon.gid = mkForce config.uid;
+          users = {
+            users.mobilizon = {
+              uid = mkForce config.uid;
+              group = "mobilizon";
+            };
+            groups.mobilizon.gid = mkForce config.uid;
+          };
           services.mobilizon = {
+            enable = true;
+            package = pkgs.callPackage ../packages/mobilizon {
+              elixir = pkgs.beam.packages.erlang_26.elixir_1_15;
+              beamPackages = pkgs.beam.packages.erlang_26.extend (self: super: { elixir = self.elixir_1_15; });
+              mobilizon-frontend = pkgs.callPackage ../packages/mobilizon/frontend.nix { };
+            };
             nginx.enable = false;
             settings.":mobilizon" = {
               "Mobilizon.Web.Endpoint".http.port = mkForce config.port;
               "Mobilizon.Storage.Repo" = {
-                hostname = mkForce "localhost";
+                hostname = mkForce "127.0.0.1";
                 database = mkForce "mobilizon";
                 username = mkForce "mobilizon";
                 password = mkForce "mobilizon";
