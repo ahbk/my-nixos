@@ -23,10 +23,10 @@
       "postmaster@ahbk.se"
       "abuse@ahbk.se"
       "info@ahbk.se"
-      "alex@sverigesval.org"
       "hej@kompismoln.se"
       "alex@kompismoln.se"
       "klimatkalendern@kompismoln.se"
+      "admin@kompismoln.se"
     ];
   };
 
