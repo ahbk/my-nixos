@@ -49,6 +49,11 @@ in
   config = mkIf (eachCfg != { }) {
     services = {
       postgresql = {
+        extensions =
+          ps: with ps; [
+            postgis
+            pg_repack
+          ];
         enable = true;
         package = pkgs.postgresql_17;
         ensureDatabases = mapAttrsToList (user: cfg: cfg.name) eachCfg;
