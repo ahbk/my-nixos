@@ -1,15 +1,14 @@
 {
   lib,
-  callPackage,
   buildNpmPackage,
   imagemagick,
+  mobilizon-src,
 }:
 
-let
-  common = callPackage ./common.nix { };
-in
 buildNpmPackage {
-  inherit (common) pname version src;
+  pname = "mobilizon";
+  version = "5.1.1";
+  src = mobilizon-src;
 
   npmDepsHash = "sha256-oOV4clyUzKTdAMCKghWS10X9Nug9j8mil/vXcFhZ6Z0=";
 

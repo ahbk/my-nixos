@@ -319,11 +319,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1742669800,
-        "narHash": "sha256-KbWBsTuzLfD0nrDiJ0zff8T2pNzHaNW+5Kq8nVUc35Q=",
+        "lastModified": 1743241190,
+        "narHash": "sha256-JpEKgo3CjfX7G5NljRNuSYhDfBtUrDX8oQwrzhJX89Y=",
         "owner": "Kompismoln",
         "repo": "klimatkalendern",
-        "rev": "d6bee849f12650ce93e43fce55f978d02ea6bace",
+        "rev": "c7624fce852bc3fbcf0acb3f59ff3f8fb8dbef26",
         "type": "github"
       },
       "original": {

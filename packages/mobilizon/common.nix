@@ -8,6 +8,6 @@ rec {
     owner = "Kompismoln";
     repo = pname;
     rev = "main";
-    sha256 = "sha256-KbWBsTuzLfD0nrDiJ0zff8T2pNzHaNW+5Kq8nVUc35Q=";
+    sha256 = "sha256-JpEKgo3CjfX7G5NljRNuSYhDfBtUrDX8oQwrzhJX89Y=";
   };
 }

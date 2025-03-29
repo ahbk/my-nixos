@@ -1,6 +1,5 @@
 {
   lib,
-  callPackage,
   writeShellScriptBin,
   beamPackages,
   mix2nix,
@@ -9,15 +8,17 @@
   cmake,
   nixosTests,
   mobilizon-frontend,
+  mobilizon-src,
   ...
 }:
 
 let
   inherit (beamPackages) mixRelease buildMix;
-  common = callPackage ./common.nix { };
 in
 mixRelease rec {
-  inherit (common) pname version src;
+  pname = "mobilizon";
+  version = "5.1.1";
+  src = mobilizon-src;
 
   patches = [
     # Version 5.1.1 failed to bump their internal package version,

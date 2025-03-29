@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -50,7 +51,10 @@ let
             package = pkgs.callPackage ../packages/mobilizon {
               elixir = pkgs.beam.packages.erlang_26.elixir_1_15;
               beamPackages = pkgs.beam.packages.erlang_26.extend (self: super: { elixir = self.elixir_1_15; });
-              mobilizon-frontend = pkgs.callPackage ../packages/mobilizon/frontend.nix { };
+              mobilizon-frontend = pkgs.callPackage ../packages/mobilizon/frontend.nix {
+                mobilizon-src = inputs.klimatkalendern.self;
+              };
+              mobilizon-src = inputs.klimatkalendern.self;
             };
             nginx.enable = false;
             settings.":mobilizon" = {
