@@ -5,6 +5,11 @@ in
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
 
+  fileSystems."/mnt/t1" = {
+    device = "stationary.ahbk:/mnt/t1";
+    fsType = "nfs";
+  };
+
   my-nixos = {
     users = with users; {
       inherit admin alex backup;

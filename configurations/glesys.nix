@@ -149,6 +149,9 @@ in
         alex = "stationary.ahbk:/mnt/t1/alex";
         johanna = "stationary.ahbk:/mnt/t1/johanna";
         chris = "stationary.ahbk:/mnt/t1/chris";
+        john = "stationary.ahbk:/mnt/t1/john";
+        #petra = "stationary.ahbk:/mnt/t1/petra";
+        #rigmor = "stationary.ahbk:/mnt/t1/rigmor";
       };
     };
 
