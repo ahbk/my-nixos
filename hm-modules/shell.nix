@@ -22,9 +22,11 @@ in
     home.packages = with pkgs; [
       bat
       bitwarden-cli
+      btrfs-progs
       dig
       eza
       fd
+      ffmpeg
       imagemagick
       inotify-tools
       iproute2
@@ -35,6 +37,7 @@ in
       ntfs3g
       openssl
       ranger
+      rdfind
       ripgrep
       shell-gpt
       silver-searcher
