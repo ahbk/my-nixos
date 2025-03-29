@@ -132,10 +132,6 @@ in
       name = cfg.appname;
     }) eachSite;
 
-    #services.restic.backups.local.paths = flatten (
-    #  mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
-    #);
-
     systemd.services = lib'.mergeAttrs (name: cfg: {
       "${cfg.appname}-pgsql-dump" = {
         description = "dump a snapshot of the postgresql database";
@@ -264,6 +260,7 @@ in
               default_phone_region = "SE";
               overwriteprotocol = "https";
               forwarded_for_headers = [ "HTTP_X_FORWARDED_FOR" ];
+              "simpleSignUpLink.shown" = false;
             };
             phpOptions = {
               "opcache.interned_strings_buffer" = 23;
