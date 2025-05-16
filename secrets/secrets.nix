@@ -80,7 +80,12 @@ in
     glesys
   ];
 
-  "klimatkalendern-mobilizon.age".publicKeys = [
+  "keycloak-root.age".publicKeys = [
+    admin
+    glesys
+  ];
+
+  "klimatkalendern1-mobilizon.age".publicKeys = [
     admin
     ludvig
     glesys
