@@ -2,7 +2,7 @@
   description = "my nixos";
 
   inputs = {
-    nixpkgs.url = "github:ahbk/nixpkgs/my-nixos";
+    nixpkgs.url = "github:Kompismoln/nixpkgs/nixos-unstable";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -21,6 +21,9 @@
 
     chatddx.url = "git+ssh://git@github.com/LigninDDX/chatddx";
     chatddx.inputs.nixpkgs.follows = "nixpkgs";
+
+    kompismoln-site.url = "git+ssh://git@github.com/Kompismoln/website";
+    kompismoln-site.inputs.nixpkgs.follows = "nixpkgs";
 
     sysctl-user-portal.url = "git+ssh://git@github.com/PelleHanspers/sysctl_userportal";
     sysctl-user-portal.inputs.nixpkgs.follows = "nixpkgs";
@@ -77,7 +80,7 @@
           '')
           (pkgs.writeShellScriptBin "switch" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --build-host stationary.ahbk --show-trace --verbose;
+            nixos-rebuild switch --use-remote-sudo --show-trace --verbose;
           '')
         ];
       };
