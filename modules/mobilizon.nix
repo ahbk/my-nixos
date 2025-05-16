@@ -1,5 +1,6 @@
 {
   config,
+  host,
   inputs,
   lib,
   pkgs,
@@ -48,22 +49,15 @@ let
           };
           services.mobilizon = {
             enable = true;
-            package = pkgs.callPackage ../packages/mobilizon {
-              elixir = pkgs.beam.packages.erlang_26.elixir_1_15;
-              beamPackages = pkgs.beam.packages.erlang_26.extend (self: super: { elixir = self.elixir_1_15; });
-              mobilizon-frontend = pkgs.callPackage ../packages/mobilizon/frontend.nix {
-                mobilizon-src = inputs.klimatkalendern.self;
-              };
-              mobilizon-src = inputs.klimatkalendern.self;
-            };
+            package = inputs.klimatkalendern.packages.${host.system}.default;
             nginx.enable = false;
             settings.":mobilizon" = {
               "Mobilizon.Web.Endpoint".http.port = mkForce config.port;
               "Mobilizon.Storage.Repo" = {
                 hostname = mkForce "127.0.0.1";
-                database = mkForce "mobilizon";
-                username = mkForce "mobilizon";
-                password = mkForce "mobilizon";
+                database = config.appname;
+                username = config.appname;
+                password = config.appname;
                 socket_dir = null;
               };
               ":instance" = {
@@ -84,6 +78,11 @@ let
         };
         subnet = mkOption {
           description = "Use self-signed certificates";
+          type = types.bool;
+        };
+        www = mkOption {
+          description = "Prefix the url with www.";
+          default = false;
           type = types.bool;
         };
         port = mkOption {
@@ -155,11 +154,6 @@ in
       })
     ) eachSite;
 
-    my-nixos.postgresql = mapAttrs (name: cfg: {
-      ensure = true;
-      name = cfg.appname;
-    }) eachSite;
-
     services.restic.backups.local.paths = flatten (
       mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
@@ -169,9 +163,10 @@ in
         description = "dump a snapshot of the postgresql database";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -U ${cfg.appname} ${cfg.appname} > ${stateDir cfg.appname}/dbdump.sql'";
+          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -h localhost -U ${cfg.appname} ${cfg.appname} > ${stateDir cfg.appname}/dbdump.sql'";
           User = cfg.appname;
           Group = cfg.appname;
+          Environment = "PGPASSWORD=${cfg.appname}";
         };
       };
 
@@ -192,19 +187,29 @@ in
         wantedBy = [ "timers.target" ];
         timerConfig = {
           OnCalendar = "daily";
-          Unit = "${cfg.appname}-pgsql-dump";
+          Unit = "${cfg.appname}-pgsql-dump.service";
         };
       };
     }) eachSite;
 
-    services.nginx.virtualHosts = mapAttrs' (
+    services.nginx.virtualHosts = lib'.mergeAttrs (
       name: cfg:
-      nameValuePair cfg.hostname (
-        let
-          inherit (cfg.containerConf.services.mobilizon) package;
-          proxyPass = "http://[::1]:${toString cfg.port}";
-        in
-        {
+      let
+        inherit (cfg.containerConf.services.mobilizon) package;
+        proxyPass = "http://[::1]:${toString cfg.port}";
+        serverName = if cfg.www then "www.${cfg.hostname}" else cfg.hostname;
+        serverNameRedirect = if cfg.www then cfg.hostname else "www.${cfg.hostname}";
+      in
+      {
+        ${serverNameRedirect} = {
+          forceSSL = cfg.ssl;
+          enableACME = cfg.ssl;
+          extraConfig = ''
+            return 301 $scheme://${serverName}$request_uri;
+          '';
+        };
+
+        ${serverName} = {
           forceSSL = cfg.ssl;
           sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
           sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
@@ -237,8 +242,8 @@ in
               add_header Cache-Control "public, max-age=31536000, s-maxage=31536000, immutable";
             '';
           };
-        }
-      )
+        };
+      }
     ) eachSite;
 
     containers = mapAttrs' (

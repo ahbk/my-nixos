@@ -264,7 +264,7 @@ in
         wantedBy = [ "timers.target" ];
         timerConfig = {
           OnCalendar = "daily";
-          Unit = "${cfg.appname}-pgsql-dump";
+          Unit = "${cfg.appname}-pgsql-dump.service";
         };
       };
     }) eachSite;
