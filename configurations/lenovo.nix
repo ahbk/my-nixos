@@ -16,11 +16,17 @@ in
     ide.alex = {
       enable = true;
       postgresql = true;
+      redis = true;
     };
     hm.alex.enable = true;
     desktop-env.alex.enable = true;
 
     wireguard.wg0.enable = true;
+
+    backup.local = {
+      enable = true;
+      target = "backup.ahbk";
+    };
   };
 
   networking = {
