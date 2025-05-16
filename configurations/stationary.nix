@@ -61,7 +61,8 @@ in
     exports = ''
       /mnt/t1 10.0.0.2(rw,no_root_squash,async)
       /mnt/t1/alex 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-      /mnt/t1/johanna 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
+      /mnt/t1/johanna 10.0.0.3(rw,no_root_squash,async) 10.0.0.6(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
+
       /mnt/t1/chris 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
       /mnt/t1/john 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
       /mnt/t1/media 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
