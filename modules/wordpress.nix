@@ -292,7 +292,7 @@ in
         wantedBy = [ "timers.target" ];
         timerConfig = {
           OnCalendar = "daily";
-          Unit = "${cfg.appname}-mysql-dump";
+          Unit = "${cfg.appname}-mysql-dump.service";
         };
       };
     }) eachSite;

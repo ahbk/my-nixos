@@ -129,7 +129,7 @@ in
           wantedBy = [ "timers.target" ];
           timerConfig = {
             OnCalendar = "01:00";
-            Unit = "${cfg.appname}-build";
+            Unit = "${cfg.appname}-build.service";
           };
         }
       ) eachSite;

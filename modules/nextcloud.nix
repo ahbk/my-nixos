@@ -160,7 +160,7 @@ in
         wantedBy = [ "timers.target" ];
         timerConfig = {
           OnCalendar = "daily";
-          Unit = "${cfg.appname}-pgsql-dump";
+          Unit = "${cfg.appname}-pgsql-dump.service";
         };
       };
     }) eachSite;
@@ -243,7 +243,7 @@ in
             enable = true;
             https = true;
             hostName = "localhost";
-            package = pkgs.nextcloud30;
+            package = pkgs.nextcloud31;
             appstoreEnable = true;
             maxUploadSize = "1G";
             extraApps = {
