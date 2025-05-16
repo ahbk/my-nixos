@@ -1,4 +1,9 @@
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  pkgs,
+  config,
+  ...
+}:
 let
   users = import ../users.nix;
   sites = import ../sites.nix;
@@ -63,10 +68,14 @@ in
     forceSSL = true;
     enableACME = true;
 
-    root = "/var/lib/kompismoln";
+    root = inputs.kompismoln-site.packages."x86_64-linux".default;
+
+    locations."= /" = {
+      tryFiles = "/index.html =404";
+    };
+
     locations."/" = {
-      index = "index.html";
-      tryFiles = "$uri $uri/ /404.html";
+      tryFiles = "$uri $uri.html =404";
     };
   };
 
@@ -116,12 +125,13 @@ in
       target = "backup.ahbk";
     };
 
-    mobilizon.sites."klimatkalendern" = {
+    mobilizon.sites."klimatkalendern1" = {
       enable = true;
-      hostname = "klimatkalendern.kompismoln.se";
-      appname = "klimatkalendern";
-      port = 2009;
-      uid = 974;
+      hostname = "klimatkalendern.nu";
+      appname = "klimatkalendern1";
+      www = false;
+      port = 2700;
+      uid = 700;
       ssl = true;
       subnet = false;
       containerConf = inputs.klimatkalendern.nixosModules.mobilizon;
@@ -181,6 +191,7 @@ in
         "sverigesval.org".mailbox = true;
         "kompismoln.se".mailbox = true;
         "esse.nu".mailbox = false;
+        "klimatkalendern.nu".mailbox = false;
       };
     };
 
