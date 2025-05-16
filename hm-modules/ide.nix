@@ -39,10 +39,6 @@ in
       nixfmt-rfc-style
       ruff
       nix-init
-      node2nix
-      nodejs_22
-      nodePackages.svelte-language-server
-      nodePackages.typescript-language-server
       npm-check-updates
       php
       (sqlite.override { interactive = true; })
@@ -183,6 +179,10 @@ in
         fugitive.enable = true;
         gitignore.enable = false;
         direnv.enable = true;
+        vim-matchup = {
+          enable = true;
+          treesitter.enable = true;
+        };
 
         rest = {
           enable = true;

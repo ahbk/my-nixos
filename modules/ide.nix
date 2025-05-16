@@ -63,9 +63,11 @@ in
       sqlitebrowser
       python3
       payload-dumper-go
+      nodejs
     ];
 
     programs.adb.enable = true;
+    programs.npm.enable = true;
 
     users.users = mapAttrs (user: cfg: {
       extraGroups = [
