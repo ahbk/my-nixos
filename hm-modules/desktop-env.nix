@@ -36,7 +36,7 @@ in
       nyxt
       pinta
       shotcut
-      signal-desktop
+      signal-desktop-bin
       thunderbird
       wl-clipboard
       xournalpp
@@ -396,7 +396,10 @@ in
     wayland.windowManager.hyprland = {
       enable = true;
       settings = {
-        monitor = ",preferred,auto-left,1";
+        monitor = [
+          "eDP-1, 1366x768, 0x0, 1"
+          "HDMI-A-2, 1920x1080, -1920x0, 1"
+        ];
         exec-once =
           let
             start-waybar = pkgs.writeShellScriptBin "start-waybar" ''
@@ -418,7 +421,7 @@ in
 
         input = {
           kb_layout = "us,se";
-          kb_options = "grp:alt_shift_toggle";
+          kb_options = "grp:caps_switch";
           repeat_rate = 35;
           repeat_delay = 175;
           follow_mouse = true;
@@ -464,9 +467,9 @@ in
         ];
 
         windowrule = [
-          "float, ^(.*)$"
-          "size 550 350, ^(.*)$"
-          "center, ^(.*)$"
+          "float, class:^(.*)$"
+          "size 550 350, class:^(.*)$"
+          "center, class:^(.*)$"
         ];
         "$mainMod" = "SUPER";
 
@@ -493,7 +496,7 @@ in
             "$mainMod, h, movefocus, l"
             "$mainMod, l, exec, hyprlock"
             "$mainMod, k, movefocus, u"
-            "$mainMod, j, movefocus, d"
+            "$mainMod, j, cyclenext, hist"
             "$mainMod, mouse_down, workspace, e+1"
             "$mainMod, mouse_up, workspace, e-1"
           ]
