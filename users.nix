@@ -25,7 +25,7 @@
       "info@ahbk.se"
       "hej@kompismoln.se"
       "alex@kompismoln.se"
-      "klimatkalendern@kompismoln.se"
+      "no-reply@klimatkalendern.nu"
       "admin@kompismoln.se"
     ];
   };
@@ -42,6 +42,7 @@
 
   johanna = {
     enable = true;
+    groups = [ "nextcloud-kompismoln" ];
     uid = 1102;
     name = "Johanna Landberg";
     email = "landberg@gmail.com";
