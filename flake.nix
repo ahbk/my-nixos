@@ -39,6 +39,7 @@
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      ids = import ./ids.nix;
 
     in
     rec {
@@ -61,7 +62,7 @@
         name: cfg:
         nixosSystem {
           specialArgs = {
-            inherit inputs;
+            inherit inputs ids;
             host = cfg;
           };
           modules = [

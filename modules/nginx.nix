@@ -1,10 +1,18 @@
-{ config, lib, ... }:
+{
+  config,
+  host,
+  lib,
+  ...
+}:
 
 let
   inherit (lib)
+    mkDefault
     mkEnableOption
     mkIf
     mkOption
+    optional
+    optionalString
     types
     ;
 
@@ -50,11 +58,36 @@ in
       '';
     };
 
-    services.nginx.virtualHosts."_" = {
-      default = true;
-      rejectSSL = true;
-      locations."/" = {
-        return = "444";
+    services.prometheus.exporters.nginx = {
+      enable = true;
+      scrapeUri = "http://${host.hostname}/nginx_status";
+    };
+    services.nginx.virtualHosts = {
+      "_" = {
+        default = true;
+        rejectSSL = true;
+        locations."/" = {
+          return = "444";
+        };
+      };
+      "${host.hostname}" = {
+        serverAliases = [ "127.0.0.1" ] ++ optional config.networking.enableIPv6 "[::1]";
+        listenAddresses = mkDefault (
+          [
+            "0.0.0.0"
+          ]
+          ++ lib.optional config.networking.enableIPv6 "[::]"
+        );
+        locations."/nginx_status" = {
+          extraConfig = ''
+            stub_status on;
+            access_log off;
+            allow 127.0.0.1;
+            allow 10.0.0.0/24;
+            ${optionalString config.networking.enableIPv6 "allow ::1;"}
+            deny all;
+          '';
+        };
       };
     };
   };

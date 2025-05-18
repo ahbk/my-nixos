@@ -1,7 +1,7 @@
 {
   inputs,
   pkgs,
-  config,
+  ids,
   ...
 }:
 let
@@ -130,8 +130,8 @@ in
       hostname = "klimatkalendern.nu";
       appname = "klimatkalendern1";
       www = false;
-      port = 2700;
-      uid = 700;
+      port = ids.klimatkalendern.port;
+      uid = ids.klimatkalendern.uid;
       ssl = true;
       subnet = false;
       containerConf = inputs.klimatkalendern.nixosModules.mobilizon;

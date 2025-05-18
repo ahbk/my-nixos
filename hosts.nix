@@ -1,10 +1,11 @@
 let
-  key = protocol: hostname: builtins.readFile ./keys/${protocol}-${hostname}.pub;
+  key = protocol: name: builtins.readFile ./keys/${protocol}-${name}.pub;
 in
 {
 
   stationary = rec {
     name = "stationary";
+    hostname = "stationary.ahbk";
     wgKey = key "wg" name;
     sshKey = key "ssh-host" name;
     address = "10.0.0.1";
@@ -15,6 +16,7 @@ in
 
   laptop = rec {
     name = "laptop";
+    hostname = "laptop.ahbk";
     wgKey = key "wg" name;
     sshKey = key "ssh-host" name;
     address = "10.0.0.2";
@@ -24,6 +26,7 @@ in
 
   glesys = rec {
     name = "glesys";
+    hostname = "glesys.ahbk";
     wgKey = key "wg" name;
     sshKey = key "ssh-host" name;
     address = "10.0.0.3";
@@ -34,6 +37,7 @@ in
 
   friday = rec {
     name = "friday";
+    hostname = "friday.ahbk";
     wgKey = key "wg" name;
     sshKey = key "ssh-host" name;
     address = "10.0.0.6";
@@ -43,6 +47,7 @@ in
 
   lenovo = rec {
     name = "lenovo";
+    hostname = "lenovo.ahbk";
     wgKey = key "wg" name;
     sshKey = key "ssh-host" name;
     address = "10.0.0.7";
@@ -52,6 +57,7 @@ in
 
   phone = rec {
     name = "phone";
+    hostname = "phone.ahbk";
     wgKey = key "wg" name;
     system = "aarch64-linux";
     address = "10.0.0.4";

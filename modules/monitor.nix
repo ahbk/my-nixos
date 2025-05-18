@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  ids,
   ...
 }:
 let
@@ -101,6 +102,20 @@ in
           ];
         }
         {
+          job_name = "nginx";
+          static_configs = [
+            {
+              targets = [
+                "glesys.ahbk:${toString nginx.port}"
+                "stationary.ahbk:${toString nginx.port}"
+              ];
+              labels = {
+                service = "nginx";
+              };
+            }
+          ];
+        }
+        {
           job_name = "php-fpm";
           static_configs = [
             {
@@ -153,6 +168,7 @@ in
             {
               targets = [
                 "https://kompismoln.se"
+                "https://klimatkalendern.nu"
                 "https://esse.nu"
                 "https://chatddx.com"
                 "https://sverigesval.org"
@@ -191,6 +207,9 @@ in
       proxyPass = "http://localhost:9999";
       proxyWebsockets = true;
     };
+
+    users.groups.grafana.gid = config.ids.uids.grafana;
+
     services.grafana = {
       enable = true;
       settings = {
@@ -200,8 +219,6 @@ in
           root_url = "http://stationary.ahbk/grafana/";
           serve_from_sub_path = true;
         };
-        "auth.anonymous".enabled = true;
-        "auth.basic".enabled = false;
       };
       provision.datasources = {
         settings.datasources = [
@@ -214,5 +231,65 @@ in
         ];
       };
     };
+
+    services.loki = {
+      enable = true;
+      # The configuration options are typically nested under 'configuration'
+      # or directly as attributes. Consult `nixos-option services.loki` for your version.
+      # This is a common structure:
+      configuration = {
+        auth_enabled = false;
+
+        server = {
+          http_listen_port = ids.loki.port;
+        };
+
+        common = {
+          ring = {
+            instance_addr = "127.0.0.1";
+            kvstore = {
+              store = "inmemory";
+            };
+          };
+          replication_factor = 1;
+          path_prefix = "/tmp/loki";
+        };
+
+        schema_config = {
+          configs = [
+            {
+              from = "2022-01-22";
+              store = "tsdb";
+              object_store = "filesystem";
+              schema = "v13";
+              index = {
+                prefix = "index_";
+                period = "24h";
+              };
+            }
+          ];
+        };
+        storage_config = {
+          filesystem = {
+            directory = "/var/lib/loki/chunks";
+          };
+        };
+
+        limits_config = {
+          retention_period = "30d"; # e.g., 30 days
+          # Enforce limits to prevent Loki from using too much memory/CPU for queries
+          # max_query_series = 5000;
+          # max_query_parallelism = 32;
+        };
+      };
+    };
+
+    users.users.loki = {
+      uid = ids.loki.uid;
+      isSystemUser = true;
+      group = "loki";
+    };
+    users.groups.loki.gid = config.users.users.loki.uid;
+
   };
 }
