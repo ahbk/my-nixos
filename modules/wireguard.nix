@@ -67,8 +67,8 @@ in
           interfaces.wg0 = {
             allowedTCPPortRanges = [
               {
-                from = 2000;
-                to = 9999;
+                from = 0;
+                to = 65535;
               }
             ];
           };
