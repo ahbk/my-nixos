@@ -1,0 +1,70 @@
+local.file_match "nginx_json_access_log" {
+    path_targets = [
+        { "__path__" = "/var/log/nginx/access.log", "job" = "nginx", "log_type" = "access_json" },
+    ]
+}
+
+local.file_match "nginx_plain_error_log" {
+    path_targets = [
+        { "__path__" = "/var/log/nginx/error.log", "job" = "nginx", "log_type" = "error_plain" },
+    ]
+}
+
+// Source for JSON access logs
+loki.source.file "nginx_access_source" {
+    targets    = local.file_match.nginx_json_access_log.targets
+    forward_to = [loki.process.nginx_json_parser.receiver]
+}
+
+// Source for plain text error logs (assuming they are not JSON)
+loki.source.file "nginx_error_source" {
+    targets    = local.file_match.nginx_plain_error_log.targets
+    // If error logs need specific parsing (e.g., multiline), you'd add a loki.process stage here.
+    // For now, sending directly.
+    forward_to = [loki.write.default.receiver]
+}
+
+loki.process "nginx_json_parser" {
+    // This stage parses the incoming log line (expected to be a JSON string)
+    // and makes all its fields available for subsequent stages.
+    stage.json {
+        // The 'expressions' here create *new* fields in the working data set based on the parsed JSON.
+        // 'extracted_host' will be a new field containing the value of the original 'host' JSON field.
+        // 'status_code' will be a new field containing the value of the original 'status' JSON field.
+        // These new fields will be part of the final log entry sent to Loki.
+        expressions = {
+            extracted_host = "host",
+            status_code    = "status",
+        }
+    }
+
+    // This stage creates Loki labels.
+    // It will look for fields named 'status' and 'host' in the data (which are available from the original parsed JSON)
+    // and use their values to create the labels.
+    stage.labels {
+        values = {
+            status = "", // Creates a label 'status' from the JSON field 'status'
+            host   = "", // Creates a label 'host' from the JSON field 'host'
+        }
+        // Note: Be mindful of label cardinality. If 'host' can have many unique values,
+        // it might be better not to make it a label or to use a more specific, less variable field.
+        // 'status' as a label is generally fine.
+    }
+
+    // This stage sets the timestamp for the log entry in Loki.
+    stage.timestamp {
+        source = "time_iso8601" // Uses the value of the 'time_iso8601' field from the JSON.
+        // The format "2006-01-02T15:04:05Z07:00" is Go's reference time for RFC3339/ISO8601.
+        // This correctly matches your log's timestamp format like "2025-05-18T22:35:05+02:00".
+        // You can also use the predefined format name:
+        format = "RFC3339"
+    }
+
+    forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+    endpoint {
+        url = "http://stationary.ahbk:3100/loki/api/v1/push"
+    }
+}
