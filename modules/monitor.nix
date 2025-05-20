@@ -234,25 +234,26 @@ in
 
     services.loki = {
       enable = true;
-      # The configuration options are typically nested under 'configuration'
-      # or directly as attributes. Consult `nixos-option services.loki` for your version.
-      # This is a common structure:
       configuration = {
         auth_enabled = false;
+        pattern_ingester = {
+          enabled = true;
+        };
 
         server = {
           http_listen_port = ids.loki.port;
+          grpc_listen_port = 0;
         };
 
         common = {
           ring = {
             instance_addr = "127.0.0.1";
             kvstore = {
-              store = "inmemory";
+              store = "memberlist";
             };
           };
           replication_factor = 1;
-          path_prefix = "/tmp/loki";
+          path_prefix = "/var/lib/loki/working";
         };
 
         schema_config = {
@@ -273,13 +274,19 @@ in
           filesystem = {
             directory = "/var/lib/loki/chunks";
           };
+          tsdb_shipper = {
+            active_index_directory = "/var/lib/loki/tsdb-index";
+            cache_location = "/var/lib/loki/tsdb-cache";
+            cache_ttl = "24h";
+          };
         };
 
         limits_config = {
-          retention_period = "30d"; # e.g., 30 days
-          # Enforce limits to prevent Loki from using too much memory/CPU for queries
-          # max_query_series = 5000;
-          # max_query_parallelism = 32;
+          retention_period = "30d";
+        };
+        memberlist = {
+          bind_addr = [ "0.0.0.0" ];
+          bind_port = 7946;
         };
       };
     };
