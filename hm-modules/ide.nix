@@ -179,6 +179,26 @@ in
         fugitive.enable = true;
         gitignore.enable = false;
         direnv.enable = true;
+
+        conform-nvim = {
+          enable = true;
+          autoLoad = true;
+          settings = {
+            formatters_by_ft = {
+              javascript = [
+                "prettier"
+              ];
+              typescript = [
+                "prettier"
+              ];
+            };
+            format_on_save = {
+              timeout_ms = 1500;
+              lsp_format = "fallback";
+            };
+          };
+        };
+
         vim-matchup = {
           enable = true;
           treesitter.enable = true;
@@ -216,6 +236,7 @@ in
             tailwindcss.enable = true;
             basedpyright.enable = true;
             nixd.enable = true;
+            eslint.enable = true;
           };
           keymaps = {
             lspBuf = {
