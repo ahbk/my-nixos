@@ -12,7 +12,6 @@ let
     filterAttrs
     flatten
     getExe
-    mapAttrs
     mapAttrs'
     mapAttrsToList
     mkDefault

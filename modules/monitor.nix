@@ -162,7 +162,7 @@ in
           metrics_path = "/probe";
           params = {
             module = [ "http_2xx" ];
-            target = [ "__param_target__" ]; # This tells blackbox which target to probe
+            target = [ "__param_target__" ];
           };
           static_configs = [
             {
@@ -182,20 +182,20 @@ in
           relabel_configs = [
             {
               source_labels = [ "__address__" ];
-              target_label = "__param_target"; # Use the original target as a URL parameter
+              target_label = "__param_target";
             }
             {
               source_labels = [ "__param_target" ];
-              target_label = "instance"; # Keep the original URL as the instance label
+              target_label = "instance";
             }
             {
               source_labels = [ "__param_target" ];
-              regex = "https?://([^/:]+).*"; # Extract domain name
-              target_label = "domain"; # Save domain as a separate label
+              regex = "https?://([^/:]+).*";
+              target_label = "domain";
             }
             {
               target_label = "__address__";
-              replacement = "stationary.ahbk:9115"; # Point to the blackbox exporter
+              replacement = "stationary.ahbk:9115";
             }
           ];
           scrape_interval = "60s";
