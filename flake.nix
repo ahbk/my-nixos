@@ -73,7 +73,7 @@
         }
       ) (import ./hosts.nix);
 
-      devShells.${system}.default = pkgs.mkShell {
+      devShells.${system}.default = pkgs.mkShellNoCC {
         packages = [
           (pkgs.writeShellScriptBin "deploy" ''
             #!/usr/bin/env bash
