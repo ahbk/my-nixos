@@ -66,6 +66,11 @@ let
           description = "Where build files are gathered at runtime";
           type = types.str;
         };
+        www = mkOption {
+          description = "Prefix the url with www.";
+          default = false;
+          type = types.bool;
+        };
       };
     };
 in
@@ -105,20 +110,33 @@ in
     mkIf (eachSite != { }) {
 
       environment.systemPackages = mapAttrsToList (name: pkg: pkg) sync-commands;
-      services.nginx.virtualHosts = mapAttrs' (
+
+      services.nginx.virtualHosts = lib'.mergeAttrs (
         name: cfg:
-        nameValuePair cfg.hostname {
-          forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
-          sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
-          enableACME = !cfg.subnet;
-
-          root = cfg.siteRoot;
-          locations."/" = {
-            index = "index.html";
-            tryFiles = "$uri $uri/ /404.html";
+        let
+          serverName = if cfg.www then "www.${cfg.hostname}" else cfg.hostname;
+          serverNameRedirect = if cfg.www then cfg.hostname else "www.${cfg.hostname}";
+        in
+        {
+          ${serverNameRedirect} = {
+            forceSSL = cfg.ssl;
+            enableACME = cfg.ssl;
+            extraConfig = ''
+              return 301 $scheme://${serverName}$request_uri;
+            '';
           };
+          ${serverName} = {
+            forceSSL = cfg.ssl;
+            sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
+            sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
+            enableACME = !cfg.subnet;
 
+            root = cfg.siteRoot;
+            locations."/" = {
+              index = "index.html";
+              tryFiles = "$uri $uri/ /404.html";
+            };
+          };
         }
       ) eachSite;
 
