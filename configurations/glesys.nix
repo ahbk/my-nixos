@@ -64,6 +64,7 @@ in
       ];
     }
   ];
+
   services.nginx.virtualHosts."kompismoln.se" = {
     forceSSL = true;
     enableACME = true;
@@ -134,7 +135,7 @@ in
       uid = ids.klimatkalendern.uid;
       ssl = true;
       subnet = false;
-      containerConf = inputs.klimatkalendern.nixosModules.mobilizon;
+      containerConf = { };
     };
 
     nextcloud-rolf.sites."sverigesval-sync" = {
