@@ -6,6 +6,7 @@ let
   alex = key "user-alex";
   ludvig = key "user-ludvig";
   glesys = key "host-glesys";
+  helsinki = key "host-helsinki";
   laptop = key "host-laptop";
   stationary = key "host-stationary";
   friday = key "host-friday";
@@ -14,6 +15,7 @@ let
   all = [
     alex
     glesys
+    helsinki
     laptop
     stationary
     lenovo
@@ -24,6 +26,8 @@ let
   admin = alex;
 in
 {
+  "ssh-host-helsinki.age".publicKeys = [ admin ];
+
   # These play no role in security and can be accessed by all
   "ahbk-cert-key.age".publicKeys = all;
   "ahbk-cert.age".publicKeys = all;
@@ -103,6 +107,11 @@ in
   "wg-key-stationary.age".publicKeys = [
     admin
     stationary
+  ];
+
+  "wg-key-helsinki.age".publicKeys = [
+    admin
+    helsinki
   ];
 
   "wg-key-glesys.age".publicKeys = [

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [[ "$#" -eq 0 ]]; then
-  printf "Usage: $0 <passwd|wg|mail> <user>\n"
+  printf "Usage: $0 <passwd|wg|mail|ssh-key> <user or host>\n"
   exit 1
 fi
 
@@ -29,6 +29,15 @@ if [[ "$1" = "wg" ]]; then
   public_key=$(echo "$private_key" | wg pubkey)
   echo "$public_key" > ../keys/wg-$2.pub
   printf "'./wg-key-$2.age' generated.\n"
-  printf "'../keys/wg-$2.age' generated."
+  printf "'../keys/wg-$2.pub' generated."
+  exit 1
+fi
+
+if [[ "$1" = "ssh-key" ]]; then
+  ssh-keygen -t ed25519 -f ../keys/ssh-host-$2 -N ""
+  agenix -e "ssh-host-$2.age" < ../keys/ssh-host-$2
+  rm ../keys/ssh-host-$2
+  printf "'./ssh-host-$2.age' generated.\n"
+  printf "'../keys/ssh-host-$2.pub' generated."
   exit 1
 fi

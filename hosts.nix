@@ -35,6 +35,25 @@ in
     stateVersion = "23.11";
   };
 
+  phone = rec {
+    name = "phone";
+    hostname = "phone.ahbk";
+    wgKey = key "wg" name;
+    system = "aarch64-linux";
+    address = "10.0.0.4";
+  };
+
+  helsinki = rec {
+    name = "helsinki";
+    hostname = "helsinki.ahbk";
+    wgKey = key "wg" name;
+    sshKey = key "ssh-host" name;
+    address = "10.0.0.5";
+    publicAddress = "helsinki.kompismoln.se";
+    system = "x86_64-linux";
+    stateVersion = "25.05";
+  };
+
   friday = rec {
     name = "friday";
     hostname = "friday.ahbk";
@@ -55,18 +74,10 @@ in
     stateVersion = "24.11";
   };
 
-  phone = rec {
-    name = "phone";
-    hostname = "phone.ahbk";
-    wgKey = key "wg" name;
-    system = "aarch64-linux";
-    address = "10.0.0.4";
-  };
-
   container = rec {
     name = "container";
     sshKey = key "ssh-host" name;
-    address = "10.0.0.5";
+    address = "10.0.0.254";
     system = "x86_64-linux";
     stateVersion = "24.05";
   };

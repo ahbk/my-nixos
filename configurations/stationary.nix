@@ -25,16 +25,17 @@ in
     extraConfig = ''
       modules = { 'hints > iterate' }
       hints['invoiceplane.ahbk'] = '10.0.0.1'
-      hints['stationary.ahbk'] = '10.0.0.1'
       hints['dev.ahbk'] = '10.0.0.1'
-      hints['glesys.ahbk'] = '10.0.0.3'
-      hints['laptop.ahbk'] = '10.0.0.2'
-      hints['friday.ahbk'] = '10.0.0.6'
-      hints['lenovo.ahbk'] = '10.0.0.7'
-      hints['phone.ahbk'] = '10.0.0.4'
       hints['backup.ahbk'] = '10.0.0.1'
       hints['nextcloud.ahbk'] = '10.0.0.1'
       hints['collabora.ahbk'] = '10.0.0.1'
+      hints['stationary.ahbk'] = '10.0.0.1'
+      hints['laptop.ahbk'] = '10.0.0.2'
+      hints['glesys.ahbk'] = '10.0.0.3'
+      hints['phone.ahbk'] = '10.0.0.4'
+      hints['helsinki.ahbk'] = '10.0.0.5'
+      hints['friday.ahbk'] = '10.0.0.6'
+      hints['lenovo.ahbk'] = '10.0.0.7'
     '';
   };
 

@@ -2,9 +2,11 @@
 {
   imports = [
     inputs.agenix.nixosModules.default
+    inputs.sops-nix.nixosModules.sops
     inputs.home-manager.nixosModules.home-manager
     inputs.nixos-mailserver.nixosModules.default
     inputs.nixvim.nixosModules.nixvim
+    inputs.disko.nixosModules.disko
     ./ahbk-cert.nix
     ./backup.nix
     ./collabora.nix

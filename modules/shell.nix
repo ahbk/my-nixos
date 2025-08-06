@@ -50,6 +50,11 @@ in
 
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${host.system}.default
+      inputs.nixos-anywhere.packages.${host.system}.default
+      yq-go
+      ssh-to-age
+      sops
+      age
       w3m
       git
       vim
