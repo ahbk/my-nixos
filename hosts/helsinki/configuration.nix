@@ -8,7 +8,10 @@ in
   ];
 
   boot = {
-    initrd.network.enable = false;
+    initrd = {
+      network.enable = false;
+      secrets."/secret.key" = config.sops.secrets.secret-key.path;
+    };
     loader.grub.enable = true;
   };
 
@@ -37,16 +40,8 @@ in
       ];
     };
   };
-  boot.initrd.secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
 
-  boot.initrd.luks.devices."crypted" = {
-    # device = "/dev/disk/by-partlabel/disk-main-luks";
-    # keyFile = "/secret.key";
-  };
-
-  sops.secrets.luks-secret-key = {
-    sopsFile = ../secrets/luks.yaml;
-  };
+  sops.defaultSopsFile = ../secrets/luks.yaml;
 
   networking = {
     useDHCP = false;
@@ -55,15 +50,8 @@ in
     };
   };
 
-  #sops = {
-  #  age = {
-  #    sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  #    keyFile = "/var/lib/sops-nix/key.txt";
-  #    generateKey = true;
-  #  };
-  #};
-
   my-nixos = {
+    wireguard.wg0.enable = true;
     rescue.enable = true;
     users = with users; {
       inherit admin alex;

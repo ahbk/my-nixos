@@ -75,9 +75,9 @@
             host = cfg;
           };
           modules = [
-            ./configurations/${cfg.name}-hardware.nix
             ./modules/all.nix
-            ./configurations/${cfg.name}.nix
+            ./hosts/${cfg.name}/hardware-configuration.nix
+            ./hosts/${cfg.name}/configuration.nix
           ];
         }
       ) (import ./hosts.nix);
