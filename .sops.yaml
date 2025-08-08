@@ -1,7 +1,13 @@
 keys:
   - &user_admin age1j6r6hexj9f5jtl0rpg5ekcr5ysvwf94mtzzx4hnpmlxvx97xfp3sek95tg
   - &host_helsinki age1ajaqfrn9n0svlyqh87rm0agypnjm0gkqkn6a9lr6afcng696p4hqt803dt
+  - &host_lenovo age1n96ardkhhewk6rq4mzmslrl80pk0dnf09vahqd3kj7nccht9m32sj00d2a
 creation_rules:
+  - path_regex: secrets/luks.yaml
+    key_groups:
+      - age:
+          - *user_admin
+          - *host_helsinki
   - path_regex: ssh-host-key
     key_groups:
       - age:
@@ -11,3 +17,4 @@ creation_rules:
       - age:
           - *user_admin
           - *host_helsinki
+          - *host_lenovo

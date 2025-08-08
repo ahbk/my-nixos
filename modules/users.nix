@@ -83,13 +83,12 @@ in
           ) eachUser
         );
 
-    age.secrets = mapAttrs' (
+    sops.secrets = mapAttrs' (
       user: cfg:
-      (nameValuePair "linux-passwd-hashed-${user}" {
-        file = ../secrets/linux-passwd-hashed-${user}.age;
-        owner = user;
-        group = user;
-      })
+      (nameValuePair "${user}/pw-hashed") {
+        neededForUsers = true;
+        sopsFile = ../secrets/users.yaml;
+      }
     ) eachUser;
 
     users =
@@ -99,7 +98,7 @@ in
           isNormalUser = true;
           group = user;
           extraGroups = cfg.groups;
-          hashedPasswordFile = config.age.secrets."linux-passwd-hashed-${user}".path;
+          hashedPasswordFile = config.sops.secrets."${user}/pw-hashed".path;
           openssh.authorizedKeys.keyFiles = cfg.keys;
         };
         groups.${user}.gid = config.users.users.${user}.uid;

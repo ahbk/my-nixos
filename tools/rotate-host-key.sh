@@ -24,8 +24,8 @@ usage() {
   echo "  <hostname>              : Name of the host anchor in .sops.yaml (e.g., 'helsinki')."
   echo ""
   echo "Options:"
-  echo "  -f                      : Force generation of a new private key. If omitted, the script"
-  echo "                          : will regenerate public keys from the existing encrypted private key."
+  echo "  -r                      : Force regeneration of a new private key. If omitted, the script"
+  echo "                          : will generate public keys from the existing encrypted private key."
 }
 
 # Function to check for required command-line tools
@@ -45,9 +45,9 @@ check_dependencies() {
 # --- Main Script Logic ---
 
 # 1. Parse Command-Line Arguments
-while getopts "f" opt; do
+while getopts "r" opt; do
   case "$opt" in
-    f)
+    r)
       FORCE_NEW_KEY=true
       ;;
     \?)
@@ -59,7 +59,7 @@ done
 shift $((OPTIND-1))
 
 # 2. Validate Inputs
-if [ "$#" -ne 1 ]; then
+if [ "$#" -ne 1 && "$#" -ne 2 ]; then
   usage
   exit 1
 fi
@@ -97,7 +97,12 @@ if [ "$FORCE_NEW_KEY" = true ]; then
   # --- Force Mode: Generate a new key pair ---
   echo "--- Mode: Forcing new key generation (-f) ---"
   echo "Generating new $SSH_KEY_TYPE SSH key..."
-  ssh-keygen -t "$SSH_KEY_TYPE" -f "$TEMP_SSH_PRIVATE_KEY" -N "" -C "$SSH_KEY_COMMENT"
+  if [ -z $2 ]; then
+    ssh-keygen -t "$SSH_KEY_TYPE" -f "$TEMP_SSH_PRIVATE_KEY" -N "" -C "$SSH_KEY_COMMENT"
+  else
+    sudo cat $2 > $TEMP_SSH_PRIVATE_KEY
+    chmod 600 "$TEMP_SSH_PRIVATE_KEY"
+  fi
   echo "New SSH key generated in temporary directory."
 
   echo "Encrypting the new private key with sops..."

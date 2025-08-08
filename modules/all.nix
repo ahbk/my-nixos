@@ -30,6 +30,7 @@
     ./nix.nix
     ./postgresql.nix
     ./react.nix
+    ./rescue.nix
     ./sendmail.nix
     ./shell.nix
     ./svelte.nix

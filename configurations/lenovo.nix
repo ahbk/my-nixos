@@ -1,3 +1,4 @@
+{ config, ... }:
 let
   users = import ../users.nix;
 in

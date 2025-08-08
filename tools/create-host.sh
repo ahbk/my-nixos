@@ -13,10 +13,14 @@ trap cleanup EXIT
 install -d -m755 "$temp/etc/ssh"
 
 # Decrypt your private key from the password store and copy it to the temporary directory
-SOPS_AGE_KEY_FILE="$1" sops --decrypt keys/ssh-host-$2.enc > "$temp/etc/ssh/ssh_host_ed25519_key"
+sops decrypt keys/ssh-host-$1.enc > "$temp/etc/ssh/ssh_host_ed25519_key"
 
 # Set the correct permissions so sshd will accept the key
 chmod 600 "$temp/etc/ssh/ssh_host_ed25519_key"
 
 # Install NixOS to the host system with our secrets
-nixos-anywhere --extra-files "$temp" --flake '.#'$2 --target-host root@$2.kompismoln.se
+nixos-anywhere \
+  --disk-encryption-keys /secret.key <(sops decrypt --extract '["luks-secret-key"]' secrets/luks.yaml) \
+  --extra-files "$temp" \
+  --flake '.#'$1 \
+  --target-host root@$1.kompismoln.se
