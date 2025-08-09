@@ -72,7 +72,8 @@ in
               }
             ];
           };
-        } // (optionalAttrs (isServer host) { allowedUDPPorts = [ cfg.wg0.port ]; });
+        }
+        // (optionalAttrs (isServer host) { allowedUDPPorts = [ cfg.wg0.port ]; });
         interfaces.wg0 = {
           useDHCP = false;
         };
@@ -117,7 +118,7 @@ in
           };
         };
 
-        networks.wg0 = {
+        networks."10-wg0" = {
           matchConfig.Name = "wg0";
           address = [ "${host.address}/24" ];
           dns = [ "10.0.0.1" ];

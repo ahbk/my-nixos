@@ -7,6 +7,7 @@
     inputs.nixos-mailserver.nixosModules.default
     inputs.nixvim.nixosModules.nixvim
     inputs.disko.nixosModules.disko
+    inputs.nixos-facter-modules.nixosModules.facter
     ./ahbk-cert.nix
     ./backup.nix
     ./collabora.nix

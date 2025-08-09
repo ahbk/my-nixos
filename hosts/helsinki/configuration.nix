@@ -1,16 +1,16 @@
-{ config, ... }:
+{ config, host, ... }:
 let
-  users = import ../users.nix;
+  users = import ../../users.nix;
 in
 {
   imports = [
-    ./helsinki-disko.nix
+    ./disko.nix
   ];
 
   boot = {
     initrd = {
       network.enable = false;
-      secrets."/secret.key" = config.sops.secrets.secret-key.path;
+      secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
     };
     loader.grub.enable = true;
   };
@@ -41,7 +41,8 @@ in
     };
   };
 
-  sops.defaultSopsFile = ../secrets/luks.yaml;
+  sops.defaultSopsFile = ./secrets.yaml;
+  sops.secrets.luks-secret-key = { };
 
   networking = {
     useDHCP = false;

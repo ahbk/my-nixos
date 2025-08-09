@@ -1,8 +1,22 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
-  users = import ../users.nix;
+  users = import ../../users.nix;
 in
 {
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/fcd9e077-268d-4561-bc4c-fc97b01511d7";
+    fsType = "ext4";
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/B837-236C";
+    fsType = "vfat";
+    options = [
+      "fmask=0022"
+      "dmask=0022"
+    ];
+  };
+  networking.useDHCP = lib.mkDefault true;
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
   programs.light.brightnessKeys.enable = true;
@@ -47,17 +61,17 @@ in
     ];
   };
 
+  sops.defaultSopsFile = ./secrets.yaml;
+  sops.secrets.luks-secret-key = { };
+
   boot = {
-    supportedFilesystems = [ "nfs" ];
+    initrd = {
+      secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
+    };
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
-  };
-
-  fileSystems."/mnt/t1/alex" = {
-    device = "stationary.ahbk:/mnt/t1/alex";
-    fsType = "nfs";
   };
 
   swapDevices = [

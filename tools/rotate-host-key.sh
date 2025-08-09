@@ -97,7 +97,7 @@ if [ "$FORCE_NEW_KEY" = true ]; then
   # --- Force Mode: Generate a new key pair ---
   echo "--- Mode: Forcing new key generation (-f) ---"
   echo "Generating new $SSH_KEY_TYPE SSH key..."
-  if [ -z $2 ]; then
+  if [ -z "${2:-}" ]; then
     ssh-keygen -t "$SSH_KEY_TYPE" -f "$TEMP_SSH_PRIVATE_KEY" -N "" -C "$SSH_KEY_COMMENT"
   else
     sudo cat $2 > $TEMP_SSH_PRIVATE_KEY
@@ -107,7 +107,8 @@ if [ "$FORCE_NEW_KEY" = true ]; then
 
   echo "Encrypting the new private key with sops..."
   # Set the SOPS_AGE_KEY_FILE env var for sops to pick up the key
-  sops encrypt --filename-override ssh-host-key "$TEMP_SSH_PRIVATE_KEY" > "$ENCRYPTED_PRIVATE_KEY"
+  sops set ./hosts/$1/secrets.yaml '["ssh-host-key"]' "$(jq -Rs < "$TEMP_SSH_PRIVATE_KEY")"
+
   echo "Encrypted private key saved to '$ENCRYPTED_PRIVATE_KEY'"
 
 else

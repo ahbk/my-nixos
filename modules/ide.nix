@@ -45,10 +45,6 @@ in
       };
     }) eachHMUser;
 
-    virtualisation.docker = {
-      enable = true;
-    };
-
     services.redis.servers = mapAttrs (user: cfg: {
       enable = cfg.redis;
       user = user;

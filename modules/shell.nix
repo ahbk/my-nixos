@@ -51,6 +51,7 @@ in
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${host.system}.default
       inputs.nixos-anywhere.packages.${host.system}.default
+      jq
       yq-go
       ssh-to-age
       sops
