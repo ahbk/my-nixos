@@ -37,8 +37,7 @@ in
 
   config = mkIf cfg.enable {
 
-    age.secrets."api-key-glesys" = {
-      file = ../secrets/api-key-glesys.age;
+    sops.secrets."api-key-glesys" = {
       owner = "root";
       group = "root";
     };
@@ -50,7 +49,7 @@ in
       wantedBy = [ "multi-user.target" ];
       serviceConfig =
         let
-          user = "${cfg.cloudaccount}:$(<${config.age.secrets."api-key-glesys".path})";
+          user = "${cfg.cloudaccount}:$(<${config.sops.secrets."api-key-glesys".path})";
           data = "recordid=${cfg.recordid}&data=$ipv4";
           endpoint = "https://api.glesys.com/domain/updaterecord";
         in

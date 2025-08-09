@@ -1,7 +1,6 @@
 { inputs, ... }:
 {
   imports = [
-    inputs.agenix.nixosModules.default
     inputs.sops-nix.nixosModules.sops
     inputs.home-manager.nixosModules.home-manager
     inputs.nixos-mailserver.nixosModules.default
@@ -10,6 +9,7 @@
     inputs.nixos-facter-modules.nixosModules.facter
     ./ahbk-cert.nix
     ./backup.nix
+    ./backup-server.nix
     ./collabora.nix
     ./desktop-env.nix
     ./django-react.nix

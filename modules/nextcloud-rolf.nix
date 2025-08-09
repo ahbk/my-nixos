@@ -152,7 +152,7 @@ in
         }
       ) eachSite;
 
-      my-nixos.backup.local.paths = flatten (mapAttrsToList (name: cfg: [ cfg.sourceRoot ]) eachSite);
+      my-nixos.backup.km.paths = flatten (mapAttrsToList (name: cfg: [ cfg.sourceRoot ]) eachSite);
 
       systemd.services = lib'.mergeAttrs (name: cfg: {
         "${cfg.appname}-build" = {

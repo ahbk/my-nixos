@@ -9,16 +9,15 @@ let
   inherit (lib)
     filterAttrs
     mapAttrs
-    mapAttrs'
     mkEnableOption
     mkIf
     mkOption
-    nameValuePair
     types
     ;
 
   cfg = config.my-nixos.sendmail;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
+  lib' = (import ../lib.nix) { inherit lib pkgs; };
 
   userOpts = {
     options = {
@@ -39,14 +38,13 @@ in
 
   config = mkIf (eachUser != { }) {
 
-    age.secrets = mapAttrs' (
-      user: cfg:
-      (nameValuePair "mail-plain-${user}" {
-        file = ../secrets/mail-plain-${user}.age;
+    sops.secrets.users = lib'.mergeAttrs (user: cfg: {
+      "${user}/mail-plain" = {
+        sopsFile = ../secrets/users.yaml;
         owner = user;
         group = user;
-      })
-    ) eachUser;
+      };
+    }) eachUser;
 
     programs.msmtp = {
       enable = true;
@@ -60,7 +58,7 @@ in
         auth = true;
         user = "${user}@ahbk.se";
         from = "${user}@ahbk.se";
-        passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets."mail-plain-${user}".path}";
+        passwordeval = "${pkgs.coreutils}/bin/cat ${config.sops.secrets.users."${user}/mail-plain".path}";
       }) eachUser;
     };
   };

@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (lib)
@@ -16,6 +21,7 @@ let
   cfg = config.my-nixos.mailserver;
   relayDomains = filterAttrs (domain: cfg: !cfg.mailbox) cfg.domains;
   mailboxDomains = filterAttrs (domain: cfg: cfg.mailbox) cfg.domains;
+  lib' = (import ../lib.nix) { inherit lib pkgs; };
 in
 {
 
@@ -52,10 +58,9 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
 
-      age.secrets = mapAttrs' (user: _: {
-        name = "mail-hashed-${user}";
-        value = {
-          file = ../secrets/mail-hashed-${user}.age;
+      sops.secrets.users = lib'.mergeAttrs (user: _: {
+        "${user}/mail-hashed" = {
+          sopsFile = ../secrets/users.yaml;
           owner = user;
           group = user;
         };
@@ -73,7 +78,7 @@ in
           name = config.my-nixos.users.${user}.email;
           value = {
             inherit (userCfg) catchAll;
-            hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
+            hashedPasswordFile = config.sops.secrets.users."${user}/mail-hashed".path;
             aliases = config.my-nixos.users.${user}.aliases;
           };
         }) cfg.users;

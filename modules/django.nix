@@ -96,7 +96,7 @@ let
         HOST = cfg.hostname;
         LOG_LEVEL = "WARNING";
         SCHEME = if cfg.ssl then "https" else "http";
-        SECRET_KEY_FILE = config.age.secrets."${cfg.appname}/secret-key".path;
+        SECRET_KEY_FILE = config.sops.secrets."${cfg.appname}/secret-key".path;
         STATE_DIR = stateDir cfg.appname;
       }
       // (optionalAttrs cfg.celery.enable {
@@ -128,7 +128,7 @@ in
 
     environment.systemPackages = mapAttrsToList (name: bin: bin) bins;
 
-    age.secrets = mapAttrs' (
+    sops.secrets = lib'.mergeAttrs (
       name: cfg:
       (nameValuePair "${cfg.appname}/secret-key" {
         file = ../secrets/webapp-key-${cfg.appname}.age;

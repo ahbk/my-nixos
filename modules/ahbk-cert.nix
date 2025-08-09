@@ -23,19 +23,8 @@ in
       (builtins.readFile ../secrets/ahbk-cert.pem)
     ];
 
-    age.secrets = {
-      ahbk-cert = {
-        file = ../secrets/ahbk-cert.age;
-        owner = "root";
-        group = "root";
-        mode = "644";
-      };
-      ahbk-cert-key = {
-        file = ../secrets/ahbk-cert-key.age;
-        owner = "root";
-        group = "root";
-        mode = "644";
-      };
+    sops.secrets.ahbk-cert-key = {
+      mode = "644";
     };
   };
 }

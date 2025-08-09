@@ -38,7 +38,7 @@ in
 
     wireguard.wg0.enable = true;
 
-    backup.local = {
+    backup.km = {
       enable = true;
       target = "backup.ahbk";
     };

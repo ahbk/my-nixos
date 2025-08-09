@@ -30,16 +30,6 @@
     ];
   };
 
-  backup = {
-    enable = true;
-    uid = 2001;
-    name = "Mr. Backup";
-    keys = [
-      ./keys/ssh-user-backup.pub
-      ./keys/ssh-user-alex.pub
-    ];
-  };
-
   johanna = {
     enable = true;
     groups = [ "nextcloud-kompismoln" ];

@@ -144,15 +144,6 @@ in
       ]) eachSite
     );
 
-    age.secrets = mapAttrs' (
-      name: cfg:
-      (nameValuePair "${cfg.appname}-mobilizon" {
-        file = ../secrets/${cfg.appname}-mobilizon.age;
-        owner = cfg.appname;
-        group = cfg.appname;
-      })
-    ) eachSite;
-
     services.restic.backups.local.paths = flatten (
       mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
@@ -210,8 +201,8 @@ in
 
         ${serverName} = {
           forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
-          sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
+          sslCertificate = mkIf cfg.subnet config.sops.secrets.ahbk-cert.path;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets.ahbk-cert-key.path;
           enableACME = !cfg.subnet;
 
           locations = {
@@ -254,10 +245,6 @@ in
           "/var/lib/mobilizon" = {
             isReadOnly = false;
             hostPath = stateDir cfg.appname;
-          };
-          "/run/secrets/mobilizon" = {
-            isReadOnly = true;
-            hostPath = config.age.secrets."${cfg.appname}-mobilizon".path;
           };
         };
 

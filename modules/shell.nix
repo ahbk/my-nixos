@@ -40,7 +40,7 @@ in
     };
   config = mkIf (eachUser != { }) {
 
-    my-nixos.backup.local.paths = flatten (
+    my-nixos.backup.km.paths = flatten (
       mapAttrsToList (user: cfg: [ "/home/${user}/.bash_history" ]) eachUser
     );
 
