@@ -45,6 +45,7 @@ in
       tcpdump
       traceroute
       which
+      wireguard-tools
     ];
 
     programs = {

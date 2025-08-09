@@ -2,6 +2,7 @@
   config,
   host,
   lib,
+  pkgs,
   ...
 }:
 
@@ -12,7 +13,6 @@ let
     mapAttrsToList
     mkEnableOption
     mkIf
-    mkMerge
     mkOption
     optionalAttrs
     types
@@ -40,90 +40,102 @@ in
     };
   };
 
-  config = mkMerge [
-    (mkIf cfg.wg0.enable {
-      services.prometheus = {
-        exporters.wireguard.enable = true;
-        scrapeConfigs = with config.services.prometheus.exporters; [
-          {
-            job_name = "wireguard";
-            static_configs = [
-              {
-                targets = [
-                  "glesys.ahbk:${toString wireguard.port}"
-                  "stationary.ahbk:${toString wireguard.port}"
-                  "laptop.ahbk:${toString wireguard.port}"
-                ];
-              }
-            ];
-          }
-        ];
-      };
-
-      networking = {
-        wireguard.enable = true;
-        networkmanager.unmanaged = [ "interface-name:wg0" ];
-        firewall = {
-          interfaces.wg0 = {
-            allowedTCPPortRanges = [
-              {
-                from = 0;
-                to = 65535;
-              }
-            ];
-          };
+  config = (mkIf cfg.wg0.enable) {
+    services.prometheus = {
+      exporters.wireguard.enable = true;
+      scrapeConfigs = with config.services.prometheus.exporters; [
+        {
+          job_name = "wireguard";
+          static_configs = [
+            {
+              targets = [
+                "glesys.ahbk:${toString wireguard.port}"
+                "stationary.ahbk:${toString wireguard.port}"
+                "laptop.ahbk:${toString wireguard.port}"
+              ];
+            }
+          ];
         }
-        // (optionalAttrs (isServer host) { allowedUDPPorts = [ cfg.wg0.port ]; });
+      ];
+    };
+
+    systemd.services."systemd-networkd".preStop = ''
+      # Force wireguard to restart when systemd-networkd restarts
+      # (old keys remain otherwise)
+      ${pkgs.iproute2}/bin/ip link delete wg0 || true
+    '';
+
+    networking = {
+      wireguard.enable = true;
+      networkmanager.unmanaged = [ "interface-name:wg0" ];
+      firewall = {
         interfaces.wg0 = {
-          useDHCP = false;
+          allowedTCPPortRanges = [
+            {
+              from = 0;
+              to = 65535;
+            }
+          ];
         };
+      }
+      // (optionalAttrs (isServer host) { allowedUDPPorts = [ cfg.wg0.port ]; });
+      interfaces.wg0 = {
+        useDHCP = false;
       };
+    };
 
-      age.secrets."wg-key-${host.name}" = {
-        file = ../secrets/wg-key-${host.name}.age;
-        owner = "systemd-network";
-        group = "systemd-network";
-      };
+    sops.secrets.wg-key = {
+      owner = "systemd-network";
+      group = "systemd-network";
+    };
 
-      systemd.network = {
-        enable = true;
-        netdevs = {
+    systemd.network = {
+      enable = true;
+      netdevs = {
 
-          "10-wg0" = {
-            netdevConfig = {
-              Kind = "wireguard";
-              Name = "wg0";
-            };
-
-            wireguardConfig = (
-              {
-                PrivateKeyFile = config.age.secrets."wg-key-${host.name}".path;
-              }
-              // (if isServer host then { ListenPort = cfg.wg0.port; } else { })
-            );
-
-            wireguardPeers = mapAttrsToList (
-              peerName: peerCfg:
-              {
-                PublicKey = peerCfg.wgKey;
-                AllowedIPs = [ (if isGateway peerCfg then "10.0.0.0/24" else "${peerCfg.address}/32") ];
-              }
-              // (
-                if isServer peerCfg then
-                  { Endpoint = "${peerCfg.publicAddress}:${toString cfg.wg0.port}"; }
-                else
-                  { PersistentKeepalive = cfg.wg0.keepalive; }
-              )
-            ) (filterAttrs (_: cfg: (isPeer cfg) && ((isServer cfg) || (isServer host))) hosts);
+        "10-wg0" = {
+          netdevConfig = {
+            Kind = "wireguard";
+            Name = "wg0";
           };
-        };
 
-        networks."10-wg0" = {
-          matchConfig.Name = "wg0";
-          address = [ "${host.address}/24" ];
-          dns = [ "10.0.0.1" ];
+          wireguardConfig = (
+            {
+              PrivateKeyFile = config.sops.secrets.wg-key.path;
+            }
+            // (if isServer host then { ListenPort = cfg.wg0.port; } else { })
+          );
+
+          wireguardPeers = mapAttrsToList (
+            peerName: peerCfg:
+            {
+              PublicKey = peerCfg.wgKey;
+              AllowedIPs = [ (if isGateway peerCfg then "10.0.0.0/24" else "${peerCfg.address}/32") ];
+            }
+            // (
+              if isServer peerCfg then
+                { Endpoint = "${peerCfg.publicAddress}:${toString cfg.wg0.port}"; }
+              else
+                { PersistentKeepalive = cfg.wg0.keepalive; }
+            )
+          ) (filterAttrs (_: cfg: (isPeer cfg) && ((isServer cfg) || (isServer host))) hosts);
         };
       };
-    })
-  ];
+
+      networks."10-wg0" = {
+        matchConfig.Name = "wg0";
+        address = [ "${host.address}/24" ];
+        dns = [ "10.0.0.1" ];
+      };
+
+      networks."40-wg0" = {
+        matchConfig.Name = "wg0";
+        networkConfig = {
+          Description = "snapshot from nixos-facter hardware detection";
+          # DHCP = "no";
+          # IPv6PrivacyExtensions = "kernel";
+        };
+      };
+    };
+  };
 }
