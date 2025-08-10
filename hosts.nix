@@ -1,5 +1,5 @@
 let
-  key = protocol: name: builtins.readFile ./keys/${protocol}-${name}.pub;
+  key = host: type: builtins.readFile ./keys/${host}-${type}.pub;
 in
 {
 
@@ -17,8 +17,8 @@ in
   laptop = rec {
     name = "laptop";
     hostname = "laptop.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
+    wgKey = key name "wg-key";
+    sshKey = key name "ssh-host-key";
     address = "10.0.0.2";
     system = "x86_64-linux";
     stateVersion = "23.11";
@@ -46,8 +46,8 @@ in
   helsinki = rec {
     name = "helsinki";
     hostname = "helsinki.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
+    wgKey = key name "wg-key";
+    sshKey = key name "ssh-host-key";
     address = "10.0.0.5";
     publicAddress = "helsinki.kompismoln.se";
     system = "x86_64-linux";
@@ -67,8 +67,8 @@ in
   lenovo = rec {
     name = "lenovo";
     hostname = "lenovo.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
+    wgKey = key name "wg-key";
+    sshKey = key name "ssh-host-key";
     address = "10.0.0.7";
     system = "x86_64-linux";
     stateVersion = "24.11";
