@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 usage() {
     cat <<'EOF'
+
 Usage: rotate-keys <host> <action> <type>
 
 Manages encrypted private keys (using sops) and their corresponding public keys for different hosts.
@@ -16,11 +17,21 @@ ARGUMENTS:
                   encrypted into the host's secrets.yaml file, and the
                   public key is saved to 'keys/<host>-<type>.pub'.
                   This will overwrite existing keys.
+
+                  If $PRIVATE_KEY is set it will be used instead of generating
+                  a new key.
+
         - sync:   Decrypts the existing private key from secrets.yaml and uses
                   it to regenerate and overwrite the public key file. This is
                   useful if the public key file is missing or out of date.
+                  This will overwrite existing keys.
+
         - check:  Compares the public key on disk with one generated on-the-fly
                   from the encrypted private key to ensure they match.
+
+        - deploy: Deploys the private key from secrets.yaml to the target host.
+                  This copies the decrypted private key to the host via scp/ssh
+                  using sudo privileges. Only available for ssh-host-key type.
 
   <type>
         The type of key to manage. Must be one of:
@@ -31,7 +42,8 @@ EOF
 }
 
 set -uo pipefail
-set -x
+#set -x
+script_path="$(dirname "${BASH_SOURCE[0]}")"
 
 if [[ $# != 3 ]]; then
     usage
@@ -47,10 +59,22 @@ type=$3
 
 secrets="hosts/$host/secrets.yaml"
 public_key="keys/$host-$type.pub"
+actions=(new sync check deploy)
 
-# check uses exit code to communicate mismatch
-if [[ $action != check ]]; then
-    set -e
+if [ ! -d "$(dirname "$secrets")" ]; then
+    echo "Error: hostname '$host' doesn't exist, did you spell it correctly?"
+    exit 1
+fi
+
+if [[ ! " ${actions[*]} " =~ " $action " ]]; then
+    echo "Error: '$action' is not an action. Allowed actions: ${actions[*]}" >&2
+    usage
+    exit 1
+fi
+
+if [ ! -f "$secrets" ]; then
+    echo "Notice: hostname '$host' doesn't have a secrets.yaml yet, creating..."
+    sops encrypt "$script_path/secrets.template.yaml" >"$secrets"
 fi
 
 # Create a new pair of keys (will overwrite existing)
@@ -60,7 +84,7 @@ new() {
     if [[ -z ${PRIVATE_KEY+x} ]]; then
         "create-private-$type"
     else
-        cat "$PRIVATE_KEY" >"$private_key"
+        copy-private
     fi
 
     "generate-public-$type" >"$public_key"
@@ -69,21 +93,24 @@ new() {
 
 # This overrides `new` when called with type=ssh-host-key
 new-ssh-host-key() {
-    new
+    if [[ -z ${PRIVATE_KEY+x} ]]; then
+        create-private-ssh-host-key
+    else
+        copy-private
+    fi
+
+    generate-public-ssh-host-key >"$public_key"
 
     key=$(ssh-to-age <"$public_key") \
         yq -i "(.keys[] | select(anchor == \"host_$host\")) |= env(key)" .sops.yaml
 
+    encrypt-private
     sops updatekeys -y "$secrets"
 }
 
 # Decrypt existing private file and use it to re-generate the public key
 sync() {
-    if [[ -z ${PRIVATE_KEY+x} ]]; then
-        decrypt-private
-    else
-        cat "$PRIVATE_KEY" >"$private_key"
-    fi
+    decrypt-private
     "generate-public-$type" >"$public_key"
     "encrypt-private"
 }
@@ -95,6 +122,22 @@ sync-ssh-host-key() {
         yq -i "(.keys[] | select(anchor == \"host_$host\")) |= env(key)" .sops.yaml
 
     sops updatekeys -y "$secrets"
+}
+
+deploy-ssh-host-key() {
+    decrypt-private
+
+    temp_key=$(ssh "$host.kompismoln.se" "mktemp")
+    scp "$private_key" "$host.kompismoln.se:$temp_key"
+
+    ssh -t "$host.kompismoln.se" "
+        sudo cp /etc/ssh/ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key- &&
+        sudo cp '$temp_key' /etc/ssh/ssh_host_ed25519_key &&
+        sudo chmod 600 /etc/ssh/ssh_host_ed25519_key &&
+        sudo chown root:root /etc/ssh/ssh_host_ed25519_key &&
+        rm '$temp_key' &&
+        sudo systemctl restart sshd
+    "
 }
 
 check() {
@@ -121,7 +164,7 @@ check() {
 }
 
 check-ssh-host-key() {
-    check
+    check || true
     exit_code="$?"
     echo ""
 
@@ -145,15 +188,24 @@ check-ssh-host-key() {
 }
 
 encrypt-private() {
+    echo "Encrypt private key '$type' in $secrets"
     sops set "$secrets" "[\"$type\"]" "$(jq -Rs <"$private_key")"
 }
 
 decrypt-private() {
+    echo "Decrypt private key '$type' in $secrets"
     sops decrypt --extract "[\"$type\"]" ./hosts/"$host"/secrets.yaml >"$private_key"
 }
 
+copy-private() {
+    echo "Copy private key to $private_key"
+    cat "$PRIVATE_KEY" >"$private_key"
+}
+
 create-private-ssh-host-key() {
-    ssh-keygen -t "ed25519" -f "$private_key" -N "" -C "host-key-$(date +%Y-%m-%d)" <<<y
+    echo "Create private key at $private_key"
+    yes | ssh-keygen -q -t "ed25519" -f "$private_key" -N "" -C "host-key-$(date +%Y-%m-%d)" >/dev/null 2>&1
+    cat "$private_key"
 }
 
 generate-public-ssh-host-key() {
@@ -161,6 +213,7 @@ generate-public-ssh-host-key() {
 }
 
 create-private-wg-key() {
+    echo "Create private key at $private_key"
     wg genkey >"$private_key"
 }
 
@@ -176,4 +229,5 @@ else
     usage
     exit 1
 fi
+
 $fn

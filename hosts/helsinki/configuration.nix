@@ -53,7 +53,7 @@ in
 
   my-nixos = {
     wireguard.wg0.enable = true;
-    rescue.enable = true;
+    sysadm.rescueMode = true;
     users = with users; {
       inherit admin alex;
     };

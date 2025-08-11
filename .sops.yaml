@@ -1,21 +1,32 @@
 keys:
   - &user_admin age1j6r6hexj9f5jtl0rpg5ekcr5ysvwf94mtzzx4hnpmlxvx97xfp3sek95tg
-  - &host_helsinki age1ajaqfrn9n0svlyqh87rm0agypnjm0gkqkn6a9lr6afcng696p4hqt803dt
+  - &host_helsinki age1pqpazkf5urcd24pnc3r5f3cgj94ud8qwtwzwff8mnwc2cusmd3zq8wpdcf
   - &host_lenovo age1n96ardkhhewk6rq4mzmslrl80pk0dnf09vahqd3kj7nccht9m32sj00d2a
+  - &host_laptop age10g0uxdzwp5f6z4dduma2eyzexve8qe8u36x2d9uuq95z44uahslsvv6y2k
 creation_rules:
-  - path_regex: hosts/lenovo/secrets.yaml
+  - path_regex: tools/secrets.template.yaml
     key_groups:
       - age:
           - *user_admin
-          - *host_lenovo
-  - path_regex: hosts/helsinki/secrets.yaml
+  - path_regex: hosts/.*/secrets.yaml
     key_groups:
       - age:
           - *user_admin
-          - *host_helsinki
   - path_regex: secrets/users.yaml
     key_groups:
       - age:
           - *user_admin
           - *host_helsinki
           - *host_lenovo
+  - path_regex: hosts/lenovo/secrets.yaml
+    key_groups:
+      - age:
+          - *host_lenovo
+  - path_regex: hosts/helsinki/secrets.yaml
+    key_groups:
+      - age:
+          - *host_helsinki
+  - path_regex: hosts/laptop/secrets.yaml
+    key_groups:
+      - age:
+          - *host_laptop
