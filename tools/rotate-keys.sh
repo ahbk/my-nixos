@@ -2,6 +2,7 @@
 usage() {
     cat <<'EOF'
 
+    
 Usage: rotate-keys <host> <action> <type>
 
 Manages encrypted private keys (using sops) and their corresponding public keys for different hosts.
@@ -33,21 +34,38 @@ ARGUMENTS:
                   This copies the decrypted private key to the host via scp/ssh
                   using sudo privileges. Only available for ssh-host-key type.
 
+
   <type>
         The type of key to manage. Must be one of:
-        - ssh-host-key: Manages an Ed25519 SSH host key.
-        - wg-key:       Manages a WireGuard private key.
+        - ssh-host-key: Manages a pair of Ed25519 SSH host keys.
+        - wg-key:       Manages a pair of WireGuard private key.
 
 EOF
 }
 
 set -uo pipefail
 #set -x
+#set -e
 script_path="$(dirname "${BASH_SOURCE[0]}")"
+
+RED='\033[0;31m'
+BOLD_RED='\033[1;31m'
+YELLOW='\033[0;33m'
+BOLD_YELLOW='\033[1;33m'
+GREEN='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+NC='\033[0m' # No Color
+
+die() {
+    echo ""
+    echo -e "${BOLD_RED}Error:${RED} $1" >&2
+    echo ""
+    exit 1
+}
 
 if [[ $# != 3 ]]; then
     usage
-    exit 1
+    die "3 arguments required."
 fi
 
 private_key=$(mktemp)
@@ -59,60 +77,98 @@ type=$3
 
 secrets="hosts/$host/secrets.yaml"
 public_key="keys/$host-$type.pub"
-actions=(new sync check deploy)
+actions=(new sync check deploy new-private)
+types=(ssh-host-key wg-key)
 
 if [ ! -d "$(dirname "$secrets")" ]; then
-    echo "Error: hostname '$host' doesn't exist, did you spell it correctly?"
-    exit 1
+    die "hostname '$host' doesn't have an entry in hosts/, did you spell it correctly?"
 fi
 
 if [[ ! " ${actions[*]} " =~ " $action " ]]; then
-    echo "Error: '$action' is not an action. Allowed actions: ${actions[*]}" >&2
-    usage
-    exit 1
+    die "'$action' is not an action. Allowed actions: ${actions[*]} $(usage)" >&2
+fi
+
+if [[ ! " ${types[*]} " =~ " $type " ]]; then
+    die "'$type' is not a valid key type. Allowed key types: ${types[*]} $(usage)" >&2
 fi
 
 if [ ! -f "$secrets" ]; then
-    echo "Notice: hostname '$host' doesn't have a secrets.yaml yet, creating..."
+    echo -e "${BOLD_YELLOW}Notice: ${YELLOW}hostname '$host' doesn't have a secrets.yaml yet, creating...${NC}"
     sops encrypt "$script_path/secrets.template.yaml" >"$secrets"
 fi
+
+# Dispatch to the correct function
+# e.g. rotate-keys helsinki check ssh-host-key -> 1) check-ssh-host-key or 2) check
+main() {
+    if declare -F "$action-$type" >/dev/null 2>&1; then
+        fn="$action-$type"
+    elif declare -F "$action" >/dev/null 2>&1; then
+        fn="$action"
+    else
+        usage
+        exit 1
+    fi
+    $fn
+    echo ""
+    echo -e "${BOLD_GREEN}Rotation completed.${NC}"
+}
+
+try() {
+    local msg=$1
+    shift
+    local output
+    local exit_code
+
+    output=$("$@" 2>&1)
+    exit_code=$?
+
+    if [ $exit_code -ne 0 ]; then
+        if [ -n "$output" ]; then
+            die "$msg (exit $exit_code): $output"
+        else
+            die "$msg (exit $exit_code)"
+        fi
+    fi
+}
+# --- Dispatcher functions ---
 
 # Create a new pair of keys (will overwrite existing)
 # If a key type needs special handling, create a specific
 # function for that type and it will be called instead.
 new() {
+    new-private
+    "generate-public-$type" >"$public_key"
+}
+
+# This overrides `new` when called with type=ssh-host-key
+new-ssh-host-key() {
+    new
+
+    key="$(ssh-to-age <"$public_key")"
+    yq -i "(.keys[] | select(anchor == \"host_$host\")) |= \"$key\"" .sops.yaml
+
+    same_key=$(yq "(.keys[] | select(anchor == \"host_$host\"))" .sops.yaml)
+
+    if [[ "$key" != "$same_key" ]]; then
+        die "anchor 'host_$host' not updated"
+    fi
+
+    update-sops
+}
+
+new-private() {
     if [[ -z ${PRIVATE_KEY+x} ]]; then
         "create-private-$type"
     else
         copy-private
     fi
-
-    "generate-public-$type" >"$public_key"
     encrypt-private
-}
-
-# This overrides `new` when called with type=ssh-host-key
-new-ssh-host-key() {
-    if [[ -z ${PRIVATE_KEY+x} ]]; then
-        create-private-ssh-host-key
-    else
-        copy-private
-    fi
-
-    generate-public-ssh-host-key >"$public_key"
-
-    key=$(ssh-to-age <"$public_key") \
-        yq -i "(.keys[] | select(anchor == \"host_$host\")) |= env(key)" .sops.yaml
-
-    encrypt-private
-    sops updatekeys -y "$secrets"
 }
 
 # Decrypt existing private file and use it to re-generate the public key
 sync() {
     decrypt-private
     "generate-public-$type" >"$public_key"
-    "encrypt-private"
 }
 
 sync-ssh-host-key() {
@@ -121,51 +177,72 @@ sync-ssh-host-key() {
     key=$(ssh-to-age <"$public_key") \
         yq -i "(.keys[] | select(anchor == \"host_$host\")) |= env(key)" .sops.yaml
 
-    sops updatekeys -y "$secrets"
+    update-sops
 }
 
 deploy-ssh-host-key() {
-    decrypt-private
 
-    temp_key=$(ssh "$host.kompismoln.se" "mktemp")
-    scp "$private_key" "$host.kompismoln.se:$temp_key"
+    if ! check || ! check-ssh-host-key-sops; then
+        echo ""
+        echo "Error: Keys are out of sync, run '$0 $host sync ssh-host-key' first" >&2
+        exit 1
+    fi
+
+    if check-ssh-host-key-host; then
+        echo ""
+        echo "Error: Current key is already deployed" >&2
+        exit 1
+    fi
+
+    scp "$private_key" "$host.kompismoln.se:pk"
+    scp "$script_path/deploy-ssh-host-key.sh" "$host.kompismoln.se:"
 
     ssh -t "$host.kompismoln.se" "
-        sudo cp /etc/ssh/ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key- &&
-        sudo cp '$temp_key' /etc/ssh/ssh_host_ed25519_key &&
-        sudo chmod 600 /etc/ssh/ssh_host_ed25519_key &&
-        sudo chown root:root /etc/ssh/ssh_host_ed25519_key &&
-        rm '$temp_key' &&
-        sudo systemctl restart sshd
+        chmod +x deploy-ssh-host-key.sh
+        sudo ./deploy-ssh-host-key.sh
+        rm -f ./pk
+        rm -f ./deploy-ssh-host-key.sh
     "
 }
 
 check() {
     decrypt-private
+    local exit_code=0
+    echo ""
 
     from_encryption=$("generate-public-$type")
     echo "Key from encryption:"
     echo "$from_encryption"
 
+    [[ -f $public_key ]] || die "public key doesn't exist"
     from_file=$(<"$public_key")
     echo "Key from file:"
-    echo "$from_file"
+    echo "${from_file:-[empty]}"
 
-    if [[ "$from_encryption" == "$from_file" ]]; then
-        match=true
-        exit_code=0
-    else
-        match=false
+    match=true
+    if [[ ! "$from_encryption" == "$from_file" ]]; then
         exit_code=1
+        match=false
     fi
-
     echo "Match: $match"
+
     return $exit_code
 }
 
 check-ssh-host-key() {
-    check || true
-    exit_code="$?"
+    local exit_code=0
+    set +e
+    check || exit_code=1
+    check-ssh-host-key-sops || exit_code=1
+    check-ssh-host-key-host || exit_code=1
+    set -e
+
+    echo ""
+    echo "exit code: $exit_code"
+    return $exit_code
+}
+
+check-ssh-host-key-sops() {
     echo ""
 
     from_encryption=$(ssh-to-age <<<"$("generate-public-$type")")
@@ -176,15 +253,37 @@ check-ssh-host-key() {
     echo "Age key from sops:"
     echo "$from_sops"
 
-    if [[ "$from_encryption" == "$from_sops" ]]; then
-        match=true
-    else
+    match=true
+    local exit_code=0
+    if [[ ! "$from_encryption" == "$from_sops" ]]; then
         match=false
         exit_code=1
     fi
-
     echo "Match (.sops.yaml): $match"
-    return $exit_code
+
+    return "$exit_code"
+}
+
+check-ssh-host-key-host() {
+    echo ""
+
+    from_host=$(ssh-keyscan -q "$host.kompismoln.se" | cut -d' ' -f2-3)
+    echo "From host with ssh-keyscan:"
+    echo "$from_host"
+
+    from_file=$(cut -d' ' -f1-2 "$public_key")
+    echo "From file without comment"
+    echo "$from_file"
+
+    match=true
+    local exit_code=0
+    if [[ ! "$from_host" == "$from_file" ]]; then
+        match=false
+        exit_code=1
+    fi
+    echo "Match (host): $match"
+
+    return "$exit_code"
 }
 
 encrypt-private() {
@@ -193,19 +292,26 @@ encrypt-private() {
 }
 
 decrypt-private() {
-    echo "Decrypt private key '$type' in $secrets"
+    echo "Decrypt private key '$type' from $secrets"
     sops decrypt --extract "[\"$type\"]" ./hosts/"$host"/secrets.yaml >"$private_key"
+
+    try "private key invalid" ssh-keygen -l -f "$private_key" >/dev/null
 }
 
 copy-private() {
     echo "Copy private key to $private_key"
-    cat "$PRIVATE_KEY" >"$private_key"
+
+    local content
+    if [[ ! -f $PRIVATE_KEY ]]; then die "'$PRIVATE_KEY' is not a file."; fi
+    content=$(sudo cat "$PRIVATE_KEY")
+    echo "$content" >"$private_key"
+
+    try "private key invalid" ssh-keygen -l -f "$private_key" >/dev/null
 }
 
 create-private-ssh-host-key() {
     echo "Create private key at $private_key"
-    yes | ssh-keygen -q -t "ed25519" -f "$private_key" -N "" -C "host-key-$(date +%Y-%m-%d)" >/dev/null 2>&1
-    cat "$private_key"
+    ssh-keygen -q -t "ed25519" -f "$private_key" -N "" -C "host-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>&1
 }
 
 generate-public-ssh-host-key() {
@@ -221,13 +327,13 @@ generate-public-wg-key() {
     wg pubkey <"$private_key"
 }
 
-if declare -F "$action-$type" >/dev/null 2>&1; then
-    fn="$action-$type"
-elif declare -F "$action" >/dev/null 2>&1; then
-    fn="$action"
-else
-    usage
-    exit 1
-fi
+update-sops() {
+    echo ""
+    echo "Updating secrets with new keys:"
+    sops updatekeys -y "$secrets"
+    sops updatekeys -y "secrets/users.yaml"
+    echo ""
+    echo -e "${BOLD_GREEN}Keys updated."
+}
 
-$fn
+main "$@"

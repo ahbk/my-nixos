@@ -20,8 +20,14 @@ in
     networks."10-lan" = {
       matchConfig.Name = "enp1s0";
       networkConfig = {
-        Address = "65.108.214.112/32";
-        Gateway = "172.31.1.1";
+        Address = [
+          "65.108.214.112/32"
+          "2a01:4f9:c012:e514::/64"
+        ];
+        Gateway = [
+          "172.31.1.1"
+          "fe80::1"
+        ];
         DNS = [
           "185.12.64.1"
           "185.12.64.2"

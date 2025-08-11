@@ -22,7 +22,7 @@ let
   hosts = import ../hosts.nix;
   isGateway = cfg: cfg.name == "stationary";
   isServer = cfg: hasAttr "publicAddress" cfg;
-  isPeer = cfg: hasAttr "wgKey" cfg;
+  isPeer = cfg: hasAttr "address" cfg;
 in
 {
 
@@ -109,7 +109,7 @@ in
           wireguardPeers = mapAttrsToList (
             peerName: peerCfg:
             {
-              PublicKey = peerCfg.wgKey;
+              PublicKey = builtins.readFile ../keys/${peerName}-wg-key.pub;
               AllowedIPs = [ (if isGateway peerCfg then "10.0.0.0/24" else "${peerCfg.address}/32") ];
             }
             // (

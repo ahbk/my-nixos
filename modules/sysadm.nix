@@ -36,7 +36,17 @@ in
           type = "ed25519";
         }
       ];
+
+      system.activationScripts = {
+        successful-decryption = {
+          deps = [ "setupSecrets" ];
+          text = ''
+            date > /var/lib/last-rebuild
+          '';
+        };
+      };
     }
+
     (mkIf (cfg.rescueMode) {
       users.users.root = {
         hashedPassword = "$2b$05$EHOSTmw3WZeWt27ZhQC4c.kaZksxtu0YSYgrImApwxYjuXfonvSUO";
