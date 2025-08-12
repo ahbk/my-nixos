@@ -1,18 +1,23 @@
-{ config, host, ... }:
-let
-  users = import ../../users.nix;
-in
+{ config, users, ... }:
 {
   imports = [
     ./disko.nix
   ];
 
+  sops.secrets.luks-secret-key = { };
   boot = {
     initrd = {
       network.enable = false;
       secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
     };
     loader.grub.enable = true;
+  };
+
+  networking = {
+    useDHCP = false;
+    firewall = {
+      logRefusedConnections = false;
+    };
   };
 
   systemd.network = {
@@ -47,23 +52,32 @@ in
     };
   };
 
-  sops.defaultSopsFile = ./secrets.yaml;
-  sops.secrets.luks-secret-key = { };
-
-  networking = {
-    useDHCP = false;
-    firewall = {
-      logRefusedConnections = false;
-    };
-  };
-
   my-nixos = {
-    wireguard.wg0.enable = true;
     sysadm.rescueMode = true;
+
     users = with users; {
       inherit admin alex;
     };
-  };
 
-  system.stateVersion = "25.05";
+    wireguard.wg0.enable = true;
+
+    mailserver = {
+      enable = true;
+      domain = "kompismoln.se";
+      dkimSelector = "k1";
+
+      users = {
+        admin = { };
+        alex = { };
+      };
+
+      domains = {
+        "kompismoln.se".mailbox = true;
+        "chatddx.com".mailbox = true;
+        "sverigesval.org".mailbox = true;
+        "esse.nu".mailbox = false;
+        "klimatkalendern.nu".mailbox = false;
+      };
+    };
+  };
 }

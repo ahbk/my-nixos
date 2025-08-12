@@ -5,7 +5,7 @@
     name = "Administrator";
     groups = [ "wheel" ];
     keys = [ ./keys/ssh-user-alex.pub ];
-    email = "admin@ahbk.se";
+    email = "admin@kompismoln.se";
   };
 
   alex = {
@@ -17,7 +17,7 @@
       "nginx"
     ];
     keys = [ ./keys/ssh-user-alex.pub ];
-    email = "alex@ahbk.se";
+    email = "alex@kompismoln.se";
     aliases = [
       "dmarc-reports@ahbk.se"
       "postmaster@ahbk.se"

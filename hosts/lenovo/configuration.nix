@@ -1,7 +1,9 @@
-{ config, lib, ... }:
-let
-  users = import ../../users.nix;
-in
+{
+  config,
+  lib,
+  users,
+  ...
+}:
 {
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/fcd9e077-268d-4561-bc4c-fc97b01511d7";
@@ -16,7 +18,43 @@ in
       "dmask=0022"
     ];
   };
-  networking.useDHCP = lib.mkDefault true;
+
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 8192;
+    }
+  ];
+
+  sops.secrets.luks-secret-key = { };
+  boot = {
+    initrd = {
+      secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
+    };
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+  };
+
+  networking = {
+    useDHCP = lib.mkDefault true;
+    nat = {
+      enable = true;
+      internalInterfaces = [ "ve-+" ];
+      externalInterface = "wlp1s0";
+    };
+    networkmanager = {
+      enable = true;
+      unmanaged = [ "interface-name:ve-*" ];
+    };
+    firewall.allowedTCPPorts = [
+      3000
+      5173
+      8000
+    ];
+  };
+
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
   programs.light.brightnessKeys.enable = true;
@@ -40,45 +78,7 @@ in
 
     backup.km = {
       enable = true;
-      target = "backup.ahbk";
+      target = "backup.km";
     };
   };
-
-  networking = {
-    nat = {
-      enable = true;
-      internalInterfaces = [ "ve-+" ];
-      externalInterface = "wlp1s0";
-    };
-    networkmanager = {
-      enable = true;
-      unmanaged = [ "interface-name:ve-*" ];
-    };
-    firewall.allowedTCPPorts = [
-      3000
-      5173
-      8000
-    ];
-  };
-
-  sops.defaultSopsFile = ./secrets.yaml;
-  sops.secrets.luks-secret-key = { };
-
-  boot = {
-    initrd = {
-      secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
-    };
-    loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-    };
-  };
-
-  swapDevices = [
-    {
-      device = "/swapfile";
-      size = 8192;
-    }
-  ];
-
 }

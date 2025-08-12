@@ -1,6 +1,7 @@
 {
   config,
   host,
+  hosts,
   lib,
   pkgs,
   ...
@@ -19,7 +20,6 @@ let
     ;
 
   cfg = config.my-nixos.wireguard;
-  hosts = import ../hosts.nix;
   isGateway = cfg: cfg.name == "stationary";
   isServer = cfg: hasAttr "publicAddress" cfg;
   isPeer = cfg: hasAttr "address" cfg;

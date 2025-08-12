@@ -27,6 +27,9 @@
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
     nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixos-cli.url = "github:nix-community/nixos-cli";
+    nixos-cli.inputs.nixpkgs.follows = "nixpkgs";
+
     sverigesval-sync.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
     sverigesval-sync.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -50,8 +53,14 @@
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      ids = import ./ids.nix;
 
+      ids = import ./ids.nix;
+      users = import ./users.nix;
+      hosts = import ./hosts.nix;
+      lib' = (import ./lib.nix) {
+        inherit pkgs;
+        lib = nixpkgs.lib;
+      };
     in
     rec {
       homeConfigurations = mapAttrs (
@@ -73,16 +82,23 @@
         name: cfg:
         nixosSystem {
           specialArgs = {
-            inherit inputs ids;
+            inherit
+              inputs
+              ids
+              users
+              hosts
+              lib'
+              ;
             host = cfg;
           };
           modules = [
             ./modules/all.nix
             { facter.reportPath = ./hosts/${cfg.name}/facter.json; }
             ./hosts/${cfg.name}/configuration.nix
+            { sops.defaultSopsFile = ./hosts/${cfg.name}/secrets.yaml; }
           ];
         }
-      ) (import ./hosts.nix);
+      ) (hosts);
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         packages = [

@@ -13,7 +13,7 @@ trap cleanup EXIT
 install -d -m755 "$temp/etc/ssh"
 
 # Decrypt your private key from the password store and copy it to the temporary directory
-sops decrypt --extract '["ssh-host-key"]' ./hosts/"$1"/secrets.yaml >"$temp/etc/ssh/ssh_host_ed25519_key"
+sops decrypt --extract '["ssh-key"]' ./hosts/"$1"/secrets.yaml >"$temp/etc/ssh/ssh_host_ed25519_key"
 
 # Set the correct permissions so sshd will accept the key
 chmod 600 "$temp/etc/ssh/ssh_host_ed25519_key"

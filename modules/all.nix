@@ -7,6 +7,8 @@
     inputs.nixvim.nixosModules.nixvim
     inputs.disko.nixosModules.disko
     inputs.nixos-facter-modules.nixosModules.facter
+    inputs.nixos-facter-modules.nixosModules.facter
+    inputs.nixos-cli.nixosModules.nixos-cli
     ./ahbk-cert.nix
     ./backup.nix
     ./backup-server.nix
