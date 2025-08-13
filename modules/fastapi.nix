@@ -179,7 +179,7 @@ in
       };
     }) eachSite;
 
-    services.restic.backups.local.paths = flatten (
+    my-nixos.backup.km.local.paths = flatten (
       mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
 

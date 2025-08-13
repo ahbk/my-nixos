@@ -7,7 +7,7 @@ keys:
   - &host-friday age1jzztt2yus45ehsy27vw9pfw42mcfr2swttduy0hqlfawej7ydczsx2ua0c
   - &host-glesys age18lyyvydaj58v0ysqe7ptq5j70zq8pfzjga5w0vvceejhagmutv5suc2ned
   - &host-phone age18uw7lxqzaqc4qm5ule2n4kzuzjxc2necau59v0x6rn4am06j857q8rgmeu
-  - &host-stationary age19x6nu698a72dwv9x4rcpxgas785cxnl67jh8pgqapdqg4mzldghs7jkeqs
+  - &host-stationary age12d6wk698ggscne9jz8fll6lt6auv6ekxsfejwa54578k7zpfechq8r07dw
 creation_rules:
   - path_regex: hosts/stationary/secrets.yaml
     key_groups:

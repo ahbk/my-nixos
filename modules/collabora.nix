@@ -28,12 +28,13 @@ in
   };
 
   config = mkIf cfg.enable {
-    my-nixos.ahbk-cert.enable = true;
+    my-nixos.tls-certs = [ "km" ];
 
     services.nginx.virtualHosts.${cfg.host} = {
       forceSSL = true;
-      sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
-      sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
+      sslCertificate = mkIf cfg.subnet ../domains/km-tls-cert.pem;
+      sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+
       enableACME = !cfg.subnet;
 
       locations = {
@@ -88,7 +89,7 @@ in
     services.collabora-online = {
       enable = true;
       aliasGroups = map (host: {
-        host = "https://nextcloud.ahbk";
+        host = "https://nextcloud.km";
       }) cfg.allowedHosts;
 
       settings = {

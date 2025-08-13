@@ -29,7 +29,7 @@ in
 
     sendmail.alex.enable = true;
 
-    backup.local = {
+    backup.km = {
       enable = true;
       target = "backup.ahbk";
     };

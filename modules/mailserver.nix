@@ -132,7 +132,7 @@ in
           };
         };
 
-        restic.backups.local.paths = [
+        restic.backups.km.paths = [
           config.mailserver.dkimKeyDirectory
           config.mailserver.mailDirectory
         ];

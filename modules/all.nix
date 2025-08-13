@@ -9,7 +9,7 @@
     inputs.nixos-facter-modules.nixosModules.facter
     inputs.nixos-facter-modules.nixosModules.facter
     inputs.nixos-cli.nixosModules.nixos-cli
-    ./ahbk-cert.nix
+    ./tls-certs.nix
     ./backup.nix
     ./backup-server.nix
     ./collabora.nix

@@ -118,7 +118,7 @@ in
       ]) eachSite
     );
 
-    sops.secrets = lib.mergeAttrs' (name: cfg: {
+    sops.secrets = lib'.mergeAttrs (name: cfg: {
       "${cfg.appname}/admin-password" = {
         owner = cfg.appname;
         group = cfg.appname;

@@ -27,7 +27,7 @@ in
     services.restic.server = {
       enable = true;
       prometheus = true;
-      listenAddress = toString cfg.km.port;
+      listenAddress = toString cfg.port;
       extraFlags = [ "--no-auth" ];
     };
   };

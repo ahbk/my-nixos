@@ -6,6 +6,17 @@ Usage: rotate-keys -h <host> <action> <type>
        rotate-keys -u <user> <action> <type>
        rotate-keys -d <domain> <action> <type>
 
+actions:      new | sync | check | deploy
+host types:   ssh-key | wg-key
+user types:   ssh-key | passwd | mail
+domain types: tls-cert
+
+EOF
+}
+
+usage-full() {
+    usage
+    cat <<'EOF'
 Manages sops-encrypted secrets (private keys, passwords) and their corresponding
 public components for hosts and users within the repository.
 
@@ -132,17 +143,21 @@ die() {
     exit 1
 }
 
-if [[ $# != 4 ]]; then
-    die "wrong number of arguments provided." usage
-fi
-
 case $1 in
 -h | -u | -d)
     mode=$1
     shift
     ;;
+--help)
+    usage-full
+    exit 0
+    ;;
 *) die "invalid flag: $1" usage ;;
 esac
+
+if [[ $# != 3 ]]; then
+    die "wrong number of arguments provided." usage
+fi
 
 private_key=$(mktemp)
 trap 'rm -f "$private_key"' EXIT
@@ -303,6 +318,10 @@ user::sync::passwd() {
     encrypt::passwd "$(cat "$private_key")" "$salt"
 }
 
+user::sync::mail() {
+    user::sync::passwd
+}
+
 check() {
     decrypt
     local exit_code=0
@@ -384,6 +403,10 @@ user::check::passwd() {
     fi
 
     return $exit_code
+}
+
+user::check::mail() {
+    user::check::passwd
 }
 
 domain::check::tls-cert() {

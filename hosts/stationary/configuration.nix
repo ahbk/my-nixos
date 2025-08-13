@@ -138,12 +138,13 @@
       mysql = true;
     };
 
-    km-cert.enable = true;
+    tls-certs = [ "km" ];
 
-    backup.local = {
+    backup-server.enable = true;
+
+    backup.km = {
       enable = true;
-      target = "backup.ahbk";
-      server = true;
+      target = "backup.km";
     };
 
     monitor.enable = true;
@@ -191,6 +192,6 @@
       email = users.alex.email;
     };
 
-    wordpress.sites."esse_test" = (import ../sites.nix)."esse_test";
+    wordpress.sites."esse_test" = (import ../../sites.nix)."esse_test";
   };
 }

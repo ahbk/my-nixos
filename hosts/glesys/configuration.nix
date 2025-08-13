@@ -121,7 +121,7 @@ in
       ];
     };
 
-    backup.local = {
+    backup.km = {
       enable = true;
       target = "backup.ahbk";
     };

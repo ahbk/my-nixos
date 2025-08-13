@@ -144,7 +144,7 @@ in
       ]) eachSite
     );
 
-    services.restic.backups.local.paths = flatten (
+    services.restic.backups.km.paths = flatten (
       mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
 
