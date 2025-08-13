@@ -60,6 +60,7 @@
   programs.light.brightnessKeys.enable = true;
 
   my-nixos = {
+    sysadm.rescueMode = true;
     users = with users; {
       inherit admin alex;
     };

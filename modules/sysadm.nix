@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  hosts,
+  lib,
+  ...
+}:
 let
   inherit (lib)
     mapAttrs
@@ -8,7 +13,6 @@ let
     mkForce
     ;
   cfg = config.my-nixos.sysadm;
-  hosts = import ../hosts.nix;
 in
 {
   options.my-nixos.sysadm = {
@@ -23,7 +27,7 @@ in
           "${host}.km"
           cfg.address
         ];
-        publicKeyFile = ../keys/${host}-ssh-host-key.pub;
+        publicKeyFile = ../hosts/${host}/ssh-key.pub;
       }) hosts;
 
       services.openssh.hostKeys = [

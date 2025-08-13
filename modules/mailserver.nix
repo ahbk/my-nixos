@@ -65,16 +65,21 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
 
-      sops.secrets.users = lib'.mergeAttrs (user: _: {
+      sops.secrets = lib'.mergeAttrs (user: _: {
         "${user}/mail-hashed" = {
-          sopsFile = ../secrets/users.yaml;
+          sopsFile = ../users/${user}-enc.yaml;
           owner = user;
           group = user;
+          restartUnits = [
+            "dovecot2.service"
+            "postfix.service"
+          ];
         };
       }) cfg.users;
 
       mailserver = {
         enable = true;
+        stateVersion = 3;
         fqdn = "mail.${cfg.domain}";
         dkimSelector = cfg.dkimSelector;
         domains = mapAttrsToList (domain: _: domain) mailboxDomains;
@@ -85,7 +90,7 @@ in
           name = config.my-nixos.users.${user}.email;
           value = {
             inherit (userCfg) catchAll;
-            hashedPasswordFile = config.sops.secrets.users."${user}/mail-hashed".path;
+            hashedPasswordFile = config.sops.secrets."${user}/mail-hashed".path;
             aliases = config.my-nixos.users.${user}.aliases;
           };
         }) cfg.users;
@@ -127,10 +132,10 @@ in
           };
         };
 
-        #restic.backups.local.paths = with config.mailserver; [
-        #  dkimKeyDirectory
-        #  mailDirectory
-        #];
+        restic.backups.local.paths = [
+          config.mailserver.dkimKeyDirectory
+          config.mailserver.mailDirectory
+        ];
 
       };
     })

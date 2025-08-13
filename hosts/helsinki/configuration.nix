@@ -53,13 +53,21 @@
   };
 
   my-nixos = {
-    sysadm.rescueMode = true;
-
     users = with users; {
       inherit admin alex;
     };
 
     wireguard.wg0.enable = true;
+
+    nginx = {
+      enable = true;
+      email = users.admin.email;
+    };
+
+    backup.km = {
+      enable = true;
+      target = "stationary.km";
+    };
 
     mailserver = {
       enable = true;

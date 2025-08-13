@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  pkgs,
+  lib',
   ...
 }:
 
@@ -18,7 +18,6 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.users;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
@@ -85,9 +84,9 @@ in
 
     sops.secrets = mapAttrs' (
       user: cfg:
-      (nameValuePair "${user}/pw-hashed") {
+      (nameValuePair "${user}/passwd-hashed") {
         neededForUsers = true;
-        sopsFile = ../secrets/users.yaml;
+        sopsFile = ../users/${user}-enc.yaml;
       }
     ) eachUser;
 
@@ -98,7 +97,7 @@ in
           isNormalUser = true;
           group = user;
           extraGroups = cfg.groups;
-          hashedPasswordFile = config.sops.secrets."${user}/pw-hashed".path;
+          hashedPasswordFile = config.sops.secrets."${user}/passwd-hashed".path;
           openssh.authorizedKeys.keyFiles = cfg.keys;
         };
         groups.${user}.gid = config.users.users.${user}.uid;

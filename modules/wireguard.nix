@@ -109,7 +109,7 @@ in
           wireguardPeers = mapAttrsToList (
             peerName: peerCfg:
             {
-              PublicKey = builtins.readFile ../keys/${peerName}-wg-key.pub;
+              PublicKey = builtins.readFile ../hosts/${peerName}/wg-key.pub;
               AllowedIPs = [ (if isGateway peerCfg then "10.0.0.0/24" else "${peerCfg.address}/32") ];
             }
             // (
