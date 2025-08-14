@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
+
+set -uo pipefail
+shopt -s globstar
+
 usage() {
     cat <<'EOF'
 
 Usage: rotate-keys -h <host> <action> <type>
        rotate-keys -u <user> <action> <type>
        rotate-keys -d <domain> <action> <type>
+       rotate-keys updatekeys
 
-actions:      new | sync | check | deploy
+actions:      new | sync | check | sideload
 host types:   ssh-key | wg-key
 user types:   ssh-key | passwd | mail
 domain types: tls-cert
@@ -55,7 +60,7 @@ ARGUMENTS:
                     For SSH keys, it performs additional checks against the
                     '.sops.yaml' configuration and the remote host.
 
-        - deploy:   [Host Mode, ssh-key only] Deploys the decrypted private
+        - sideload:   [Host Mode, ssh-key only] Deploys the decrypted private
                     SSH key to the target host's '/etc/ssh/' directory via scp/ssh.
                     Requires remote sudo privileges.
 
@@ -76,7 +81,7 @@ ARGUMENTS:
         - tls-cert:
 
 ENVIRONMENT VARIABLES:
-  PRIVATE_KEY
+  SECRET
         When running the 'new' action, if this variable is set to a file
         path, the script will use the content of that file as the private
         key instead of generating a new one.
@@ -87,13 +92,13 @@ EXAMPLES:
 
   # Use an existing private SSH to renew key pair for 'server01' and update
   # sops recipients
-  PRIVATE_KEY=./ssh_host_ed25519_key rotate-keys -h server01 new ssh-key
+  SECRET=./ssh_host_ed25519_key rotate-keys -h server01 new ssh-key
 
   # Check if all keys for 'server01' (on disk, in sops, on host) match
   rotate-keys -h server01 check ssh-key
 
   # Deploy the verified host key to 'server01'
-  rotate-keys -h server01 deploy ssh-key
+  rotate-keys -h server01 sideload ssh-key
 
   # Set a new password for user 'jane'
   rotate-keys -u jane new passwd
@@ -104,239 +109,280 @@ EXAMPLES:
 EOF
 }
 
-set -uo pipefail
-shopt -s globstar
-#set -x
-script_path="$(dirname "${BASH_SOURCE[0]}")"
+log() {
+    echo "${FUNCNAME[1]}: $1"
+}
 
-RN='\033[0;31m'
-RB='\033[1;31m'
-GN='\033[0;32m'
-GB='\033[1;32m'
-YN='\033[0;33m'
-YB='\033[1;33m'
-NC='\033[0m'
-
-try() {
-    local msg=$1
-    shift
-    local output
-    local exit_code
-
-    output=$("$@" 2>&1)
-    exit_code=$?
-
-    if [ $exit_code -ne 0 ]; then
-        if [ -n "$output" ]; then
-            die "$msg (exit $exit_code): $output"
-        else
-            die "$msg (exit $exit_code)"
-        fi
-    fi
+warning() {
+    echo
+    echo -e "${YB}Warning:${YN} $1${NC}"
+    echo
 }
 
 die() {
-    echo ""
+    echo
     echo -e "${RB}Error:${RN} $1${NC}" >&2
-    echo ""
-    [[ -n ${2+x} ]] && $2
-    exit 1
+    echo
+    [[ -n ${3+x} ]] && $3
+    exit "$2"
 }
 
-case $1 in
--h | -u | -d)
-    mode=$1
-    shift
-    ;;
---help)
-    usage-full
-    exit 0
-    ;;
-*) die "invalid flag: $1" usage ;;
-esac
-
-if [[ $# != 3 ]]; then
-    die "wrong number of arguments provided." usage
-fi
-
-private_key=$(mktemp)
-trap 'rm -f "$private_key"' EXIT
-
-entity=$1 # The name of the host/user/domain entity
-action=$2
-type=$3
-
-case $mode in
--h)
-    mode="host"
-    host=$1
-    secrets="hosts/$host/secrets.yaml"
-    public_key="hosts/$host/$type.pub"
-    actions=(new sync check deploy new-private)
-    types=(ssh-key wg-key)
-    ;;
--u)
-    mode="user"
-    user=$1
-    secrets="users/$user-enc.yaml"
-    public_key="users/$user-$type.pub"
-    actions=(new sync check)
-    types=(ssh-key passwd mail)
-    ;;
--d)
-    mode="domain"
-    domain=$1
-    secrets="domains/$domain-enc.yaml"
-    public_key="domains/$domain-$type.pem"
-    actions=(new sync check)
-    types=(tls-cert)
-    ;;
-esac
-
-if [[ ! " ${actions[*]} " =~ " $action " ]]; then
-    die "'$action' is not an action. Allowed actions: ${actions[*]}" usage
-fi
-
-if [[ ! " ${types[*]} " =~ " $type " ]]; then
-    die "'$type' is not a valid key type. Allowed key types: ${types[*]}" usage
-fi
-
-if [ ! -f "$secrets" ]; then
-    die "no file found in '$secrets' did you spell $mode correctly?"
-fi
-
-# Dispatch to the correct function
-# Navigate this script by searching for the action followed by (
-# e.g. 'check(', all overrides are found bellow it.
-#
-main() {
-    for fn in \
-        "$mode::$action::$type" \
-        "$mode::$action" \
-        "$action::$type" \
-        "$action"; do
-        if declare -F "$fn" >/dev/null; then
-            break
-        fi
-        fn=""
-    done
-
-    [ -n "$fn" ] || die "no function found for $mode::$action::$type"
-
-    $fn
-    exit_code=$?
-
-    echo ""
-    echo -e "${GB}$action completed."
-
-    if [[ $exit_code == 0 ]]; then
-        echo -e "${GN}exit code: $exit_code"
-    else
-        echo -e "${RN}exit code: $exit_code"
-    fi
-}
-# --- Dispatcher functions ---
-
-# Create a new pair of keys (will overwrite existing)
-# If a key type needs special handling, create a specific
-# function for that type and it will be called instead.
-new() {
-    new-private
-    "generate-public::$type" >"$public_key"
-}
-
-# This overrides `new` when called with type=ssh-key
-new::ssh-key() {
-    new
-
-    local key current_key
-
-    current_key=$(yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml)
-
-    if [[ -z $current_key ]]; then
-        die "anchor '$mode-$entity' missing in .sops.yaml, add it and run again."
-    fi
-
-    key="$(ssh-to-age <"$public_key")"
-    yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$key\"" .sops.yaml
-
-    current_key=$(yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml)
-
-    if [[ "$key" != "$current_key" ]]; then
-        die "anchor '$mode-$entity' not updated"
-    fi
-
-    update-sops
-}
-
-user::new::passwd() {
-    read -r -p "Enter password: " password
-    encrypt::passwd "$password"
-}
-
-user::new::mail() {
-    user::new::passwd
-}
-
-new-private() {
-    if [[ -n ${PRIVATE_KEY+x} ]]; then
-        copy-private
-    else
-        "create-private::$type"
-    fi
-    encrypt "$(cat "$private_key")"
-}
-
-# Decrypt existing private file and use it to re-generate the public key
-sync() {
-    decrypt
-    "generate-public::$type" >"$public_key"
-}
-
-sync::ssh-key() {
-    sync
-
-    key=$(ssh-to-age <"$public_key") \
-        yq -i "(.keys[] | select(anchor == \"host_$host\")) |= env(key)" .sops.yaml
-
-    update-sops
-}
-
-user::sync::passwd() {
-    local hash salt
-
-    if user::check::passwd; then
-        echo "Already in sync"
+post-cmd() {
+    if [[ $1 -eq 0 ]]; then
+        [[ -n ${3+x} ]] && echo "$3"
         return 0
     fi
 
-    type=$type-hashed decrypt
-    hash=$(cat "$private_key")
-    salt=$(awk -F'$' '{print $3}' "$private_key")
+    if [[ -n ${2+x} ]]; then
+        echo -e "${RB}Error: ${RN}$2${NC}"
+    else
+        local fn="${FUNCNAME[1]}"
+        echo -e "${RB}Error: ${RN}$fn failed.${NC}"
+    fi
 
-    decrypt
-    encrypt::passwd "$(cat "$private_key")" "$salt"
+    exit "$1"
 }
 
+setup() {
+    RN='\033[0;31m'
+    RB='\033[1;31m'
+    GN='\033[0;32m'
+    GB='\033[1;32m'
+    YN='\033[0;33m'
+    YB='\033[1;33m'
+    NC='\033[0m'
+
+    case $1 in
+    -h | -u | -d)
+        [[ $# == 4 ]] || die "wrong number of arguments provided." 1 usage
+        mode=$1
+        entity=$2
+        action=$3
+        type=$4
+        ;;
+    --help)
+        usage-full
+        exit 0
+        ;;
+    updatekeys)
+        updatekeys
+        exit 0
+        ;;
+    *) die "invalid flag: $1" 1 usage ;;
+    esac
+
+    script_path="$(dirname "${BASH_SOURCE[0]}")"
+    private_file=$(mktemp)
+    trap 'rm -f "$private_file"' EXIT
+
+    actions=(new sync check)
+
+    case $mode in
+    -h)
+        mode="host"
+        host=$entity
+        types=(ssh-key wg-key)
+        secrets_file="hosts/$host/secrets.yaml"
+        ;;
+    -u)
+        mode="user"
+        user=$entity
+        types=(ssh-key passwd mail)
+        secrets_file="users/$user-enc.yaml"
+        ;;
+    -d)
+        mode="domain"
+        domain=$entity
+        types=(tls-cert)
+        secrets_file="domains/$domain-enc.yaml"
+        ;;
+    esac
+
+    case "$mode::$type" in
+    host::ssh-key)
+        public_file="hosts/$host/$type.pub"
+        actions+=(new-private sideload)
+        ;;
+    host::wg-key)
+        public_file="hosts/$host/$type.pub"
+        actions+=(new-private)
+        ;;
+    user::ssh-key)
+        public_file="users/$user-$type.pub"
+        actions+=(new-private)
+        ;;
+    domain::tls-cert)
+        public_file="domains/$domain-$type.pem"
+        ;;
+    esac
+}
+
+secrets_path() {
+    local path
+    case "$mode" in
+    host) path="[\"$type\"]" ;;
+    user) path="[\"$entity\"][\"$type\"]" ;;
+    domain) path="[\"$entity\"][\"$type\"]" ;;
+    esac
+    echo "$path"
+}
+
+validate() {
+    if [[ ! " ${actions[*]} " =~ " $action " ]]; then
+        die "'$action' is not an action. Allowed actions: ${actions[*]}" 1 usage
+    fi
+
+    if [[ ! " ${types[*]} " =~ " $type " ]]; then
+        die "'$type' is not a valid key type. Allowed key types: ${types[*]}" 1 usage
+    fi
+
+    if [ ! -f "$secrets_file" ]; then
+        die "no file found in '$secrets_file', did you spell $mode correctly?" 1
+    fi
+}
+
+fn-exists() {
+    declare -F "$run" >/dev/null
+}
+
+cmd-not-found() {
+    echo "no function found for $mode::$action::$type" >&2
+    return 127
+}
+
+# Function dispatcher array - lists functions in priority order until one exists
+# Pattern: most specific -> least specific -> fallback
+#   1. mode::action::type  (e.g., "host::new::ssh-key")
+#   2. mode::action        (e.g., "host::new")
+#   3. action::type        (e.g., "new::ssh-key")
+#   4. action              (e.g., "new")
+#   5. cmd-not-found       (fallback handler)
+dispatch() {
+    dispatcher=(
+        "$mode::$action::$type"
+        "$mode::$action"
+        "$action::$type"
+        "$action"
+        cmd-not-found
+    )
+    for run in "${dispatcher[@]}"; do
+        #log $run
+        fn-exists && break
+    done
+    $run
+}
+
+main() {
+    setup "$@" && validate && dispatch
+
+    exit_code=$?
+
+    echo
+    echo -e "${GB}$action completed.${NC}"
+
+    if [[ $exit_code == 0 ]]; then
+        echo -e "${GN}exit code: $exit_code${NC}"
+    else
+        echo -e "${RN}exit code: $exit_code${NC}"
+    fi
+}
+
+# DISPATCHABLE FUNCTIONS START HERE
+
+# --- *::new::*
+# See new-private + sync
+
+new() {
+    action=new-private dispatch
+    action=sync dispatch
+}
+
+# --- *::new-private::*
+# Generate/copy a private resource then validate and encrypt it
+
+new-private() {
+    if [[ -n ${SECRET+x} ]]; then
+        action=copy-private dispatch
+    else
+        action=create-private dispatch
+    fi
+    encrypt
+}
+
+# --- *::sync::*
+# Decrypt a private resource and use it to generate and save/replace a public key
+
+sync() {
+    decrypt
+    action=generate-public dispatch >"$public_file"
+}
+
+# SSH keys are also used for encryption so in addition to normal sync we'll
+# need to update .sops.yaml.
+# TODO: when script is stabilized, update only if anchor differs
+sync::ssh-key() {
+    sync
+
+    local age_key new_age_key
+
+    age_key="$(ssh-to-age <"$public_file")"
+
+    set-anchor "$age_key"
+    new_age_key=$(get-anchor)
+
+    if [[ -z "$new_age_key" ]]; then
+        warning "ssh-key '$mode-$entity' doesn't have an anchor in .sops.yaml."
+        return 0
+    fi
+
+    if [[ "$age_key" != "$new_age_key" ]]; then
+        die "unexpected code path, '$mode-$entity' was not correctly updated."
+    else
+        updatekeys
+    fi
+}
+
+# Linux passwords are famously hashed so we need to encrypt both plain and
+# hashed format and keep them in sync.
+user::sync::passwd() {
+    decrypt
+
+    cp "$private_file" "$private_file.plain"
+    mkpasswd -sm sha-512 <"$private_file" >"$private_file.hash"
+    cp "$private_file.hash" "$private_file"
+
+    type=$type-hashed encrypt
+    cp "$private_file.plain" "$private_file"
+}
+
+# nixos-mailserver uses linux-like password management
 user::sync::mail() {
     user::sync::passwd
 }
 
-check() {
-    decrypt
-    local exit_code=0
-    echo ""
+# --- *::check::*
+# Verify that private and public keys match and returns exit code 0 if in sync
+# and 1 otherwise
 
-    from_encryption=$("generate-public::$type")
+check() {
+    local \
+        exit_code=0 \
+        match=true \
+        from_encryption \
+        from_file
+
+    decrypt
+    echo
+
+    from_encryption=$(action=generate-public dispatch)
     echo "Key from encryption:"
     echo "$from_encryption"
 
-    [[ -f $public_key ]] || die "public key doesn't exist"
-    from_file=$(<"$public_key")
+    [[ -f $public_file ]] || die "public key doesn't exist"
+    from_file=$(<"$public_file")
     echo "Key from file:"
     echo "${from_file:-[empty]}"
 
-    match=true
     if [[ ! "$from_encryption" == "$from_file" ]]; then
         exit_code=1
         match=false
@@ -346,17 +392,19 @@ check() {
     return $exit_code
 }
 
+# Users need to check .sops.yaml as well
 user::check::ssh-key() {
     local exit_code=0
 
     check || exit_code=1
     check::ssh-key--sops || exit_code=1
 
-    echo ""
+    echo
     echo "exit code: $exit_code"
     return $exit_code
 }
 
+# Hosts need to check .sops.yaml like users and also the live host
 host::check::ssh-key() {
     local exit_code=0
 
@@ -364,11 +412,12 @@ host::check::ssh-key() {
     check::ssh-key--sops || exit_code=1
     check::ssh-key--host || exit_code=1
 
-    echo ""
+    echo
     echo "exit code: $exit_code"
     return $exit_code
 }
 
+# Password and hashed password should match
 user::check::passwd() {
     local \
         match=true \
@@ -378,13 +427,13 @@ user::check::passwd() {
         expected_hash
 
     type=$type-hashed decrypt
-    hash=$(cat "$private_key")
-    salt=$(awk -F'$' '{print $3}' "$private_key")
+    hash=$(cat "$private_file")
+    salt=$(awk -F'$' '{print $3}' "$private_file")
 
     decrypt
-    expected_hash=$(mkpasswd -m sha-512 -S "$salt" "$(cat "$private_key")")
+    expected_hash=$(mkpasswd -m sha-512 -S "$salt" "$(cat "$private_file")")
 
-    echo ""
+    echo
     echo "Expected hash:"
     echo "$expected_hash"
     echo "Actual hash:"
@@ -395,7 +444,7 @@ user::check::passwd() {
         match=false
     fi
 
-    echo ""
+    echo
     if [[ $exit_code == 0 ]]; then
         echo -e "${GB}Match: ${GN}$match${NC}"
     else
@@ -413,18 +462,18 @@ domain::check::tls-cert() {
     decrypt
     local exit_code=0 match=true
 
-    echo ""
-    if openssl x509 -in "$public_key" -checkend 2592000 >/dev/null 2>&1; then
+    echo
+    if openssl x509 -in "$public_file" -checkend 2592000 >/dev/null 2>&1; then
         echo "Certificate is still valid for 30 days."
     else
         echo "Certificate will expire within 30 days or is already expired."
         match=false
     fi
 
-    san_from_cert=$(openssl x509 -in "$public_key" -noout -ext subjectAltName 2>/dev/null |
+    san_from_cert=$(openssl x509 -in "$public_file" -noout -ext subjectAltName 2>/dev/null |
         grep -E "DNS:" | sed 's/.*DNS://g' | tr ',' '\n' | sort)
 
-    echo ""
+    echo
     echo "Expected SAN:"
     echo "$domain"
     echo "Certificate SAN:"
@@ -435,13 +484,13 @@ domain::check::tls-cert() {
         match=false
     fi
 
-    echo ""
-    private_pubkey=$(openssl pkey -in "$private_key" -pubout)
+    echo
+    private_pubkey=$(openssl pkey -in "$private_file" -pubout)
     echo "Private public key:"
     echo "$private_pubkey"
 
-    echo ""
-    cert_pubkey=$(openssl x509 -in "$public_key" -pubkey -noout)
+    echo
+    cert_pubkey=$(openssl x509 -in "$public_file" -pubkey -noout)
     echo "Certificate public key:"
     echo "$cert_pubkey"
 
@@ -450,7 +499,7 @@ domain::check::tls-cert() {
         match=false
     fi
 
-    echo ""
+    echo
     if [[ $exit_code == 0 ]]; then
         echo -e "${GB}Match: ${GN}$match${NC}"
     else
@@ -460,14 +509,15 @@ domain::check::tls-cert() {
     return $exit_code
 }
 
+# check's helpers (not dispatchable)
 check::ssh-key--sops() {
-    echo ""
+    echo
 
     from_encryption=$(ssh-to-age <<<"$("generate-public::$type")")
     echo "Age key from encryption:"
     echo "$from_encryption"
 
-    from_sops=$(yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml)
+    from_sops=$(get-anchor)
     echo "Age key from sops ($mode-$entity):"
     echo "$from_sops"
 
@@ -483,13 +533,13 @@ check::ssh-key--sops() {
 }
 
 check::ssh-key--host() {
-    echo ""
+    echo
 
     from_host=$(ssh-keyscan -q "$host.kompismoln.se" | cut -d' ' -f2-3)
     echo "From host with ssh-keyscan:"
     echo "$from_host"
 
-    from_file=$(cut -d' ' -f1-2 "$public_key")
+    from_file=$(cut -d' ' -f1-2 "$public_file")
     echo "From file without comment"
     echo "$from_file"
 
@@ -504,121 +554,163 @@ check::ssh-key--host() {
     return "$exit_code"
 }
 
-deploy::ssh-key() {
+# --- *::sideload::*
+
+sideload::ssh-key() {
 
     if ! check || ! check::ssh-key--sops; then
-        echo ""
+        echo
         echo "Error: Keys are out of sync, run '$0 $host sync ssh-key' first" >&2
         exit 1
     fi
 
     if check::ssh-key--host; then
-        echo ""
-        echo "Error: Current key is already deployed" >&2
+        echo
+        echo "Error: Current key is already active" >&2
         exit 1
     fi
 
-    scp "$private_key" "$host.kompismoln.se:pk"
-    scp "$script_path/deploy-ssh-key.sh" "$host.kompismoln.se:"
+    scp "$private_file" "$host.kompismoln.se:pk"
+    scp "$script_path/sideload-ssh-key.sh" "$host.kompismoln.se:"
 
     ssh -t "$host.kompismoln.se" "
-        chmod +x deploy-ssh-key.sh
-        sudo ./deploy-ssh-key.sh
+        chmod +x sideload-ssh-key.sh
+        sudo ./sideload-ssh-key.sh
         rm -f ./pk
-        rm -f ./deploy-ssh-key.sh
+        rm -f ./sideload-ssh-key.sh
     "
 }
 
-encrypt() {
-    echo "Encrypt secret '$type' in $secrets"
-
-    # sops-nix conflates all secrets so non host related secrets need to be
-    # prefixed with entity name (have a look at users/*-enc.yaml)
-    local path
-    path="[\"$type\"]"
-    [[ ! $mode == "host" ]] && path="[\"$entity\"]$path"
-
-    try "something seems wrong with $secrets" \
-        sops set "$secrets" "$path" "$(jq -Rs <<<"$1")"
-}
-
-encrypt::passwd() {
-    encrypt "$1"
-    local hash
-    if [[ $# -ge 2 && -n "$2" ]]; then
-        hash=$(mkpasswd -sm sha-512 -S "$2" <<<"$1")
-    else
-        hash=$(mkpasswd -sm sha-512 <<<"$1")
-    fi
-    type=$type-hashed encrypt "$hash"
-}
-
-decrypt() {
-    echo "Decrypt private key '$type' from $secrets"
-
-    # sops-nix conflates all secrets so non host related secrets need to be
-    # prefixed with entity name (have a look at users/*-enc.yaml)
-    local path exit_code
-    path="[\"$type\"]"
-    [[ ! $mode == "host" ]] && path="[\"$entity\"]$path"
-
-    sops decrypt --extract "$path" "$secrets" >"$private_key" 2>"$private_key.err"
-
-    exit_code=$?
-    if [ $exit_code -ne 0 ]; then
-        die "something seems wrong with $secrets: $(cat "$private_key.err")" >&2
-    fi
-}
-
-copy-private() {
-    echo "Copy private key to $private_key"
-
-    local content
-    if [[ ! -f $PRIVATE_KEY ]]; then die "'$PRIVATE_KEY' is not a file."; fi
-    content=$(sudo cat "$PRIVATE_KEY")
-    echo "$content" >"$private_key"
-
-    try "private key invalid" ssh-keygen -l -f "$private_key" >/dev/null
-}
+# --- *::create-private::*
 
 create-private::ssh-key() {
-    echo "Create private key at $private_key"
-    ssh-keygen -q -t "ed25519" -f "$private_key" -N "" \
+    log "Create private key at $private_file"
+    ssh-keygen -q -t "ed25519" -f "$private_file" -N "" \
         -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>&1
 }
 
 create-private::wg-key() {
-    echo "Create private key at $private_key"
-    wg genkey >"$private_key"
+    log "Create private key at $private_file"
+    wg genkey >"$private_file"
 }
 
 create-private::tls-cert() {
-    echo "Create TLS private key at $private_key"
-    openssl genpkey -algorithm ED25519 -out "$private_key"
+    log "Create TLS private key at $private_file"
+    openssl genpkey -algorithm ED25519 -out "$private_file"
 }
 
+create-private::passwd() {
+    read -r -p "Enter password: " password
+    echo "$password" >"$private_file"
+}
+
+# --- *::generate-public::*
+
 generate-public::ssh-key() {
-    ssh-keygen -y -f "$private_key"
+    ssh-keygen -y -f "$private_file"
 }
 
 generate-public::wg-key() {
-    wg pubkey <"$private_key"
+    wg pubkey <"$private_file"
 }
 
 generate-public::tls-cert() {
-    openssl req -new -x509 -key "$private_key" \
+    openssl req -new -x509 -key "$private_file" \
         -subj "/CN=*.km" \
         -addext "subjectAltName=DNS:*.km,DNS:km" \
         -nodes -out - -days 3650
 }
 
-update-sops() {
-    echo ""
+# --- *::verify::*
+
+verify::ssh-key() {
+    action=generate-public dispatch >/dev/null
+}
+
+verify::wg-key() {
+    action=generate-public dispatch >/dev/null
+}
+
+verify::tls-cert() {
+    action=generate-public dispatch >/dev/null
+}
+
+# TODO: make a more comprehensive security audit on passwd
+verify::passwd() {
+    if [[ -s "$private_file" ]] && [[ -n "$(cat "$private_file")" ]]; then
+        return 0
+    fi
+    echo "password empty" >&2
+    return 1
+}
+
+verify::passwd-hashed() {
+    local \
+        salt \
+        hash \
+        expected_hash \
+        password
+
+    read -r -p "Verify password: " password 2>/dev/tty
+
+    hash=$(cat "$private_file")
+    salt=$(awk -F'$' '{print $3}' "$private_file")
+
+    expected_hash=$(mkpasswd -m sha-512 -S "$salt" "$password")
+
+    [[ "$expected_hash" == "$(<"$private_file")" ]] || {
+        echo "passwords doesn't match" >&2
+        return 1
+    }
+}
+
+# --- sops integrations
+encrypt() {
+    action=verify dispatch 2>"$private_file.err"
+    post-cmd $? "verification failed: $(<"$private_file.err")" "secret verified"
+
+    sops set "$secrets_file" "$(secrets_path)" "$(jq -Rs <"$private_file")" 2>"$private_file.err"
+    post-cmd $? "encryption failed: $(head -n 1 "$private_file.err")" "secret encrypted"
+}
+
+decrypt() {
+    echo "Decrypt secret '$type' from $secrets_file"
+
+    sops decrypt --extract "$(secrets_path)" "$secrets_file" >"$private_file" 2>"$private_file.err"
+
+    exit_code=$?
+    if [ "$exit_code" -ne 0 ]; then
+        die "something seems wrong with $secrets_file: $(cat "$private_file.err")" >&2
+    fi
+}
+
+get-anchor() {
+    yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml
+}
+
+set-anchor() {
+    yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$1\"" .sops.yaml
+}
+
+updatekeys() {
+    echo
     echo "Updating secrets with new keys:"
     sops updatekeys -y hosts/**/secrets.yaml
     sops updatekeys -y users/*-enc.yaml
-    echo ""
-    echo -e "${GB}Keys updated."
+    sops updatekeys -y domains/*-enc.yaml
+    echo
+    echo -e "${GB}Keys updated.${NC}"
+}
+
+# --- misc helpers
+
+copy-private() {
+    echo "Copy private key to $private_file"
+
+    local content
+    if [[ ! -f $SECRET ]]; then die "'$SECRET' is not a file."; fi
+    content=$(sudo cat "$SECRET")
+    echo "$content" >"$private_file"
 }
 
 main "$@"

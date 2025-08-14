@@ -1,16 +1,16 @@
 {
   stationary = {
     name = "stationary";
-    hostname = "stationary.ahbk";
+    hostname = "stationary.km";
     address = "10.0.0.1";
-    publicAddress = "stationary.ahbk.se";
+    publicAddress = "stationary.kompismoln.se";
     system = "x86_64-linux";
     stateVersion = "20.03";
   };
 
   laptop = {
     name = "laptop";
-    hostname = "laptop.ahbk";
+    hostname = "laptop.km";
     address = "10.0.0.2";
     system = "x86_64-linux";
     stateVersion = "23.11";
@@ -18,7 +18,7 @@
 
   glesys = {
     name = "glesys";
-    hostname = "glesys.ahbk";
+    hostname = "glesys.km";
     address = "10.0.0.3";
     publicAddress = "ahbk.se";
     system = "x86_64-linux";
@@ -27,14 +27,14 @@
 
   phone = {
     name = "phone";
-    hostname = "phone.ahbk";
+    hostname = "phone.km";
     system = "aarch64-linux";
     address = "10.0.0.4";
   };
 
   helsinki = {
     name = "helsinki";
-    hostname = "helsinki.ahbk";
+    hostname = "helsinki.km";
     address = "10.0.0.5";
     publicAddress = "helsinki.kompismoln.se";
     system = "x86_64-linux";

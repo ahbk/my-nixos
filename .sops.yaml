@@ -50,9 +50,11 @@ creation_rules:
           - *user-admin
           - *host-helsinki
           - *host-lenovo
+          - *host-stationary
   - path_regex: domains/.*-enc.yaml
     key_groups:
       - age:
           - *user-admin
           - *host-helsinki
           - *host-lenovo
+          - *host-stationary
