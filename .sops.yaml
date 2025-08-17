@@ -8,6 +8,17 @@ keys:
   - &host-glesys age18lyyvydaj58v0ysqe7ptq5j70zq8pfzjga5w0vvceejhagmutv5suc2ned
   - &host-phone age18uw7lxqzaqc4qm5ule2n4kzuzjxc2necau59v0x6rn4am06j857q8rgmeu
   - &host-stationary age12d6wk698ggscne9jz8fll6lt6auv6ekxsfejwa54578k7zpfechq8r07dw
+env:
+    SOPS_AGE_KEY_FILE: /home/alex/age.key
+
+host-secrets: "['{type}'] hosts/{host}/secrets.yaml"
+user-secrets: "['{user}']['{type}'] users/{user}-enc.yaml"
+domain-secrets: "['{domain}']['{type}'] domains/secrets.yaml"
+
+host-pub: hosts/{host}/{type}.pub
+user-pub: users/{user}-{type}.pub
+domain-pub: domains/{domain}-{type}.pem
+
 creation_rules:
   - path_regex: hosts/stationary/secrets.yaml
     key_groups:
