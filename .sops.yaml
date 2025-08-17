@@ -1,7 +1,7 @@
 keys:
   - &user-alex age12fax0zpagajslnlcqhtmn6s5kg2p6h6t7uuuzlsn3szw8skjgs5qegsq6z
   - &user-admin age1j6r6hexj9f5jtl0rpg5ekcr5ysvwf94mtzzx4hnpmlxvx97xfp3sek95tg
-  - &host-helsinki age1ty08t00ph87qcspdf5sactd38l45s7x9eaqzx2a0atntl8trndcstrjlx9
+  - &host-helsinki age1e47rez2zvxvykhzwvx64kkaeuvtqkveu8uelmzv8qy82mzrrle4symn4af
   - &host-lenovo age1n96ardkhhewk6rq4mzmslrl80pk0dnf09vahqd3kj7nccht9m32sj00d2a
   - &host-laptop age10g0uxdzwp5f6z4dduma2eyzexve8qe8u36x2d9uuq95z44uahslsvv6y2k
   - &host-friday age1jzztt2yus45ehsy27vw9pfw42mcfr2swttduy0hqlfawej7ydczsx2ua0c
@@ -9,16 +9,13 @@ keys:
   - &host-phone age18uw7lxqzaqc4qm5ule2n4kzuzjxc2necau59v0x6rn4am06j857q8rgmeu
   - &host-stationary age12d6wk698ggscne9jz8fll6lt6auv6ekxsfejwa54578k7zpfechq8r07dw
 env:
-    SOPS_AGE_KEY_FILE: /home/alex/age.key
-
+  SOPS_AGE_KEY_FILE: /home/alex/age.key
 host-secrets: "['{type}'] hosts/{host}/secrets.yaml"
 user-secrets: "['{user}']['{type}'] users/{user}-enc.yaml"
 domain-secrets: "['{domain}']['{type}'] domains/secrets.yaml"
-
 host-pub: hosts/{host}/{type}.pub
 user-pub: users/{user}-{type}.pub
 domain-pub: domains/{domain}-{type}.pem
-
 creation_rules:
   - path_regex: hosts/stationary/secrets.yaml
     key_groups:
