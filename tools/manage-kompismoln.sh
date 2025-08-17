@@ -7,10 +7,10 @@ shopt -s globstar
 usage() {
     cat <<'EOF'
 
-Usage: secrets -h <host> <action> <type>
-       secrets -u <user> <action> <type>
-       secrets -d <domain> <action> <type>
-       secrets updatekeys
+Usage: manage-kompismoln -h <host> <action> <type>
+       manage-kompismoln -u <user> <action> <type>
+       manage-kompismoln -d <domain> <action> <type>
+       manage-kompismoln updatekeys
 
 actions:      new | sync | check | sideload
 host types:   ssh-key | wg-key
@@ -23,7 +23,10 @@ EOF
 usage-full() {
     usage
     cat <<'EOF'
-    `secrets` manages sops-encrypted secrets (private keys, passwords, tls-certs and wireguard) together with their corresponding components (e.g. public keys, hashed passwords) for hosts and users within the repository.
+    `manage-kompismoln` manages sops-encrypted secrets (private keys, passwords) and their
+    corresponding components (public keys, certificates, password hashes) for
+    hosts, users, and domains within a repository. It uses a central .sops.yaml
+    file to map entities to their respective file paths and encryption keys.
 
 MODES:
   -h <hostname>
@@ -45,11 +48,10 @@ MODES:
 ARGUMENTS:
   <action>
         Must be one of:
+        - init:     Initializes the secret file for a new host, user, or domain
+                    based on creation_rules in .sops.yaml.
 
-        - new:      Creates a new secret (e.g., key pair, password). For keys,
-                    this generates a new private/public pair, encrypts the
-                    private part into the secrets file, and saves the public
-                    part to the corresponding '.pub' file.
+        - new:      Creates a new secret pair (e.g., key pair, password).
                     WARNING: This overwrites existing secrets and keys.
 
         - sync:     Re-generates and overwrites the public key file using the
@@ -96,23 +98,23 @@ ENVIRONMENT VARIABLES:
 
 EXAMPLES:
   # Create a new SSH key pair for 'server01' and update sops recipients
-  secrets -h server01 new ssh-key
+  manage-kompismoln -h server01 new ssh-key
 
   # Use an existing private SSH to renew key pair for 'server01' and update
   # sops recipients
   PRIVATE_FILE=./ssh_host_ed25519_key secrets -h server01 new ssh-key
 
   # Check if all keys for 'server01' (on disk, in sops, on host) match
-  secrets -h server01 check ssh-key
+  manage-kompismoln -h server01 check ssh-key
 
   # Deploy the verified host key to 'server01'
-  secrets -h server01 sideload ssh-key
+  manage-kompismoln -h server01 sideload ssh-key
 
   # Set a new password for user 'jane'
-  secrets -u jane new passwd
+  manage-kompismoln -u jane new passwd
 
   # A WireGuard public key is outdated; regenerate it from the secret
-  secrets -h vpn-host sync wg-key
+  manage-kompismoln -h vpn-host sync wg-key
 
 EOF
 }
@@ -135,7 +137,7 @@ main() {
         exit_code=$?
         case $exit_code in
         0) log "$mode::$action::$type completed" success ;;
-        *) log "$mode::$action::$type completed" error ;;
+        *) log "$mode::$action::$type completed with errors" error ;;
         esac
         ;;
     esac
@@ -200,7 +202,7 @@ die() {
     *) log "$msg" error ;;
     esac
 
-    [[ -n "$fn" ]] && $fn
+    [[ -n "$fn" ]] && "$fn"
 
     log "exit code $exit_code" debug
     exit "$exit_code"
@@ -364,7 +366,7 @@ dispatch() {
     done
 
     log "$run!" info
-    $run
+    "$run"
 }
 
 # DISPATCHABLE FUNCTIONS START HERE
@@ -668,7 +670,7 @@ domain::check::tls-cert() {
 
 # --- *::sideload::*
 
-sideload::ssh-key() {
+host::sideload::ssh-key() {
     log "hello" debug
     local \
         host_key=/etc/ssh/ssh_host_ed25519_key \
@@ -682,7 +684,9 @@ sideload::ssh-key() {
         die 1 "current key is already active"
 
     scp "$private_file" "$host.kompismoln.se:$temp_key"
-    ssh -t "$host.kompismoln.se" "
+
+    # shellcheck disable=SC2087
+    ssh -t "$host.kompismoln.se" 2>"$err" <<EOF
     sudo sh -c '
     chown root:root $temp_key && \
         chmod 600 $temp_key && \
@@ -690,9 +694,29 @@ sideload::ssh-key() {
         mv -f -T $temp_key $host_key && \
         systemctl restart sshd
     '
-    " >"$out" 2>"$err"
+EOF
+
     post-cmd $? "sidoload failed: $(cat "$err")" "sideload succeded"
     log "rebuild $host now or suffer the consequences" warning
+}
+
+# --- *::factory-reset::*
+
+host::factory-reset::ssh-key() {
+    local extra_files="$tmp/mnt"
+    local host_key="$extra_files/etc/ssh/ssh_host_ed25519_key"
+
+    install -d -m755 "$extra_files/etc/ssh"
+    sops decrypt --extract "$secrets_path" "$secrets_file" >"$host_key"
+    chmod 600 "$host_key"
+
+    luks_secret_key=<(sops decrypt --extract '["luks-secret-key"]' "$secrets_file")
+    nixos-anywhere \
+        --disk-encryption-keys /secret.key "$luks_secret_key" \
+        --generate-hardware-config nixos-facter hosts/"$1"/facter.json \
+        --extra-files "$extra_files" \
+        --flake ".#$1" \
+        --target-host root@"$1".kompismoln.se
 }
 
 # --- *::create-private::*
@@ -747,8 +771,8 @@ generate-public::wg-key() {
 generate-public::tls-cert() {
     log "hello" debug
     openssl req -new -x509 -key "$private_file" \
-        -subj "/CN=*.km" \
-        -addext "subjectAltName=DNS:*.km,DNS:km" \
+        -subj "/CN=*.$domain" \
+        -addext "subjectAltName=DNS:*.$domain,DNS:$domain" \
         -nodes -out - -days 3650
     post-cmd $? "unusual" "$private_file generated"
 }
@@ -800,6 +824,29 @@ verify::passwd-hashed() {
         log "password doesn't match" error
         return 1
     }
+}
+
+# --- *::init::*
+
+init() {
+    log "hello" debug
+
+    mkdir -p "$(dirname "$secrets_file")"
+
+    sed -i "1a\ \ - &$mode-$entity" .sops.yaml
+    cat >>.sops.yaml <<EOF
+  - path_regex: $secrets_file
+    key_groups:
+      - age:
+        - *user-admin
+        - *$mode-$entity
+EOF
+
+    # shellcheck disable=SC2094
+    echo "init: true" |
+        sops encrypt --filename-override "$secrets_file" /dev/stdin >"$secrets_file" 2>"$err"
+
+    post-cmd $? "creating secrets failed: $(cat "$err")" "secrets file created"
 }
 
 # --- sops integrations
@@ -922,8 +969,8 @@ bootstrap() {
 }
 
 init-.sops-yaml() {
-
     log "hello" debug
+
     [ -f .sops.yaml ] &&
         die 1 "will not overwrite existing .sops.yaml"
 
@@ -948,27 +995,6 @@ creation_rules:
       - age:
         - *user-$user
 EOF
-}
-
-init() {
-    log "hello" debug
-
-    mkdir -p "$(dirname "$secrets_file")"
-
-    sed -i "1a\ \ - &$mode-$entity" .sops.yaml
-    cat >>.sops.yaml <<EOF
-  - path_regex: $secrets_file
-    key_groups:
-      - age:
-        - *user-admin
-        - *$mode-$entity
-EOF
-
-    # shellcheck disable=SC2094
-    echo "init: true" |
-        sops encrypt --filename-override "$secrets_file" /dev/stdin >"$secrets_file" 2>"$err"
-
-    post-cmd $? "creating secrets failed: $(cat "$err")" "secrets file created"
 }
 
 main "$@"

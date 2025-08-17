@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 
 setup() {
+  export DEBUG=true
   echo "=== BEGIN SETUP ===" >&2
   testroot=$(mktemp -d)
 
   cp -R "./tools" "$testroot"
 
-  cd "$testroot" && ./tools/secrets.sh bootstrap admin
+  cd "$testroot" && ./tools/manage-kompismoln.sh bootstrap admin
 
   mock_command() {
     local cmd_name=$1
@@ -47,55 +48,139 @@ check-output() {
 }
 
 @test "no args" {
-  run ./tools/secrets.sh
+  run ./tools/manage-kompismoln.sh
   [ "$status" -eq 1 ]
 }
 
 @test "host new ssh-key" {
-  run ./tools/secrets.sh -h testhost init
+  run ./tools/manage-kompismoln.sh -h testhost init
   check-output "-h testhost init" 0 "secrets file created"
 
-  run ./tools/secrets.sh -h testhost new ssh-key
+  run ./tools/manage-kompismoln.sh -h testhost new ssh-key
   check-output "-h testhost new ssh-key" 0 "host::new::ssh-key completed"
 
-  run ./tools/secrets.sh -h testhost check ssh-key
+  run ./tools/manage-kompismoln.sh -h testhost check ssh-key
   check-output "-h testhost check ssh-key" 0 "host::check::ssh-key completed"
 }
 
-@test "host new wg-key" {
-  run ./tools/secrets.sh -h testhost init
+@test "host new ssh-key (mismatch)" {
+  run ./tools/manage-kompismoln.sh -h testhost init
   check-output "-h testhost init" 0 "secrets file created"
 
-  run ./tools/secrets.sh -h testhost new wg-key
+  run ./tools/manage-kompismoln.sh -h testhost new ssh-key
+  check-output "-h testhost new ssh-key" 0 "host::new::ssh-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost new-private ssh-key
+  check-output "-h testhost new-private ssh-key" 0 "host::new-private::ssh-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost check ssh-key
+  check-output "-h testhost check ssh-key" 1 "host::check::ssh-key completed with errors"
+}
+
+@test "host new ssh-key (no public)" {
+  run ./tools/manage-kompismoln.sh -h testhost init
+  check-output "-h testhost init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -h testhost new-private ssh-key
+  check-output "-h testhost new-private ssh-key" 0 "host::new-private::ssh-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost check ssh-key
+  check-output "-h testhost check ssh-key" 1 "public key doesn't exist"
+}
+@test "host new wg-key" {
+  run ./tools/manage-kompismoln.sh -h testhost init
+  check-output "-h testhost init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -h testhost new wg-key
   check-output "-h testhost new wg-key" 0 "host::new::wg-key completed"
 
-  run ./tools/secrets.sh -h testhost check wg-key
+  run ./tools/manage-kompismoln.sh -h testhost check wg-key
   check-output "-h testhost new wg-key" 0 "host::check::wg-key completed"
 }
 
+@test "host new wg-key (mismatch)" {
+  run ./tools/manage-kompismoln.sh -h testhost init
+  check-output "-h testhost init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -h testhost new wg-key
+  check-output "-h testhost new wg-key" 0 "host::new::wg-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost new-private wg-key
+  check-output "-h testhost new-private wg-key" 0 "host::new-private::wg-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost check wg-key
+  check-output "-h testhost check wg-key" 1 "host::check::wg-key completed with errors"
+}
+
 @test "user new ssh-key" {
-  run ./tools/secrets.sh -u testuser init
+  run ./tools/manage-kompismoln.sh -u testuser init
   check-output "-h testuser init" 0 "secrets file created"
 
-  run ./tools/secrets.sh -u testuser new ssh-key
-  check-output "-h testuser new wg-key" 0 "user::new::ssh-key completed"
+  run ./tools/manage-kompismoln.sh -u testuser new ssh-key
+  check-output "-h testuser new ssh-key" 0 "user::new::ssh-key completed"
+
+  run ./tools/manage-kompismoln.sh -u testuser check ssh-key
+  check-output "-h testuser check ssh-key" 0 "user::check::ssh-key completed"
+}
+
+@test "user new ssh-key (mismatch)" {
+  run ./tools/manage-kompismoln.sh -u testuser init
+  check-output "-h testuser init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -u testuser new ssh-key
+  check-output "-h testuser new ssh-key" 0 "user::new::ssh-key completed"
+
+  run ./tools/manage-kompismoln.sh -u testuser new-private ssh-key
+  check-output "-h testuser new ssh-key" 0 "user::new-private::ssh-key completed"
+
+  run ./tools/manage-kompismoln.sh -u testuser check ssh-key
+  check-output "-h testuser check ssh-key" 1 "user::check::ssh-key completed with errors"
 }
 
 @test "user new passwd" {
-  run ./tools/secrets.sh -u testuser init
+  run ./tools/manage-kompismoln.sh -u testuser init
   check-output "-h testuser init" 0 "secrets file created"
 
-  run bash -c './tools/secrets.sh -u testuser new passwd' <<EOF
+  run bash -c './tools/manage-kompismoln.sh -u testuser new passwd' <<EOF
 mypassword
 mypassword
 EOF
-  check-output "-h testuser new wg-key" 0 "user::new::passwd completed"
+  check-output "-h testuser new passwd" 0 "user::new::passwd completed"
+}
+
+@test "user new passwd (mismatch)" {
+  run ./tools/manage-kompismoln.sh -u testuser init
+  check-output "-h testuser init" 0 "secrets file created"
+
+  run bash -c './tools/manage-kompismoln.sh -u testuser new passwd' <<EOF
+mypassword
+mypasswor
+EOF
+
+  check-output "-h testuser new passwd (mismatch)" 1 "verification failed"
 }
 
 @test "domain new tls-cert" {
-  run ./tools/secrets.sh -d testdomain init
+  run ./tools/manage-kompismoln.sh -d testdomain init
   check-output "-h testdomain init" 0 "secrets file created"
 
-  run ./tools/secrets.sh -d testdomain new tls-cert
+  run ./tools/manage-kompismoln.sh -d testdomain new tls-cert
   check-output "-h testdomain new tls-cert" 0 "domain::new::tls-cert completed"
+
+  run ./tools/manage-kompismoln.sh -d testdomain check tls-cert
+  check-output "-h testdomain check tls-cert" 0 "domain::check::tls-cert completed"
+}
+
+@test "domain new tls-cert (mismatch)" {
+  run ./tools/manage-kompismoln.sh -d testdomain init
+  check-output "-h testdomain init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -d testdomain new tls-cert
+  check-output "-h testdomain new tls-cert" 0 "domain::new::tls-cert completed"
+
+  run ./tools/manage-kompismoln.sh -d testdomain new-private tls-cert
+  check-output "-h testdomain new-private tls-cert" 0 "domain::new-private::tls-cert completed"
+
+  run ./tools/manage-kompismoln.sh -d testdomain check tls-cert
+  check-output "-h testdomain check tls-cert" 1 "domain::check::tls-cert completed with errors"
 }
