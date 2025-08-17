@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317
 
 set -uo pipefail
 shopt -s globstar
@@ -146,7 +147,6 @@ main() {
 # --- utils
 
 # instead of `echo`
-DEBUG=true
 log() {
     local \
         log=false \
@@ -177,7 +177,7 @@ log() {
         log=true
         ;;
     *)
-        if [[ $DEBUG == true ]]; then
+        if [[ ${DEBUG:-} == true ]]; then
             log=true
         fi
         ;;
@@ -214,7 +214,11 @@ post-cmd() {
         msg=${3-}
 
     case $exit_code in
-    0) log "$msg" success ;;
+    0)
+        if [[ -n $msg ]]; then
+            log "$msg" success
+        fi
+        ;;
     *) die "$exit_code" "$error_msg" ;;
     esac
 }
@@ -229,8 +233,6 @@ setup() {
     YN='\033[0;33m'
     YB='\033[1;33m'
     NC='\033[0m'
-
-    script_path="$(dirname "${BASH_SOURCE[0]}")"
 
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
@@ -308,12 +310,8 @@ setup() {
     export SOPS_AGE_KEY_FILE
 
     public_file=$(.sops-yaml ".$mode-pub")
-    set_secrets_location
+    set-secrets-location
 
-}
-
-set_secrets_location() {
-    IFS=" " read -r secrets_path secrets_file <<<"$(.sops-yaml ".$mode-secrets")"
 }
 
 # make sure actions and types are accepted and that $secrets_file exists
@@ -485,10 +483,10 @@ check::ssh-key() {
         log_level=error
     fi
 
-    log "match: $match" $log_level
+    log "match: $match" "$log_level"
     log "exit code: $exit_code" debug
 
-    return $exit_code
+    return "$exit_code"
 }
 
 # Users need to check .sops.yaml as well
@@ -501,7 +499,7 @@ user::check::ssh-key() {
     check::ssh-key--sops || exit_code=1
 
     log "exit code: $exit_code" debug
-    return $exit_code
+    return "$exit_code"
 }
 
 # Hosts need to check .sops.yaml like users and also the live host
@@ -515,7 +513,7 @@ host::check::ssh-key() {
     check::ssh-key--host || exit_code=1
 
     log "exit code: $exit_code" debug
-    return $exit_code
+    return "$exit_code"
 }
 
 # check's helpers (not dispatchable)
@@ -541,7 +539,7 @@ check::ssh-key--sops() {
         log_level=error
     fi
 
-    log "match: $match" $log_level
+    log "match: $match" "$log_level"
     log "exit code: $exit_code" debug
 
     return "$exit_code"
@@ -558,7 +556,7 @@ check::ssh-key--host() {
         from_file
 
     from_file=$(cut -d' ' -f1-2 "$public_file")
-    log "public key (from host): $from_file" info
+    log "public key (from file): $from_file" info
 
     from_host=$(ssh-keyscan -q "$host.kompismoln.se" | cut -d' ' -f2-3)
     log "public key (from host): $from_host" info
@@ -573,7 +571,7 @@ check::ssh-key--host() {
         log_level=error
     fi
 
-    log "match: $match" $log_level
+    log "match: $match" "$log_level"
     log "exit code: $exit_code" debug
 
     return "$exit_code"
@@ -607,7 +605,7 @@ user::check::passwd() {
         log_level=error
     fi
 
-    log "match: $match" $log_level
+    log "match: $match" "$log_level"
     log "exit code: $exit_code" debug
 
     return "$exit_code"
@@ -662,33 +660,39 @@ domain::check::tls-cert() {
         log_level=error
     fi
 
-    log "match: $match" $log_level
+    log "match: $match" "$log_level"
     log "exit code: $exit_code" debug
 
-    return $exit_code
+    return "$exit_code"
 }
 
 # --- *::sideload::*
 
 sideload::ssh-key() {
     log "hello" debug
+    local \
+        host_key=/etc/ssh/ssh_host_ed25519_key \
+        temp_key=/tmp/newkey
 
     # shellcheck disable=SC2015
-    check && check::ssh-key--sops ||
+    check::ssh-key && check::ssh-key--sops ||
         die 1 "Error: Keys are out of sync, run '$0 $host sync ssh-key' first"
 
     check::ssh-key--host &&
         die 1 "current key is already active"
 
-    scp "$private_file" "$host.kompismoln.se:pk"
-    scp "$script_path/sideload-ssh-key.sh" "$host.kompismoln.se:"
-
+    scp "$private_file" "$host.kompismoln.se:$temp_key"
     ssh -t "$host.kompismoln.se" "
-        chmod +x sideload-ssh-key.sh
-        sudo ./sideload-ssh-key.sh
-        rm -f ./pk
-        rm -f ./sideload-ssh-key.sh
-    "
+    sudo sh -c '
+    chown root:root $temp_key && \
+        chmod 600 $temp_key && \
+        ln -f $host_key $host_key- && \
+        mv -f -T $temp_key $host_key && \
+        systemctl restart sshd
+    '
+    " >"$out" 2>"$err"
+    post-cmd $? "sidoload failed: $(cat "$err")" "sideload succeded"
+    log "rebuild $host now or suffer the consequences" warning
 }
 
 # --- *::create-private::*
@@ -802,7 +806,7 @@ verify::passwd-hashed() {
 encrypt() {
     log "hello" debug
 
-    set_secrets_location
+    set-secrets-location
     log "encrypting secret > $secrets_path@$private_file" debug
 
     action=verify dispatch
@@ -815,7 +819,7 @@ encrypt() {
 decrypt() {
     log "hello" debug
 
-    set_secrets_location
+    set-secrets-location
     log "decrypting secret < $secrets_path@$private_file" debug
 
     sops decrypt --extract "$secrets_path" "$secrets_file" >"$private_file" 2>"$err"
@@ -827,7 +831,7 @@ get-anchor() {
     local key
 
     key=$(yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml 2>"$err")
-    post-cmd $? "$(cat "$err")"
+    post-cmd $? "$(cat "$err")" "got: $key"
     echo "$key"
 }
 
@@ -871,6 +875,10 @@ updatekeys() {
 
 # --- misc helpers
 
+set-secrets-location() {
+    IFS=" " read -r secrets_path secrets_file <<<"$(.sops-yaml ".$mode-secrets")"
+}
+
 copy-private() {
     log "hello" debug
 
@@ -903,12 +911,12 @@ bootstrap() {
 
     local key=$1 template value
 
-    log "fetch '$key'" info
+    log "get '$key'" debug
     template=$(yq "$key" .sops.yaml 2>"$err")
-    post-cmd $? "$(cat "$err")" "got: $template"
+    post-cmd $? "$(cat "$err")"
 
-    value=$(eval "echo \"${template//\{/\$\{}\"")
-    log "rendered: $value" info
+    value=$(eval "echo \"${template//\{/\$\{}\"" 2>"$err")
+    post-cmd $? "$(cat "$err")" "$key: $value"
 
     echo "$value"
 }
