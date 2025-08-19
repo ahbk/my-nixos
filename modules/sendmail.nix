@@ -52,14 +52,15 @@ in
       enable = true;
       defaults = {
         port = 587;
+        host = "helsinki.km";
         tls = true;
         logfile = "~/.msmtp.log";
       };
       accounts = mapAttrs (user: cfg: {
-        host = "mail.ahbk.se";
+        host = "mail.kompismoln.se";
         auth = true;
-        user = "${user}@ahbk.se";
-        from = "${user}@ahbk.se";
+        user = "${user}@kompismoln.se";
+        from = "${user}@kompismoln.se";
         passwordeval = "${pkgs.coreutils}/bin/cat ${config.sops.secrets."${user}/mail".path}";
       }) eachUser;
     };

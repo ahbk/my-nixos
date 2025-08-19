@@ -2,7 +2,7 @@
   description = "my nixos";
 
   inputs = {
-    nixpkgs.url = "github:Kompismoln/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:kompismoln/nixpkgs/nixos-unstable";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -44,6 +44,9 @@
 
     klimatkalendern.url = "github:Kompismoln/klimatkalendern";
     klimatkalendern.inputs.nixpkgs.follows = "nixpkgs";
+
+    klimatkalendern-dev.url = "github:Kompismoln/klimatkalendern/dev";
+    klimatkalendern-dev.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -53,6 +56,8 @@
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      domain = "km";
+      buildHost = "stationary";
 
       ids = import ./ids.nix;
       users = import ./users.nix;
@@ -104,11 +109,19 @@
         packages = [
           (pkgs.writeShellScriptBin "deploy" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --flake ./ --build-host $1 --target-host $1
+            nixos-rebuild switch --ask-sudo-password --flake ./#$1 \
+            --target-host $1.${domain} --build-host ${buildHost}.${domain}
           '')
           (pkgs.writeShellScriptBin "switch" ''
             #!/usr/bin/env bash
             nixos-rebuild switch --use-remote-sudo --show-trace --verbose;
+          '')
+          (pkgs.writeShellScriptBin "dirty-ssh" ''
+            #!/usr/bin/env bash
+            ssh -o StrictHostKeyChecking=no \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o UserKnownHostsFile=/dev/null \
+            $1
           '')
         ];
       };

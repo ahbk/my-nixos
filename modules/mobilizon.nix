@@ -3,6 +3,7 @@
   host,
   inputs,
   lib,
+  lib',
   pkgs,
   ...
 }:
@@ -23,9 +24,9 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.mobilizon;
   webserver = config.services.nginx;
+  settingsFormat = pkgs.formats.elixirConf { elixir = cfg.package.elixirPackage; };
 
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
   stateDir = appname: "/var/lib/${appname}/mobilizon";
@@ -48,10 +49,18 @@ let
           };
           services.mobilizon = {
             enable = true;
-            package = inputs.klimatkalendern.packages.${host.system}.default;
+            package = inputs.${config.appname}.packages.${host.system}.default;
             nginx.enable = false;
             settings.":mobilizon" = {
-              "Mobilizon.Web.Endpoint".http.port = mkForce config.port;
+              "Mobilizon.Web.Endpoint".http = {
+                port = mkForce config.port;
+                ip = settingsFormat.lib.mkTuple [
+                  0
+                  0
+                  0
+                  0
+                ];
+              };
               "Mobilizon.Storage.Repo" = {
                 hostname = mkForce "127.0.0.1";
                 database = config.appname;
@@ -59,9 +68,14 @@ let
                 password = config.appname;
                 socket_dir = null;
               };
+              "Mobilizon.Web.Email.Mailer" = {
+                relay = "helsinki.km";
+              };
               ":instance" = {
                 name = mkForce config.appname;
                 hostname = mkForce config.hostname;
+                email_reply_to = "no-reply@${config.hostname}";
+                email_reply_from = "no-reply@${config.hostname}";
               };
             };
 
@@ -73,16 +87,22 @@ let
         enable = mkEnableOption "mobilizon on this host";
         ssl = mkOption {
           description = "Enable HTTPS";
+          default = true;
           type = types.bool;
         };
         subnet = mkOption {
           description = "Use self-signed certificates";
+          default = false;
           type = types.bool;
         };
         www = mkOption {
           description = "Prefix the url with www.";
           default = false;
-          type = types.bool;
+          type = types.enum [
+            "no"
+            "yes"
+            "redirect"
+          ];
         };
         port = mkOption {
           description = "Port to serve on";
@@ -186,12 +206,12 @@ in
       name: cfg:
       let
         inherit (cfg.containerConf.services.mobilizon) package;
-        proxyPass = "http://[::1]:${toString cfg.port}";
-        serverName = if cfg.www then "www.${cfg.hostname}" else cfg.hostname;
-        serverNameRedirect = if cfg.www then cfg.hostname else "www.${cfg.hostname}";
+        proxyPass = "http://localhost:${toString cfg.port}";
+        serverName = if cfg.www == "yes" then "www.${cfg.hostname}" else cfg.hostname;
+        serverNameRedirect = if cfg.www != "no" then cfg.hostname else "www.${cfg.hostname}";
       in
       {
-        ${serverNameRedirect} = {
+        ${serverNameRedirect} = mkIf (cfg.www != "no") {
           forceSSL = cfg.ssl;
           enableACME = cfg.ssl;
           extraConfig = ''

@@ -3,6 +3,10 @@
     uid = 700;
     port = 2700;
   };
+  klimatkalendern-dev = {
+    uid = 701;
+    port = 2701;
+  };
   loki = {
     uid = 310;
     port = 3100;

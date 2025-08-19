@@ -12,8 +12,8 @@ Usage: manage-kompismoln -h <host> <action> <type>
        manage-kompismoln -d <domain> <action> <type>
        manage-kompismoln updatekeys
 
-actions:      new | sync | check | sideload
-host types:   ssh-key | wg-key
+actions:      new | sync | fetch | check | sideload | pull | factory-reset
+host types:   ssh-key | wg-key | luks-key
 user types:   ssh-key | passwd | mail
 domain types: tls-cert
 
@@ -43,13 +43,17 @@ MODES:
 
   updatekeys
         Runs `sops updatekeys` on all paths above.
-  updatekeys
-        Runs `sops updatekeys` on all paths above.
+  bootstrap
+        Creates a minimal viable .sops.yaml with an admin user with
+        an encrypted ssh-key and a private age key.
+        Mainly used for automated testing.
+
 ARGUMENTS:
   <action>
         Must be one of:
         - init:     Initializes the secret file for a new host, user, or domain
                     based on creation_rules in .sops.yaml.
+                    Mainly used for automated testing.
 
         - new:      Creates a new secret pair (e.g., key pair, password).
                     WARNING: This overwrites existing secrets and keys.
@@ -80,6 +84,7 @@ ARGUMENTS:
         Available for Host Mode (-h):
         - ssh-key:  An Ed25519 SSH host key.
         - wg-key:   A Curve25519 WireGuard private key.
+        - luks-key: Key for LUKS disk encryption.
 
         Available for User Mode (-u):
         - ssh-key:  A user's Ed25519 SSH key.
@@ -227,6 +232,8 @@ post-cmd() {
 
 # misc 'setup the environment' thingies
 setup() {
+    domain="kompismoln.se"
+
     # bold or not bold red green yellow and normal colors
     RN='\033[0;31m'
     RB='\033[1;31m'
@@ -269,6 +276,9 @@ setup() {
         updatekeys
         exit 0
         ;;
+    factory-reset)
+        type=ssh-key
+        ;;
     bootstrap)
         mode=-u
         entity="admin"
@@ -285,10 +295,10 @@ setup() {
     -h)
         mode="host"
         host=$entity
-        types=(ssh-key wg-key)
+        types=(ssh-key wg-key luks-key)
 
         if [[ $type == "ssh-key" ]]; then
-            actions+=(sideload)
+            actions+=(sideload factory-reset pull)
         fi
         ;;
     -u)
@@ -312,6 +322,7 @@ setup() {
     export SOPS_AGE_KEY_FILE
 
     public_file=$(.sops-yaml ".$mode-pub")
+
     set-secrets-location
 
 }
@@ -412,7 +423,11 @@ sync::ssh-key() {
     log "hello" debug
 
     sync
+    sync::ssh-key--sops
 
+}
+
+sync::ssh-key--sops() {
     local age_key new_age_key
 
     age_key="$(ssh-to-age <"$public_file")"
@@ -430,6 +445,10 @@ sync::ssh-key() {
     else
         updatekeys
     fi
+}
+
+sync::luks-key() {
+    return 0
 }
 
 # Linux passwords are famously hashed so we need to encrypt both plain and
@@ -454,11 +473,6 @@ user::sync::mail() {
 }
 
 # --- *::check::*
-
-check::wg-key() {
-    log "hello" debug
-    check::ssh-key
-}
 
 check::ssh-key() {
     log "hello" debug
@@ -489,6 +503,11 @@ check::ssh-key() {
     log "exit code: $exit_code" debug
 
     return "$exit_code"
+}
+
+check::wg-key() {
+    log "hello" debug
+    check::ssh-key
 }
 
 # Users need to check .sops.yaml as well
@@ -560,7 +579,7 @@ check::ssh-key--host() {
     from_file=$(cut -d' ' -f1-2 "$public_file")
     log "public key (from file): $from_file" info
 
-    from_host=$(ssh-keyscan -q "$host.kompismoln.se" | cut -d' ' -f2-3)
+    from_host=$(ssh-keyscan -q "$host.$domain" | cut -d' ' -f2-3)
     log "public key (from host): $from_host" info
 
     if [[ $from_host == "trust-me" ]]; then
@@ -577,6 +596,14 @@ check::ssh-key--host() {
     log "exit code: $exit_code" debug
 
     return "$exit_code"
+}
+
+host::check::luks-key() {
+    decrypt
+    ssh "admin@$host.$domain" \
+        'sudo $(type -P cryptsetup) open --test-passphrase --key-file=- /dev/sda3' \
+        2>"$err" <"$private_file"
+    post-cmd $? "no match: $(cat "$err")" "match"
 }
 
 # Password and hashed password should match
@@ -668,6 +695,13 @@ domain::check::tls-cert() {
     return "$exit_code"
 }
 
+# --- *::pull::*
+
+host::pull::ssh-key() {
+    ssh-keyscan -q "$host.$domain" | cut -d' ' -f2-3 >"$public_file"
+    sync::ssh-key--sops
+}
+
 # --- *::sideload::*
 
 host::sideload::ssh-key() {
@@ -683,10 +717,10 @@ host::sideload::ssh-key() {
     check::ssh-key--host &&
         die 1 "current key is already active"
 
-    scp "$private_file" "$host.kompismoln.se:$temp_key"
+    scp "$private_file" "$host.$domain:$temp_key"
 
     # shellcheck disable=SC2087
-    ssh -t "$host.kompismoln.se" 2>"$err" <<EOF
+    ssh -t "$host.$domain" 2>"$err" <<EOF
     sudo sh -c '
     chown root:root $temp_key && \
         chmod 600 $temp_key && \
@@ -707,16 +741,21 @@ host::factory-reset::ssh-key() {
     local host_key="$extra_files/etc/ssh/ssh_host_ed25519_key"
 
     install -d -m755 "$extra_files/etc/ssh"
-    sops decrypt --extract "$secrets_path" "$secrets_file" >"$host_key"
+    decrypt
+    cp "$private_file" "$host_key"
     chmod 600 "$host_key"
 
-    luks_secret_key=<(sops decrypt --extract '["luks-secret-key"]' "$secrets_file")
+    type=luks-key decrypt
+
     nixos-anywhere \
-        --disk-encryption-keys /secret.key "$luks_secret_key" \
-        --generate-hardware-config nixos-facter hosts/"$1"/facter.json \
+        --flake ".#$host" \
+        --target-host root@"$host.$domain" \
+        --ssh-option GlobalKnownHostsFile=/dev/null \
+        --disk-encryption-keys /secret.key "$private_file" \
+        --generate-hardware-config nixos-facter hosts/"$host"/facter.json \
         --extra-files "$extra_files" \
-        --flake ".#$1" \
-        --target-host root@"$1".kompismoln.se
+        --copy-host-keys 2>"$err"
+    post-cmd $? "failed: $(cat "$err")" "complete"
 }
 
 # --- *::create-private::*
@@ -733,6 +772,13 @@ create-private::wg-key() {
     log "hello" debug
 
     wg genkey >"$private_file"
+    post-cmd $? "unusual" "$private_file generated"
+}
+
+create-private::luks-key() {
+    log "hello" debug
+
+    openssl rand -base64 12 >"$private_file"
     post-cmd $? "unusual" "$private_file generated"
 }
 
@@ -792,6 +838,11 @@ verify::wg-key() {
 verify::tls-cert() {
     log "hello" debug
     action=generate-public dispatch >/dev/null
+}
+
+verify::luks-key() {
+    log "hello" debug
+    log "luks-key: $(cat "$private_file")" info
 }
 
 # TODO: make a more comprehensive security audit on passwd

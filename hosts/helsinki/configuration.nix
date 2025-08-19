@@ -1,14 +1,20 @@
-{ config, users, ... }:
+{
+  config,
+  users,
+  pkgs,
+  lib,
+  ...
+}:
 {
   imports = [
     ./disko.nix
   ];
 
-  sops.secrets.luks-secret-key = { };
+  sops.secrets.luks-key = { };
   boot = {
     initrd = {
       network.enable = false;
-      secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
+      secrets."/secret.key" = config.sops.secrets.luks-key.path;
     };
     loader.grub.enable = true;
   };
@@ -52,7 +58,23 @@
     };
   };
 
+  security.sudo.extraRules = [
+    {
+      users = [
+        "admin"
+      ];
+      runAs = "root";
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/cryptsetup open --test-passphrase *";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
+
   my-nixos = {
+    sysadm.rescueMode = true;
     users = with users; {
       inherit admin alex;
     };

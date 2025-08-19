@@ -1,5 +1,6 @@
 {
   config,
+  ids,
   lib,
   modulesPath,
   users,
@@ -177,9 +178,6 @@
       enable = true;
       ignoreIP = [
         "10.0.0.0/24"
-        "ahbk.se"
-        "stationary.ahbk.se"
-        "shadowserver.org"
       ];
     };
 
@@ -193,5 +191,14 @@
     };
 
     wordpress.sites."esse_test" = (import ../../sites.nix)."esse_test";
+
+    mobilizon.sites."klimatkalendern-dev" = {
+      enable = true;
+      www = "no";
+      hostname = "klimatkalendern-dev.kompismoln.se";
+      appname = "klimatkalendern-dev";
+      port = ids.klimatkalendern-dev.port;
+      uid = ids.klimatkalendern-dev.uid;
+    };
   };
 }

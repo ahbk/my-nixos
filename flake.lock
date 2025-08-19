@@ -373,6 +373,27 @@
         "type": "github"
       }
     },
+    "klimatkalendern-dev": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1755519113,
+        "narHash": "sha256-qx7GLxgo6FgMNmBEgDlAC5xoPpmSpWLfACyBEcLOPWQ=",
+        "owner": "Kompismoln",
+        "repo": "klimatkalendern",
+        "rev": "1678ad65cce8ae60b6344973d5b5eae8f073899d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kompismoln",
+        "ref": "dev",
+        "repo": "klimatkalendern",
+        "type": "github"
+      }
+    },
     "kompismoln-site": {
       "inputs": {
         "nixpkgs": [
@@ -600,13 +621,13 @@
       "locked": {
         "lastModified": 1753939845,
         "narHash": "sha256-K2ViRJfdVGE8tpJejs8Qpvvejks1+A4GQej/lBk5y7I=",
-        "owner": "Kompismoln",
+        "owner": "kompismoln",
         "repo": "nixpkgs",
         "rev": "94def634a20494ee057c76998843c015909d6311",
         "type": "github"
       },
       "original": {
-        "owner": "Kompismoln",
+        "owner": "kompismoln",
         "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
@@ -815,6 +836,7 @@
         "disko": "disko",
         "home-manager": "home-manager_2",
         "klimatkalendern": "klimatkalendern",
+        "klimatkalendern-dev": "klimatkalendern-dev",
         "kompismoln-site": "kompismoln-site",
         "nixos-anywhere": "nixos-anywhere",
         "nixos-cli": "nixos-cli",

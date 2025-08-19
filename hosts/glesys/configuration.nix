@@ -9,6 +9,9 @@ let
   sites = import ../sites.nix;
 in
 {
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
   boot.loader.grub = {
     enable = true;
@@ -92,7 +95,7 @@ in
   };
 
   fileSystems."/var/lib/jellyfin/media" = {
-    device = "stationary.ahbk:/mnt/t1/media";
+    device = "stationary.km:/mnt/t1/media";
     fsType = "nfs";
   };
 
@@ -130,12 +133,9 @@ in
       enable = true;
       hostname = "klimatkalendern.nu";
       appname = "klimatkalendern1";
-      www = false;
+      www = "yes";
       port = ids.klimatkalendern.port;
       uid = ids.klimatkalendern.uid;
-      ssl = true;
-      subnet = false;
-      containerConf = { };
     };
 
     nextcloud-rolf.sites."sverigesval-sync" = {
@@ -157,10 +157,10 @@ in
       uid = 978;
       collaboraHost = "collabora.ahbk.se";
       mounts = {
-        alex = "stationary.ahbk:/mnt/t1/alex";
-        johanna = "stationary.ahbk:/mnt/t1/johanna";
-        chris = "stationary.ahbk:/mnt/t1/chris";
-        john = "stationary.ahbk:/mnt/t1/john";
+        alex = "stationary.km:/mnt/t1/alex";
+        johanna = "stationary.km:/mnt/t1/johanna";
+        chris = "stationary.km:/mnt/t1/chris";
+        john = "stationary.km:/mnt/t1/john";
         #petra = "stationary.ahbk:/mnt/t1/petra";
         #rigmor = "stationary.ahbk:/mnt/t1/rigmor";
       };
