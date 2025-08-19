@@ -28,48 +28,68 @@
                 type = "luks";
                 name = "crypted";
                 settings = {
-                  allowDiscards = true;
                   keyFile = "/secret.key";
+                  allowDiscards = true;
                 };
                 content = {
-                  type = "btrfs";
-                  extraArgs = [ "-f" ];
-                  subvolumes = {
-                    "@root" = {
-                      mountpoint = "/";
-                      mountOptions = [
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                    "@swap" = {
-                      mountpoint = "/.swapvol";
-                      swap.swapfile.size = "8G";
-                    };
-                    "@nix" = {
-                      mountpoint = "/nix";
-                      mountOptions = [
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                    "@var" = {
-                      mountpoint = "/var";
-                      mountOptions = [
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                    "@srv" = {
-                      mountpoint = "/srv";
-                      mountOptions = [
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                  };
+                  type = "lvm_pv";
+                  vg = "pool";
                 };
               };
+            };
+          };
+        };
+      };
+    };
+    lvm_vg = {
+      pool = {
+        type = "lvm_vg";
+        lvs = {
+          system = {
+            size = "30G";
+            content = {
+              type = "btrfs";
+              extraArgs = [ "-f" ];
+              subvolumes = {
+                "@root" = {
+                  mountpoint = "/";
+                  mountOptions = [
+                    "compress=zstd"
+                    "noatime"
+                  ];
+                };
+                "@nix" = {
+                  mountpoint = "/nix";
+                  mountOptions = [
+                    "compress=zstd"
+                    "noatime"
+                  ];
+                };
+                "@var" = {
+                  mountpoint = "/var";
+                  mountOptions = [
+                    "compress=zstd"
+                  ];
+                };
+              };
+            };
+          };
+          swap = {
+            size = "8G";
+            content = {
+              type = "swap";
+            };
+          };
+          storage = {
+            size = "100%";
+            content = {
+              type = "filesystem";
+              format = "xfs";
+              mountpoint = "/srv";
+              mountOptions = [
+                "defaults"
+                "noatime"
+              ];
             };
           };
         };
