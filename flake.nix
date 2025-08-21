@@ -27,6 +27,8 @@
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
     nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
 
+    preservation.url = "github:nix-community/preservation";
+
     nixos-cli.url = "github:nix-community/nixos-cli";
     nixos-cli.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -103,7 +105,7 @@
             { sops.defaultSopsFile = ./hosts/${cfg.name}/secrets.yaml; }
           ];
         }
-      ) (hosts);
+      ) hosts;
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         packages = [
@@ -114,7 +116,8 @@
           '')
           (pkgs.writeShellScriptBin "switch" ''
             #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --show-trace --verbose;
+            nixos-rebuild switch --use-remote-sudo --show-trace --verbose \
+            --build-host ${buildHost}.${domain};
           '')
           (pkgs.writeShellScriptBin "dirty-ssh" ''
             #!/usr/bin/env bash

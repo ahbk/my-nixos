@@ -2,7 +2,6 @@
   config,
   users,
   pkgs,
-  lib,
   ...
 }:
 {
@@ -12,17 +11,64 @@
 
   sops.secrets.luks-key = { };
   boot = {
-    initrd = {
-      network.enable = false;
-      secrets."/secret.key" = config.sops.secrets.luks-key.path;
-    };
     loader.grub.enable = true;
+    initrd = {
+      systemd.enable = true;
+      secrets."/luks-key" = config.sops.secrets.luks-key.path;
+    };
+  };
+
+  boot.initrd.systemd.services."format-root" = {
+    enable = true;
+    description = "Format the root LV partition at boot";
+    unitConfig = {
+      DefaultDependencies = "no";
+      Requires = "dev-pool-root.device";
+      After = "dev-pool-root.device";
+      Before = "sysroot.mount";
+    };
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.e2fsprogs}/bin/mkfs.ext4 -F /dev/pool/root";
+    };
+    wantedBy = [ "initrd.target" ];
   };
 
   networking = {
     useDHCP = false;
     firewall = {
       logRefusedConnections = false;
+    };
+  };
+
+  systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
+  fileSystems."/srv/storage".neededForBoot = true;
+  preservation = {
+    enable = true;
+    preserveAt."/srv/storage" = {
+      directories = [
+        "/var/log"
+        "/var/lib/nixos"
+        "/var/lib/systemd"
+      ];
+      files = [
+        {
+          file = "/etc/machine-id";
+          inInitrd = true;
+        }
+        {
+          file = "/etc/ssh/ssh_host_ed25519_key";
+          mode = "0600";
+          inInitrd = true;
+        }
+        {
+          file = "/etc/ssh/ssh_host_ed25519_key-";
+          mode = "0600";
+          inInitrd = true;
+        }
+      ];
     };
   };
 

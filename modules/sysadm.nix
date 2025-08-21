@@ -21,6 +21,10 @@ in
 
   config = mkMerge [
     {
+      security.sudo.extraConfig = ''
+        Defaults lecture = never
+      '';
+
       programs.ssh.knownHosts = mapAttrs (host: cfg: {
         hostNames = [
           "${host}.kompismoln.se"

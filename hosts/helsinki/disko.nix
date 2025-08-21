@@ -28,7 +28,7 @@
                 type = "luks";
                 name = "crypted";
                 settings = {
-                  keyFile = "/secret.key";
+                  keyFile = "/luks-key";
                   allowDiscards = true;
                 };
                 content = {
@@ -45,33 +45,17 @@
       pool = {
         type = "lvm_vg";
         lvs = {
-          system = {
-            size = "30G";
+          root = {
+            size = "5G";
             content = {
-              type = "btrfs";
-              extraArgs = [ "-f" ];
-              subvolumes = {
-                "@root" = {
-                  mountpoint = "/";
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                  ];
-                };
-                "@nix" = {
-                  mountpoint = "/nix";
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                  ];
-                };
-                "@var" = {
-                  mountpoint = "/var";
-                  mountOptions = [
-                    "compress=zstd"
-                  ];
-                };
-              };
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = [
+                "defaults"
+                "noatime"
+                "nodiratime"
+              ];
             };
           };
           swap = {
@@ -80,15 +64,49 @@
               type = "swap";
             };
           };
-          storage = {
-            size = "100%";
+          persistent = {
+            size = "60%VG";
+            content = {
+              type = "btrfs";
+              subvolumes = {
+                "@nix" = {
+                  mountpoint = "/nix";
+                  mountOptions = [
+                    "compress=zstd"
+                    "noatime"
+                    "space_cache=v2"
+                  ];
+                };
+                "@storage" = {
+                  mountpoint = "/srv/storage";
+                  mountOptions = [
+                    "compress=zstd"
+                    "noatime"
+                    "space_cache=v2"
+                  ];
+                };
+                "@backup" = {
+                  mountpoint = "/srv/backup";
+                  mountOptions = [
+                    "compress=no"
+                    "noatime"
+                    "space_cache=v2"
+                    "ro"
+                  ];
+                };
+              };
+            };
+          };
+          share = {
+            size = "100%FREE";
             content = {
               type = "filesystem";
               format = "xfs";
-              mountpoint = "/srv";
+              mountpoint = "/srv/share";
               mountOptions = [
                 "defaults"
                 "noatime"
+                "nodiratime"
               ];
             };
           };

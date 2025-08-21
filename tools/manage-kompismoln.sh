@@ -13,8 +13,8 @@ Usage: manage-kompismoln -h <host> <action> <type>
        manage-kompismoln updatekeys
 
 actions:      new | sync | fetch | check | sideload | pull | factory-reset
-host types:   ssh-key | wg-key | luks-key
-user types:   ssh-key | passwd | mail
+host types:   age-key | ssh-key | wg-key | luks-key
+user types:   age-key | ssh-key | passwd | mail
 domain types: tls-cert
 
 EOF
@@ -295,7 +295,7 @@ setup() {
     -h)
         mode="host"
         host=$entity
-        types=(ssh-key wg-key luks-key)
+        types=(age-key ssh-key wg-key luks-key)
 
         if [[ $type == "ssh-key" ]]; then
             actions+=(sideload factory-reset pull)
@@ -304,7 +304,7 @@ setup() {
     -u)
         mode="user"
         user=$entity
-        types=(ssh-key passwd mail)
+        types=(age-key ssh-key passwd mail)
         ;;
     -d)
         mode="domain"
@@ -416,9 +416,11 @@ sync() {
     action=generate-public dispatch >"$public_file"
 }
 
-# SSH keys are also used for encryption so in addition to normal sync we'll
-# need to update .sops.yaml.
-# TODO: when script is stabilized, update only if anchor differs
+sync::age-key() {
+    log "hello" debug
+    check::age-key || sync
+}
+
 sync::ssh-key() {
     log "hello" debug
 
@@ -430,7 +432,7 @@ sync::ssh-key() {
 sync::ssh-key--sops() {
     local age_key new_age_key
 
-    age_key="$(ssh-to-age <"$public_file")"
+    age_key="$(cat "$public_file")"
 
     set-anchor "$age_key"
     new_age_key=$(get-anchor)
@@ -473,6 +475,11 @@ user::sync::mail() {
 }
 
 # --- *::check::*
+
+check::age-key() {
+    log "hello" debug
+    test "$(age-keygen -y <"$private_file")" = "$(cat "$public_file")"
+}
 
 check::ssh-key() {
     log "hello" debug
@@ -699,7 +706,6 @@ domain::check::tls-cert() {
 
 host::pull::ssh-key() {
     ssh-keyscan -q "$host.$domain" | cut -d' ' -f2-3 >"$public_file"
-    sync::ssh-key--sops
 }
 
 # --- *::sideload::*
@@ -739,19 +745,26 @@ EOF
 host::factory-reset::ssh-key() {
     local extra_files="$tmp/mnt"
     local host_key="$extra_files/etc/ssh/ssh_host_ed25519_key"
+    local permanent_host_key="$extra_files/srv/storage/etc/ssh/ssh_host_ed25519_key"
 
-    install -d -m755 "$extra_files/etc/ssh"
+    install -d -m755 "$(dirname "$host_key")"
+    install -d -m755 "$(dirname "$permanent_host_key")"
     decrypt
     cp "$private_file" "$host_key"
+    cp "$private_file" "$permanent_host_key"
     chmod 600 "$host_key"
+    chmod 600 "$permanent_host_key"
+    log "host key prepared: $host_key" info
+    log "permanent host key prepared: $permanent_host_key" info
 
     type=luks-key decrypt
+    log "luks key prepared: $(cat "$private_file")" info
 
     nixos-anywhere \
         --flake ".#$host" \
         --target-host root@"$host.$domain" \
         --ssh-option GlobalKnownHostsFile=/dev/null \
-        --disk-encryption-keys /secret.key "$private_file" \
+        --disk-encryption-keys /luks-key "$private_file" \
         --generate-hardware-config nixos-facter hosts/"$host"/facter.json \
         --extra-files "$extra_files" \
         --copy-host-keys 2>"$err"
@@ -760,12 +773,19 @@ host::factory-reset::ssh-key() {
 
 # --- *::create-private::*
 
+create-private::age-key() {
+    log "hello" debug
+    rm "$private_file"
+    age-keygen -o "$private_file" 2>"$err"
+    post-cmd $? "error: $(cat "$err")" "private age-key $(head -n 1 "$private_file") > $private_file"
+}
+
 create-private::ssh-key() {
     log "hello" debug
 
     ssh-keygen -q -t "ed25519" -f "$private_file" -N "" \
-        -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>&1
-    post-cmd $? "unusual" "private ssh-key $(head -n 1 "$private_file") > $private_file"
+        -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>"$err"
+    post-cmd $? "error: $(cat "$err")" "private ssh-key $(head -n 1 "$private_file") > $private_file"
 }
 
 create-private::wg-key() {
@@ -798,6 +818,16 @@ create-private::passwd() {
 
 # --- *::generate-public::*
 
+generate-public::age-key() {
+    log "hello" debug
+    local pubkey
+
+    pubkey=$(age-keygen -y <"$private_file" 2>"$err")
+    post-cmd $? "error: $(cat "$err")" "public key: $pubkey"
+
+    echo "$pubkey"
+}
+
 generate-public::ssh-key() {
     log "hello" debug
     local pubkey
@@ -810,8 +840,8 @@ generate-public::ssh-key() {
 
 generate-public::wg-key() {
     log "hello" debug
-    wg pubkey <"$private_file"
-    post-cmd $? "unusual" "$private_file generated"
+    wg pubkey <"$private_file" 2>"$err"
+    post-cmd $? "error: $(cat "$err")" "$private_file generated"
 }
 
 generate-public::tls-cert() {
@@ -824,6 +854,11 @@ generate-public::tls-cert() {
 }
 
 # --- *::verify::*
+
+verify::age-key() {
+    log "hello" debug
+    action=generate-public dispatch >/dev/null
+}
 
 verify::ssh-key() {
     log "hello" debug

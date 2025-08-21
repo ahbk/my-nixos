@@ -7,7 +7,7 @@
     inputs.nixvim.nixosModules.nixvim
     inputs.disko.nixosModules.disko
     inputs.nixos-facter-modules.nixosModules.facter
-    inputs.nixos-facter-modules.nixosModules.facter
+    inputs.preservation.nixosModules.preservation
     inputs.nixos-cli.nixosModules.nixos-cli
     ./tls-certs.nix
     ./backup.nix
