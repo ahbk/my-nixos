@@ -6,145 +6,152 @@ shopt -s globstar
 
 usage() {
     cat <<'EOF'
-
-Usage: manage-kompismoln -h <host> <action> <type>
-       manage-kompismoln -u <user> <action> <type>
-       manage-kompismoln -d <domain> <action> <type>
-       manage-kompismoln updatekeys
-
-actions:      new | sync | fetch | check | sideload | pull | factory-reset
-host types:   age-key | ssh-key | wg-key | luks-key
-user types:   age-key | ssh-key | passwd | mail
-domain types: tls-cert
-
+Usage: ./tools/manage.sh [-h|-u|-d] <host|user|domain> <action> <type>
 EOF
 }
 
 usage-full() {
     usage
     cat <<'EOF'
-    `manage-kompismoln` manages sops-encrypted secrets (private keys, passwords) and their
-    corresponding components (public keys, certificates, password hashes) for
-    hosts, users, and domains within a repository. It uses a central .sops.yaml
-    file to map entities to their respective file paths and encryption keys.
 
-MODES:
-  -h <hostname>
-        Acts on the hosts' secrets at 'hosts/<hostname>/secrets.yaml
-        ssh-key writes public keys to 'hosts/<hostname>/<type>.pub'.
+DESCRIPTION
+    This script is for managing secrets within a SOPS-based infrastructure.
+    It automates the generation, encryption, synchronization, and deployment
+    of various ephemeral keys and credentials. The core principle is that all
+    secrets are protected by a master AGE key, allowing the rest of the secrets
+    to be automated.
 
-  -u <username>
-        Acts on users' secrets at 'users/<username>-enc.yaml
-        `ssh-key` writes public keys 'users/<username>-<type>.pub'.
+USAGE
+    ./tools/manage.sh <mode> <entity> <action> <type>
+    ./tools/manage.sh -u <admin> bootstrap
+    ./tools/manage.sh updatekeys
+    ./tools/manage.sh --help
 
-  -d <domainname>
-        Acts on domain related secrets at 'domains/secrets.yaml'.
-        `tls-cert` write certificates to 'domains/<domain>-<type>.pem'.
+MODES
+    The MODE argument determines the context of the operation.
 
-  updatekeys
-        Runs `sops updatekeys` on all paths above.
-  bootstrap
-        Creates a minimal viable .sops.yaml with an admin user with
-        an encrypted ssh-key and a private age key.
-        Mainly used for automated testing.
+    -h, --host    Manage secrets for a specific host.
+                  Example: `./tools/manage.sh -h server1 new age-key`
 
-ARGUMENTS:
-  <action>
-        Must be one of:
-        - init:     Initializes the secret file for a new host, user, or domain
-                    based on creation_rules in .sops.yaml.
-                    Mainly used for automated testing.
+    -u, --user    Manage secrets for a specific user.
+                  Example: `./tools/manage.sh -u jane.doe new ssh-key`
 
-        - new:      Creates a new secret pair (e.g., key pair, password).
-                    WARNING: This overwrites existing secrets and keys.
+    -d, --domain  Manage secrets for a specific domain.
+                  Example: `./tools/manage.sh -d example.com check tls-cert`
 
-        - sync:     Re-generates and overwrites the public key file using the
-                    existing encrypted private key. Useful if the public key
-                    is missing or suspected to be out of sync.
+ACTIONS
+    The ACTION argument specifies the operation to perform.
 
-        - check:    Performs consistency checks. For keys, it verifies the
-                    public key on disk against the encrypted private key.
-                    For SSH keys, it performs additional checks against the
-                    '.sops.yaml' configuration and the remote host.
+    init          Initializes a new entity (host, user, etc.) by creating its
+                  secrets file and adding a key group reference to `.sops.yaml`.
 
-        - sideload: [Host Mode, ssh-key only] Sideload a decrypted private
-                    SSH key to the target host's via scp/ssh.
+    new           A composite action that first runs `new-private` to create and
+                  encrypt a new secret, then runs `sync` to generate and save
+                  the corresponding public component.
 
-                    The new key replaces
-                    /etc/ssh/ssh_host_ed25519_key
-                    which is renamed to
-                    /etc/ssh/ssh_host_ed25519_key-
-                    (sops-nix uses both)
-                    
-                    Requires remote sudo privileges.
+    new-private   Generates a new private key/resource and encrypts it into the
+                  appropriate secrets file. The public component is not created.
+                  If the `PRIVATE_FILE` environment variable is set, its
+                  contents are used instead of generating a new key.
 
-  <type>
-        The type of secret to manage. The available types depend on the mode.
+    sync          Decrypts a private resource to generate its public counterpart.
+                  - For `age-key`, this also updates the key's anchor in
+                    `.sops.yaml` and triggers `sops updatekeys`.
+                  - For `passwd`/`mail`, it creates a hashed version of the
+                    password for storage.
 
-        Available for Host Mode (-h):
-        - ssh-key:  An Ed25519 SSH host key.
-        - wg-key:   A Curve25519 WireGuard private key.
-        - luks-key: Key for LUKS disk encryption.
+    check         Verifies the integrity and consistency of secrets.
+                  - For key pairs, it confirms the public key matches the
+                    private key.
+                  - For hosts, it remotely verifies the deployed SSH/AGE key.
+                  - For `passwd`, it verifies the plaintext and hashed versions.
 
-        Available for User Mode (-u):
-        - ssh-key:  A user's Ed25519 SSH key.
-        - passwd:   A user's password. The script will prompt for input.
-                    A SHA-512 hashed version is also stored as 'passwd-hashed'.
-        - mail:     A user's mail password (behaves identically to 'passwd').
+    pull          (Host SSH keys only) Retrieves the public SSH key from a remote
+                  host via `ssh-keyscan` and writes it to the entitys public file.
 
-        Available for Domain Mode (-d):
-        - tls-cert:
+    sideload      (Host SSH/AGE keys only) Deploys the private key to a remote host
+                  and installs it, restarting services if necessary.
 
-ENVIRONMENT VARIABLES:
-  PRIVATE_FILE
-        When running the 'new' action, if this variable is set to a file
-        path, the script will use the content of that file as the private
-        key instead of generating a new one.
+    factory-reset (Hosts only) Uses `nixos-anywhere` to reinstall a host from
+                  scratch, pre-seeding it with its existing LUKS, SSH, and AGE keys
+                  from the secrets store.
 
-EXAMPLES:
-  # Create a new SSH key pair for 'server01' and update sops recipients
-  manage-kompismoln -h server01 new ssh-key
+SPECIAL ACTIONS
+    -u <admin> bootstrap
+        Initialize the secret management system with a new administrative user.
+        It should only be run once and performs the following critical steps:
+        1. Creates a default `.sops.yaml` configuration if one does not exist.
+        2. Generates a new master AGE key pair.
+        3. Saves the private master key to the path specified in `.sops.yaml`
+           (e.g., `./age.key`). This file is the root of all trust and MUST be
+           backed up and kept secure.
+        4. In `.sops.yaml`, it records the public master key under an anchor
+           for the specified admin user (e.g., `&user-admin`).
+        5. Encrypts the admin's private AGE key into their own secrets file,
+           protected by the master key itself.
 
-  # Use an existing private SSH to renew key pair for 'server01' and update
-  # sops recipients
-  PRIVATE_FILE=./ssh_host_ed25519_key secrets -h server01 new ssh-key
+        This establishes a model where one or more admins hold the master key(s),
+        while all other keys (for hosts, users, etc.) are ephemeral and can be
+        rotated and managed safely within a Git repository.
 
-  # Check if all keys for 'server01' (on disk, in sops, on host) match
-  manage-kompismoln -h server01 check ssh-key
+    updatekeys
+        Scans all secret files and updates their SOPS metadata. This is done
+        automatically after changing a master AGE key or adding a new recipient
+        to a file's `key_groups` in `.sops.yaml`. It ensures all files can be
+        decrypted by the currently configured keys.
 
-  # Deploy the verified host key to 'server01'
-  manage-kompismoln -h server01 sideload ssh-key
+KEY / RESOURCE TYPES
+    The TYPE argument specifies the kind of secret to manage.
 
-  # Set a new password for user 'jane'
-  manage-kompismoln -u jane new passwd
+    age-key     AGE encryption key pair.
+    ssh-key     SSH key pair (Ed25519).
+    wg-key      WireGuard key pair.
+    luks-key    A passphrase for LUKS disk encryption.
+    passwd      A user's login password (stored as a salted SHA-512 hash).
+    mail        An email account password (handled like `passwd`).
+    tls-cert    A TLS certificate and its private key.
 
-  # A WireGuard public key is outdated; regenerate it from the secret
-  manage-kompismoln -h vpn-host sync wg-key
+ENVIRONMENT VARIABLES
+    SOPS_AGE_KEY_FILE
+        Path to the master AGE private key file. The script sets this
+        automatically based on the `.sops.yaml` configuration.
 
+    DEBUG=true
+        Enables verbose debug logging, showing function calls and detailed steps.
+
+    PRIVATE_FILE=<path>
+        If set during a `new-private` action, the script will use the contents
+        of the specified file as the private key instead of generating a new one.
+
+CONFIGURATION: .sops.yaml
+    The script parses it to understand the repository's structure and encryption
+    rules. Key sections include:
+
+    `keys`: Defines YAML anchors for AGE public keys, which are used to grant
+    decryption rights. The `bootstrap` command sets up the first admin key here.
+
+    `env`: Defines environment variables, most importantly `SOPS_AGE_KEY_FILE`,
+    which tells SOPS where to find the master private key for decryption.
+
+    Path Templates (`host-secrets`, `user-secrets`, `domain-secrets`):
+    The script uses these special keys to dynamically determine the location
+    of a secret. A template like ` "['{type}'] hosts/{host}/secrets.yaml" `
+    is parsed to determine both the file path (`hosts/{host}/secrets.yaml`)
+    and the JSON/YAML path within that file (`['{type}']`). The script
+    substitutes placeholders like `{host}` and `{type}` with the provided
+    arguments.
 EOF
 }
 
 main() {
     setup "$@"
 
-    case $action in
-    bootstrap)
-        bootstrap
-        exit_code=$?
-        ;;
-    init)
-        init
-        exit_code=$?
-        ;;
-    *)
-        sanitize-dispatcher-input
-        dispatch
-        exit_code=$?
-        case $exit_code in
-        0) log "$mode::$action::$type completed" success ;;
-        *) log "$mode::$action::$type completed with errors" error ;;
-        esac
-        ;;
+    sanitize-dispatcher-input && dispatch
+    exit_code=$?
+
+    case $exit_code in
+    0) log "$mode::$action::$type completed" success ;;
+    *) log "$mode::$action::$type completed with errors" error ;;
     esac
 
     log "exit code: $exit_code" debug
@@ -197,10 +204,7 @@ log() {
 
 # die with mandatory exit code and optional message
 die() {
-    local \
-        exit_code=$1 \
-        msg=$2 \
-        fn=${3-}
+    local exit_code=$1 msg=$2 fn=${3-}
 
     case $exit_code in
     0) log "$msg" info ;;
@@ -215,24 +219,13 @@ die() {
 
 #  switch for exit codes from commands with side effects
 post-cmd() {
-    local \
-        exit_code=$1 \
-        error_msg=${2-} \
-        msg=${3-}
-
-    case $exit_code in
-    0)
-        if [[ -n $msg ]]; then
-            log "$msg" success
-        fi
-        ;;
-    *) die "$exit_code" "$error_msg" ;;
-    esac
+    local exit_code=$1 err=$2
+    [[ $exit_code == 0 ]] || die "$exit_code" "$(cat "$err")"
 }
 
 # misc 'setup the environment' thingies
 setup() {
-    domain="km"
+    domain="kompismoln.se"
 
     # bold or not bold red green yellow and normal colors
     RN='\033[0;31m'
@@ -276,17 +269,10 @@ setup() {
         updatekeys
         exit 0
         ;;
-    bootstrap)
-        mode=-u
-        entity="admin"
-        user=$entity
-        action=bootstrap
-        type=age-key
-        ;;
     *) die 1 "invalid mode: $mode" usage ;;
     esac
 
-    actions=(new new-private sync check)
+    actions=(new new-private sync check init)
 
     case $mode in
     -h)
@@ -294,20 +280,19 @@ setup() {
         host=$entity
         types=(age-key ssh-key wg-key luks-key)
 
-        if [[ $action == "factory-reset" ]]; then
-            type=age-key
-        fi
-        if [[ $type == "ssh-key" ]]; then
-            actions+=(sideload pull)
-        fi
-        if [[ $type == "age-key" ]]; then
-            actions+=(sideload factory-reset)
-        fi
+        [[ $action == "factory-reset" ]] && type=age-key
+        [[ $type == "ssh-key" ]] && actions+=(sideload pull)
+        [[ $type == "age-key" ]] && actions+=(sideload factory-reset)
         ;;
     -u)
         mode="user"
         user=$entity
         types=(age-key ssh-key passwd mail)
+        [[ $action == "bootstrap" ]] && {
+            type=age-key
+            actions+=(bootstrap)
+            init-.sops-yaml
+        }
         ;;
     -d)
         mode="domain"
@@ -316,8 +301,8 @@ setup() {
         ;;
     esac
 
-    if [[ $action == "bootstrap" ]]; then
-        init-.sops-yaml
+    if [[ $action == "init" ]]; then
+        types+=("")
     fi
 
     SOPS_AGE_KEY_FILE=$(.sops-yaml '.env.SOPS_AGE_KEY_FILE')
@@ -341,19 +326,15 @@ sanitize-dispatcher-input() {
     [[ " ${types[*]} " =~ " $type " ]] ||
         die 1 "'$type' is not a valid key type. Allowed key types: ${types[*]}" usage
 
-    [ -f "$secrets_file" ] ||
+    [[ $action == "bootstrap" || $action == "init" || -f "$secrets_file" ]] || {
         die 1 "no file found in '$secrets_file', did you spell $mode correctly?"
+    }
 }
 
 # check if a function is defined here
 fn-exists() {
     local fn=$1
     declare -F "$fn" >/dev/null
-}
-
-# runs when no function is defined for the combination
-cmd-not-found() {
-    die 127 "no function found for $mode::$action::$type"
 }
 
 # Function dispatcher array - lists functions in priority order until one exists
@@ -375,11 +356,13 @@ dispatch() {
     )
     for run in "${dispatcher[@]}"; do
         log "$run?" debug
-        fn-exists "$run" && break
+        if fn-exists "$run"; then
+            log "$run!" info
+            "$run"
+            return
+        fi
     done
-
-    log "$run!" info
-    "$run"
+    die 127 "no function found for $mode::$action::$type"
 }
 
 # DISPATCHABLE FUNCTIONS START HERE
@@ -400,7 +383,7 @@ new() {
 new-private() {
     log "hello" debug
 
-    if [[ -n ${PRIVATE_FILE+x} ]]; then
+    if [[ -n ${PRIVATE_FILE:-} ]]; then
         action=copy-private dispatch
     else
         action=create-private dispatch
@@ -421,11 +404,6 @@ sync() {
 sync::age-key() {
     log "hello" debug
     sync && sync::age-key--sops
-}
-
-sync::ssh-key() {
-    log "hello" debug
-    sync
 }
 
 sync::age-key--sops() {
@@ -649,7 +627,7 @@ host::check::luks-key() {
     ssh "admin@$host.$domain" \
         'sudo $(type -P cryptsetup) open --test-passphrase --key-file=- /dev/sda3' \
         2>"$err" <"$private_file"
-    post-cmd $? "no match: $(cat "$err")" "match"
+    post-cmd $? "$err"
 }
 
 # Password and hashed password should match
@@ -762,7 +740,7 @@ host::sideload::ssh-key() {
     scp "$private_file" "$host.$domain:/tmp/ssh-key"
 
     ssh -t "$host.$domain" "sudo sh -c 'cat /tmp/ssh-key >$host_key && rm -f /tmp/ssh-key && systemctl restart sshd'" 2>"$err"
-    post-cmd $? "sideload failed: $(cat "$err")" "sideload succeded"
+    post-cmd $? "$err"
 }
 
 host::sideload::age-key() {
@@ -783,7 +761,7 @@ host::sideload::age-key() {
     scp "$private_file" "$host.$domain:/tmp/age-key"
 
     ssh -t "$host.$domain" "sudo sh -c 'cat /tmp/age-key >$host_key && rm -f /tmp/age-key'" 2>"$err"
-    post-cmd $? "sidoload failed: $(cat "$err")" "sideload succeded"
+    post-cmd $? "$err"
 
     log "rebuild $host now or suffer the consequences" warning
 }
@@ -821,7 +799,7 @@ host::factory-reset() {
         --generate-hardware-config nixos-facter hosts/"$host"/facter.json \
         --extra-files "$extra_files" \
         --copy-host-keys 2>"$err"
-    post-cmd $? "failed: $(cat "$err")" "complete"
+    post-cmd $? "$err"
 }
 
 # --- *::create-private::*
@@ -830,7 +808,7 @@ create-private::age-key() {
     log "hello" debug
     rm "$private_file"
     age-keygen >"$private_file" 2>"$err"
-    post-cmd $? "error: $(cat "$err")" "private age-key $(head -n 1 "$private_file") > $private_file"
+    post-cmd $? "$err"
 }
 
 create-private::ssh-key() {
@@ -838,28 +816,28 @@ create-private::ssh-key() {
 
     ssh-keygen -q -t "ed25519" -f "$private_file" -N "" \
         -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>"$err"
-    post-cmd $? "error: $(cat "$err")" "private ssh-key $(head -n 1 "$private_file") > $private_file"
+    post-cmd $? "$err"
 }
 
 create-private::wg-key() {
     log "hello" debug
 
-    wg genkey >"$private_file"
-    post-cmd $? "unusual" "$private_file generated"
+    wg genkey >"$private_file" 2>"$err"
+    post-cmd $? "$err"
 }
 
 create-private::luks-key() {
     log "hello" debug
 
-    openssl rand -base64 12 >"$private_file"
-    post-cmd $? "unusual" "$private_file generated"
+    openssl rand -base64 12 >"$private_file" 2>"$out"
+    post-cmd $? "$err"
 }
 
 create-private::tls-cert() {
     log "hello" debug
 
-    openssl genpkey -algorithm ED25519 -out "$private_file"
-    post-cmd $? "unusual" "$private_file generated"
+    openssl genpkey -algorithm ED25519 -out "$private_file" 2>"$err"
+    post-cmd $? "$err"
 }
 
 create-private::passwd() {
@@ -876,25 +854,21 @@ generate-public::age-key() {
     local pubkey
 
     pubkey=$(age-keygen -y <"$private_file" 2>"$err")
-    post-cmd $? "error: $(cat "$err")" "public key: $pubkey"
+    post-cmd $? "$err"
 
     echo "$pubkey"
 }
 
 generate-public::ssh-key() {
     log "hello" debug
-    local pubkey
-
-    pubkey=$(ssh-keygen -y -f "$private_file")
-    post-cmd $? "could not generate from $(head -n 1 "$private_file")" "public key: $pubkey"
-
-    echo "$pubkey"
+    ssh-keygen -y -f "$private_file" 2>"$err"
+    post-cmd $? "$err"
 }
 
 generate-public::wg-key() {
     log "hello" debug
     wg pubkey <"$private_file" 2>"$err"
-    post-cmd $? "error: $(cat "$err")" "$private_file generated"
+    post-cmd $? "$err"
 }
 
 generate-public::tls-cert() {
@@ -902,8 +876,8 @@ generate-public::tls-cert() {
     openssl req -new -x509 -key "$private_file" \
         -subj "/CN=*.$domain" \
         -addext "subjectAltName=DNS:*.$domain,DNS:$domain" \
-        -nodes -out - -days 3650
-    post-cmd $? "unusual" "$private_file generated"
+        -nodes -out - -days 3650 2>"$err"
+    post-cmd $? "$err"
 }
 
 # --- *::verify::*
@@ -985,7 +959,7 @@ EOF
     echo "init: true" |
         sops encrypt --filename-override "$secrets_file" /dev/stdin >"$secrets_file" 2>"$err"
 
-    post-cmd $? "creating secrets failed: $(cat "$err")" "secrets file created"
+    post-cmd $? "$err"
 }
 
 # --- sops integrations
@@ -995,11 +969,11 @@ encrypt() {
     set-secrets-location
     log "encrypting secret > $secrets_path@$private_file" debug
 
-    action=verify dispatch
-    post-cmd $? "verification failed" "secret verified"
+    action=verify dispatch 2>"$err"
+    post-cmd $? "$err"
 
     sops set "$secrets_file" "$secrets_path" "$(jq -Rs <"$private_file")" >"$out" 2>"$err"
-    post-cmd $? "encryption failed: $(cat "$err")" "secret encrypted: $(cat "$out")"
+    post-cmd $? "$err"
 }
 
 decrypt() {
@@ -1009,16 +983,13 @@ decrypt() {
     log "decrypting secret < $secrets_path@$private_file" debug
 
     sops decrypt --extract "$secrets_path" "$secrets_file" >"$private_file" 2>"$err"
-    post-cmd $? "something seems wrong with $secrets_file: $(cat "$err")" "secret decrypted"
+    post-cmd $? "$err"
 }
 
 get-anchor() {
     log "hello" debug
-    local key
-
-    key=$(yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml 2>"$err")
-    post-cmd $? "$(cat "$err")" "got: $key"
-    echo "$key"
+    yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml 2>"$err"
+    post-cmd $? "$err"
 }
 
 set-anchor() {
@@ -1029,7 +1000,7 @@ set-anchor() {
     [[ -z $age_key ]] && die 1 "age key invalid: '$age_key'"
 
     yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$age_key\"" .sops.yaml 2>"$err"
-    post-cmd $? "fail: $(cat "$err")"
+    post-cmd $? "$err"
 
     new_age_key=$(get-anchor)
     [[ "$new_age_key" == "$age_key" ]] || die 1 "update fail: $new_age_key != $age_key"
@@ -1080,21 +1051,22 @@ set-secrets-location() {
 copy-private() {
     log "hello" debug
 
-    cat "$PRIVATE_FILE" >"$private_file"
-    post-cmd $? "could not read file" "copied $PRIVATE_FILE to $private_file"
+    cat "$PRIVATE_FILE" >"$private_file" 2>"$err"
+    post-cmd $? "$err"
 }
 
 bootstrap() {
     log "hello" debug
     local key
 
+    mkdir -p "$(dirname "$secrets_file")"
+    touch "$secrets_file"
+
     create-private::age-key
     cp -a "$private_file" "$SOPS_AGE_KEY_FILE"
 
     key=$(generate-public::age-key)
     set-anchor "$key"
-
-    mkdir -p "$(dirname "$secrets_file")"
 
     echo "$user: { age-key: }" |
         sops encrypt --filename-override "users/$user-enc.yaml" /dev/stdin >"$secrets_file"
@@ -1107,16 +1079,14 @@ bootstrap() {
 .sops-yaml() {
     log "hello" debug
 
-    local key=$1 template value
+    local key=$1 template
 
     log "get '$key'" debug
     template=$(yq "$key" .sops.yaml 2>"$err")
-    post-cmd $? "$(cat "$err")"
+    post-cmd $? "$err"
 
-    value=$(eval "echo \"${template//\{/\$\{}\"" 2>"$err")
-    post-cmd $? "$(cat "$err")" "$key: $value"
-
-    echo "$value"
+    eval "echo \"${template//\{/\$\{}\"" 2>"$err"
+    post-cmd $? "$err"
 }
 
 init-.sops-yaml() {

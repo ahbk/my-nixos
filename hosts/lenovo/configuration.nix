@@ -26,10 +26,10 @@
     }
   ];
 
-  sops.secrets.luks-secret-key = { };
+  sops.secrets.luks-key = { };
   boot = {
     initrd = {
-      secrets."/secret.key" = config.sops.secrets.luks-secret-key.path;
+      secrets."/luks-key" = config.sops.secrets.luks-key.path;
     };
     loader = {
       systemd-boot.enable = true;

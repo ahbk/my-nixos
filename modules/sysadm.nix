@@ -21,9 +21,30 @@ in
 
   config = mkMerge [
     {
-      security.sudo.extraConfig = ''
-        Defaults lecture = never
-      '';
+
+      security.sudo = {
+        extraConfig = ''
+          Defaults lecture = never
+        '';
+        extraRules = [
+          {
+            users = [
+              "admin"
+            ];
+            runAs = "root";
+            commands = [
+              {
+                command = "/run/current-system/sw/bin/cryptsetup open --test-passphrase *";
+                options = [ "NOPASSWD" ];
+              }
+              {
+                command = "/run/current-system/sw/bin/cat /etc/age/keys.txt";
+                options = [ "NOPASSWD" ];
+              }
+            ];
+          }
+        ];
+      };
 
       sops.age = {
         keyFile = "/etc/age/keys.txt";

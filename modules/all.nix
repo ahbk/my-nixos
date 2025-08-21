@@ -13,6 +13,7 @@
     ./backup.nix
     ./backup-server.nix
     ./collabora.nix
+    ./debug.nix
     ./desktop-env.nix
     ./django-react.nix
     ./django-svelte.nix
@@ -32,6 +33,7 @@
     ./nginx.nix
     ./nix.nix
     ./postgresql.nix
+    ./preserve.nix
     ./react.nix
     ./sendmail.nix
     ./shell.nix

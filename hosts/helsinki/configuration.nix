@@ -1,7 +1,6 @@
 {
   config,
   users,
-  pkgs,
   ...
 }:
 {
@@ -13,62 +12,14 @@
   boot = {
     loader.grub.enable = true;
     initrd = {
-      systemd.enable = true;
       secrets."/luks-key" = config.sops.secrets.luks-key.path;
     };
-  };
-
-  boot.initrd.systemd.services."format-root" = {
-    enable = true;
-    description = "Format the root LV partition at boot";
-    unitConfig = {
-      DefaultDependencies = "no";
-      Requires = "dev-pool-root.device";
-      After = "dev-pool-root.device";
-      Before = "sysroot.mount";
-    };
-
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${pkgs.e2fsprogs}/bin/mkfs.ext4 -F /dev/pool/root";
-    };
-    wantedBy = [ "initrd.target" ];
   };
 
   networking = {
     useDHCP = false;
     firewall = {
       logRefusedConnections = false;
-    };
-  };
-
-  systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
-  fileSystems."/srv/storage".neededForBoot = true;
-  preservation = {
-    enable = true;
-    preserveAt."/srv/storage" = {
-      directories = [
-        "/var/log"
-        "/var/lib/nixos"
-        "/var/lib/systemd"
-      ];
-      files = [
-        {
-          file = "/etc/machine-id";
-          inInitrd = true;
-        }
-        {
-          file = "/etc/ssh/ssh_host_ed25519_key";
-          mode = "0600";
-          inInitrd = true;
-        }
-        {
-          file = "/etc/age/keys.txt";
-          mode = "0600";
-          inInitrd = true;
-        }
-      ];
     };
   };
 
@@ -104,27 +55,9 @@
     };
   };
 
-  security.sudo.extraRules = [
-    {
-      users = [
-        "admin"
-      ];
-      runAs = "root";
-      commands = [
-        {
-          command = "/run/current-system/sw/bin/cryptsetup open --test-passphrase *";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/cat /etc/age/keys.txt";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
-
   my-nixos = {
     sysadm.rescueMode = true;
+    preserve.enable = true;
     users = with users; {
       inherit admin alex;
     };

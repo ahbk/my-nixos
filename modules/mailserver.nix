@@ -65,6 +65,13 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
 
+      my-nixos.preserve.directories = with config.mailserver; [
+        dkimKeyDirectory
+        mailDirectory
+        sieveDirectory
+        "/var/lib/redis-rspamd"
+      ];
+
       sops.secrets = lib'.mergeAttrs (user: _: {
         "${user}/mail-hashed" = {
           sopsFile = ../users/${user}-enc.yaml;
@@ -131,11 +138,6 @@ in
             syslog-ident = "redis-rspamd";
           };
         };
-
-        restic.backups.km.paths = [
-          config.mailserver.dkimKeyDirectory
-          config.mailserver.mailDirectory
-        ];
 
       };
     })
