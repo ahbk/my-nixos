@@ -66,6 +66,7 @@ in
       w3m
       git
       vim
+      tree
     ];
   };
 }

@@ -13,12 +13,13 @@ setup() {
     local cmd_name=$1
 
     echo "#!/usr/bin/env bash" >"$testroot/bin/$cmd_name"
-    echo "echo \"ssh-ed25519 trust-me\"" >>"$testroot/bin/$cmd_name"
+    echo $2 >>"$testroot/bin/$cmd_name"
     chmod +x "$testroot/bin/$cmd_name"
   }
   mkdir -p "$testroot/bin"
   export PATH="$testroot/bin:$PATH"
-  mock_command ssh-keyscan
+  mock_command ssh-keyscan "echo \"ssh-ed25519 trust-me\""
+  mock_command ssh "echo \"trust-me\""
   echo "=== END SETUP ===" >&2
 }
 
@@ -41,8 +42,8 @@ check-output() {
     return 0
   else
     echo "'$1' failed"
-    echo "expected: $3" >&2
-    echo "got: $ll" >&2
+    echo "expected: $3 ($2)" >&2
+    echo "got: $ll ($status)" >&2
     return 1
   fi
 }
@@ -50,6 +51,42 @@ check-output() {
 @test "no args" {
   run ./tools/manage-kompismoln.sh
   [ "$status" -eq 1 ]
+}
+
+@test "host new age-key" {
+  run ./tools/manage-kompismoln.sh -h testhost init
+  check-output "-h testhost init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -h testhost new age-key
+  check-output "-h testhost new age-key" 0 "host::new::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost check age-key
+  check-output "-h testhost check age-key" 0 "host::check::age-key completed"
+}
+
+@test "host new age-key (mismatch)" {
+  run ./tools/manage-kompismoln.sh -h testhost init
+  check-output "-h testhost init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -h testhost new age-key
+  check-output "-h testhost new age-key" 0 "host::new::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost new-private age-key
+  check-output "-h testhost new-private age-key" 0 "host::new-private::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost check age-key
+  check-output "-h testhost check age-key" 1 "host::check::age-key completed with errors"
+}
+
+@test "host new age-key (no public)" {
+  run ./tools/manage-kompismoln.sh -h testhost init
+  check-output "-h testhost init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -h testhost new-private age-key
+  check-output "-h testhost new-private age-key" 0 "host::new-private::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -h testhost check age-key
+  check-output "-h testhost check age-key" 1 "public key doesn't exist"
 }
 
 @test "host new ssh-key" {
@@ -87,6 +124,7 @@ check-output() {
   run ./tools/manage-kompismoln.sh -h testhost check ssh-key
   check-output "-h testhost check ssh-key" 1 "public key doesn't exist"
 }
+
 @test "host new wg-key" {
   run ./tools/manage-kompismoln.sh -h testhost init
   check-output "-h testhost init" 0 "secrets file created"
@@ -110,6 +148,42 @@ check-output() {
 
   run ./tools/manage-kompismoln.sh -h testhost check wg-key
   check-output "-h testhost check wg-key" 1 "host::check::wg-key completed with errors"
+}
+
+@test "user new age-key" {
+  run ./tools/manage-kompismoln.sh -u testuser init
+  check-output "-u testuser init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -u testuser new age-key
+  check-output "-u testuser new age-key" 0 "user::new::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -u testuser check age-key
+  check-output "-u testuser check age-key" 0 "user::check::age-key completed"
+}
+
+@test "user new age-key (mismatch)" {
+  run ./tools/manage-kompismoln.sh -u testuser init
+  check-output "-u testuser init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -u testuser new age-key
+  check-output "-u testuser new age-key" 0 "user::new::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -u testuser new-private age-key
+  check-output "-u testuser new-private age-key" 0 "user::new-private::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -u testuser check age-key
+  check-output "-u testuser check age-key" 1 "user::check::age-key completed with errors"
+}
+
+@test "user new age-key (no public)" {
+  run ./tools/manage-kompismoln.sh -u testuser init
+  check-output "-u testuser init" 0 "secrets file created"
+
+  run ./tools/manage-kompismoln.sh -u testuser new-private age-key
+  check-output "-u testuser new-private age-key" 0 "user::new-private::age-key completed"
+
+  run ./tools/manage-kompismoln.sh -u testuser check age-key
+  check-output "-u testuser check age-key" 1 "public key doesn't exist"
 }
 
 @test "user new ssh-key" {

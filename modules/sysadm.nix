@@ -25,6 +25,11 @@ in
         Defaults lecture = never
       '';
 
+      sops.age = {
+        keyFile = "/etc/age/keys.txt";
+        sshKeyPaths = [ ];
+      };
+
       programs.ssh.knownHosts = mapAttrs (host: cfg: {
         hostNames = [
           "${host}.kompismoln.se"
@@ -37,10 +42,6 @@ in
       services.openssh.hostKeys = [
         {
           path = "/etc/ssh/ssh_host_ed25519_key";
-          type = "ed25519";
-        }
-        {
-          path = "/etc/ssh/ssh_host_ed25519_key-";
           type = "ed25519";
         }
       ];

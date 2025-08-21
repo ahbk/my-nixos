@@ -64,7 +64,7 @@
           inInitrd = true;
         }
         {
-          file = "/etc/ssh/ssh_host_ed25519_key-";
+          file = "/etc/age/keys.txt";
           mode = "0600";
           inInitrd = true;
         }
@@ -113,6 +113,10 @@
       commands = [
         {
           command = "/run/current-system/sw/bin/cryptsetup open --test-passphrase *";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/cat /etc/age/keys.txt";
           options = [ "NOPASSWD" ];
         }
       ];

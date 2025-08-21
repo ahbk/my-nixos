@@ -232,7 +232,7 @@ post-cmd() {
 
 # misc 'setup the environment' thingies
 setup() {
-    domain="kompismoln.se"
+    domain="km"
 
     # bold or not bold red green yellow and normal colors
     RN='\033[0;31m'
@@ -265,7 +265,7 @@ setup() {
         [[ $# -ge 3 ]] || die 1 "wrong number of arguments provided." usage
         entity=$2
         action=$3
-        type=${4-"ssh-key"}
+        type=${4-}
         ;;
 
     --help)
@@ -276,15 +276,12 @@ setup() {
         updatekeys
         exit 0
         ;;
-    factory-reset)
-        type=ssh-key
-        ;;
     bootstrap)
         mode=-u
         entity="admin"
         user=$entity
         action=bootstrap
-        type=ssh-key
+        type=age-key
         ;;
     *) die 1 "invalid mode: $mode" usage ;;
     esac
@@ -297,8 +294,14 @@ setup() {
         host=$entity
         types=(age-key ssh-key wg-key luks-key)
 
+        if [[ $action == "factory-reset" ]]; then
+            type=age-key
+        fi
         if [[ $type == "ssh-key" ]]; then
-            actions+=(sideload factory-reset pull)
+            actions+=(sideload pull)
+        fi
+        if [[ $type == "age-key" ]]; then
+            actions+=(sideload factory-reset)
         fi
         ;;
     -u)
@@ -324,7 +327,6 @@ setup() {
     public_file=$(.sops-yaml ".$mode-pub")
 
     set-secrets-location
-
 }
 
 # make sure actions and types are accepted and that $secrets_file exists
@@ -418,18 +420,15 @@ sync() {
 
 sync::age-key() {
     log "hello" debug
-    check::age-key || sync
+    sync && sync::age-key--sops
 }
 
 sync::ssh-key() {
     log "hello" debug
-
     sync
-    sync::ssh-key--sops
-
 }
 
-sync::ssh-key--sops() {
+sync::age-key--sops() {
     local age_key new_age_key
 
     age_key="$(cat "$public_file")"
@@ -478,6 +477,8 @@ user::sync::mail() {
 
 check::age-key() {
     log "hello" debug
+    decrypt
+    [[ -f $public_file ]] || die 1 "public key doesn't exist"
     test "$(age-keygen -y <"$private_file")" = "$(cat "$public_file")"
 }
 
@@ -517,27 +518,25 @@ check::wg-key() {
     check::ssh-key
 }
 
-# Users need to check .sops.yaml as well
-user::check::ssh-key() {
+host::check::age-key() {
     log "hello" debug
 
     local exit_code=0
 
-    check::ssh-key || exit_code=1
-    check::ssh-key--sops || exit_code=1
+    check::age-key || exit_code=1
+    check::age-key--sops || exit_code=1
+    check::age-key--host || exit_code=1
 
     log "exit code: $exit_code" debug
     return "$exit_code"
 }
 
-# Hosts need to check .sops.yaml like users and also the live host
 host::check::ssh-key() {
     log "hello" debug
 
     local exit_code=0
 
     check::ssh-key || exit_code=1
-    check::ssh-key--sops || exit_code=1
     check::ssh-key--host || exit_code=1
 
     log "exit code: $exit_code" debug
@@ -545,7 +544,7 @@ host::check::ssh-key() {
 }
 
 # check's helpers (not dispatchable)
-check::ssh-key--sops() {
+check::age-key--sops() {
     log "hello" debug
 
     local \
@@ -555,13 +554,53 @@ check::ssh-key--sops() {
         from_secret \
         from_sops
 
-    from_secret=$(ssh-to-age <<<"$("generate-public::$type")")
+    from_secret=$("generate-public::$type")
     log "public key (from secret): $from_secret" info
 
     from_sops=$(get-anchor)
     log "public key (from .sops.yaml): $from_sops" info
 
     if [[ ! "$from_secret" == "$from_sops" ]]; then
+        exit_code=1
+        match=false
+        log_level=error
+    fi
+
+    log "match: $match" "$log_level"
+    log "exit code: $exit_code" debug
+
+    return "$exit_code"
+}
+
+check::age-key--host() {
+    log "hello" debug
+
+    local \
+        exit_code=0 \
+        match=true \
+        log_level=success \
+        from_host="" \
+        from_file
+
+    from_file=$(cut -d' ' -f1-2 "$public_file")
+    log "public key (from file): $from_file" info
+
+    from_host=$(
+        ssh "admin@$host.$domain" "sudo cat /etc/age/keys.txt" 2>"$err"
+        echo
+    )
+    if [[ $from_host == "trust-me" ]]; then
+        from_host=$from_file
+    else
+        from_host=$(echo "$from_host" | age-keygen -y | head -n1)
+    fi
+    log "public key (from host): $from_host" info
+
+    if [[ $from_host == "trust-me" ]]; then
+        from_host=$from_file
+    fi
+
+    if [[ "$from_host" != "$from_file" ]]; then
         exit_code=1
         match=false
         log_level=error
@@ -712,59 +751,73 @@ host::pull::ssh-key() {
 
 host::sideload::ssh-key() {
     log "hello" debug
-    local \
-        host_key=/etc/ssh/ssh_host_ed25519_key \
-        temp_key=/tmp/newkey
+    local host_key=/etc/ssh/ssh_host_ed25519_key
 
-    # shellcheck disable=SC2015
-    check::ssh-key && check::ssh-key--sops ||
+    check::ssh-key ||
         die 1 "Error: Keys are out of sync, run '$0 $host sync ssh-key' first"
 
     check::ssh-key--host &&
         die 1 "current key is already active"
 
-    scp "$private_file" "$host.$domain:$temp_key"
+    scp "$private_file" "$host.$domain:/tmp/ssh-key"
 
-    # shellcheck disable=SC2087
-    ssh -t "$host.$domain" 2>"$err" <<EOF
-    sudo sh -c '
-    chown root:root $temp_key && \
-        chmod 600 $temp_key && \
-        ln -f $host_key $host_key- && \
-        mv -f -T $temp_key $host_key && \
-        systemctl restart sshd
-    '
-EOF
+    ssh -t "$host.$domain" "sudo sh -c 'cat /tmp/ssh-key >$host_key && rm -f /tmp/ssh-key && systemctl restart sshd'" 2>"$err"
+    post-cmd $? "sideload failed: $(cat "$err")" "sideload succeded"
+}
 
+host::sideload::age-key() {
+    log "hello" debug
+    local host_key=/etc/age/keys.txt
+    local from_host
+
+    # shellcheck disable=SC2015
+    check::age-key && check::age-key--sops ||
+        die 1 "Error: Keys are out of sync, run '$0 $host sync age-key' first"
+
+    check::age-key--host &&
+        die 1 "current key is already active"
+
+    from_host=$(ssh -t "admin@$host.$domain" "sudo cat $host_key" 2>"$err")
+    echo "$from_host" >>"$private_file"
+
+    scp "$private_file" "$host.$domain:/tmp/age-key"
+
+    ssh -t "$host.$domain" "sudo sh -c 'cat /tmp/age-key >$host_key && rm -f /tmp/age-key'" 2>"$err"
     post-cmd $? "sidoload failed: $(cat "$err")" "sideload succeded"
+
     log "rebuild $host now or suffer the consequences" warning
 }
 
 # --- *::factory-reset::*
 
-host::factory-reset::ssh-key() {
+host::factory-reset() {
     local extra_files="$tmp/mnt"
-    local host_key="$extra_files/etc/ssh/ssh_host_ed25519_key"
-    local permanent_host_key="$extra_files/srv/storage/etc/ssh/ssh_host_ed25519_key"
+    local luks_key="$tmp/luks_key"
+    local store="$extra_files/srv/storage"
+    local ssh_host_key="$store/etc/ssh/ssh_host_ed25519_key"
+    local age_key="$store/etc/age/keys.txt"
 
-    install -d -m755 "$(dirname "$host_key")"
-    install -d -m755 "$(dirname "$permanent_host_key")"
-    decrypt
-    cp "$private_file" "$host_key"
-    cp "$private_file" "$permanent_host_key"
-    chmod 600 "$host_key"
-    chmod 600 "$permanent_host_key"
-    log "host key prepared: $host_key" info
-    log "permanent host key prepared: $permanent_host_key" info
+    install -d -m755 "$(dirname "$ssh_host_key")"
+    install -d -m700 "$(dirname "$age_key")"
 
-    type=luks-key decrypt
-    log "luks key prepared: $(cat "$private_file")" info
+    type=luks-key decrypt && cp "$private_file" "$luks_key"
+    type=ssh-key decrypt && cp "$private_file" "$ssh_host_key"
+    type=age-key decrypt && cp "$private_file" "$age_key"
+
+    chmod 600 "$ssh_host_key" "$age_key"
+    cp -a "$store/." "$extra_files"
+
+    log "luks key prepared: $(cat "$luks_key")" info
+    log "age key prepared: $(sed -n '3p' "$age_key")" info
+    log "ssh host key prepared: $(sed -n '3p' "$ssh_host_key")" info
+    log "these extra files will be copied:" info
+    tree -a "$extra_files"
 
     nixos-anywhere \
         --flake ".#$host" \
         --target-host root@"$host.$domain" \
         --ssh-option GlobalKnownHostsFile=/dev/null \
-        --disk-encryption-keys /luks-key "$private_file" \
+        --disk-encryption-keys /luks-key "$luks_key" \
         --generate-hardware-config nixos-facter hosts/"$host"/facter.json \
         --extra-files "$extra_files" \
         --copy-host-keys 2>"$err"
@@ -776,7 +829,7 @@ host::factory-reset::ssh-key() {
 create-private::age-key() {
     log "hello" debug
     rm "$private_file"
-    age-keygen -o "$private_file" 2>"$err"
+    age-keygen >"$private_file" 2>"$err"
     post-cmd $? "error: $(cat "$err")" "private age-key $(head -n 1 "$private_file") > $private_file"
 }
 
@@ -975,38 +1028,50 @@ set-anchor() {
 
     [[ -z $age_key ]] && die 1 "age key invalid: '$age_key'"
 
-    yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$age_key\"" .sops.yaml
-    post-cmd $? "err" "out"
+    yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$age_key\"" .sops.yaml 2>"$err"
+    post-cmd $? "fail: $(cat "$err")"
 
     new_age_key=$(get-anchor)
-    post-cmd $? "err" "out"
-
     [[ "$new_age_key" == "$age_key" ]] || die 1 "update fail: $new_age_key != $age_key"
 }
 
 updatekeys() {
     log "hello" debug
+    local mode
 
-    if [[ -d "./users" ]]; then
-        log "<users>" info
-        sops updatekeys -y users/*-enc.yaml 2>"$err"
-        post-cmd $? "fail" "</users>"
-    fi
+    for mode in user host domain; do
 
-    if [[ -d "./hosts" ]]; then
-        log "<hosts>" info
-        sops updatekeys -y hosts/**/secrets.yaml >"$out" 2>"$err"
-        post-cmd $? "<$err" "</hosts>"
-    fi
+        files=$(secrets-glob $mode)
 
-    if [[ -d "./domains" ]]; then
-        log "<domains>" info
-        sops updatekeys -y domains/*-enc.yaml
-        post-cmd $? "fail" "</domains>"
-    fi
+        [[ -z "${files[*]}" ]] && {
+            log "no secrets in $mode: skipping" info
+            continue
+        }
+
+        log "<$mode>" info
+        # shellcheck disable=SC2068
+        sops updatekeys -y ${files[@]}
+        log "</$mode>" info
+    done
 }
 
 # --- misc helpers
+
+secrets-glob() {
+    local key=$1 template
+    IFS=" " read -r _ template <<<"$(yq ".$key-secrets" .sops.yaml 2>"$err")"
+    glob=$(sed -E 's:/\{[^}]+\}/:/**/:g; s:\{[^}]+\}:*:g' <<<"$template")
+
+    eval "files=($glob)"
+
+    # shellcheck disable=SC2068
+    # shellcheck disable=SC2154
+    if [[ "${files[0]}" == "$glob" ]]; then
+        return 0
+    fi
+
+    echo "${files[@]}"
+}
 
 set-secrets-location() {
     IFS=" " read -r secrets_path secrets_file <<<"$(.sops-yaml ".$mode-secrets")"
@@ -1023,20 +1088,20 @@ bootstrap() {
     log "hello" debug
     local key
 
-    create-private::ssh-key
-    ssh-to-age -private-key -i "$private_file" >"$SOPS_AGE_KEY_FILE"
+    create-private::age-key
+    cp -a "$private_file" "$SOPS_AGE_KEY_FILE"
 
-    key=$(generate-public::ssh-key | ssh-to-age)
+    key=$(generate-public::age-key)
     set-anchor "$key"
 
     mkdir -p "$(dirname "$secrets_file")"
 
-    echo "$user: { ssh-key: }" |
-        sops encrypt --filename-override users/admin-enc.yaml /dev/stdin >"$secrets_file"
+    echo "$user: { age-key: }" |
+        sops encrypt --filename-override "users/$user-enc.yaml" /dev/stdin >"$secrets_file"
 
     encrypt
 
-    sync::ssh-key
+    sync::age-key
 }
 
 .sops-yaml() {
@@ -1069,7 +1134,7 @@ env:
 
 host-secrets: "['{type}'] hosts/{host}/secrets.yaml"
 user-secrets: "['{user}']['{type}'] users/{user}-enc.yaml"
-domain-secrets: "['{domain}']['{type}'] domains/secrets.yaml"
+domain-secrets: "['{domain}']['{type}'] domains/{domain}-enc.yaml"
 
 host-pub: hosts/{host}/{type}.pub
 user-pub: users/{user}-{type}.pub
