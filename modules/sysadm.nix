@@ -21,7 +21,6 @@ in
 
   config = mkMerge [
     {
-
       security.sudo = {
         extraConfig = ''
           Defaults lecture = never
@@ -35,10 +34,6 @@ in
             commands = [
               {
                 command = "/run/current-system/sw/bin/cryptsetup open --test-passphrase *";
-                options = [ "NOPASSWD" ];
-              }
-              {
-                command = "/run/current-system/sw/bin/cat /etc/age/keys.txt";
                 options = [ "NOPASSWD" ];
               }
             ];
@@ -74,6 +69,21 @@ in
             date > /var/lib/last-rebuild
           '';
         };
+      };
+      my-nixos.preserve = {
+        files = [
+          {
+            file = "/etc/ssh/ssh_host_ed25519_key";
+            mode = "0600";
+            inInitrd = true;
+          }
+          {
+            file = "/etc/age/keys.txt";
+            user = "admin";
+            mode = "0600";
+            inInitrd = true;
+          }
+        ];
       };
     }
 

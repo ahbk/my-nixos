@@ -1,8 +1,8 @@
 {
   config,
   lib,
-  pkgs,
   options,
+  pkgs,
   ...
 }:
 
@@ -32,14 +32,12 @@ in
 
   config = mkIf cfg.enable {
 
-    systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
     fileSystems.${cfg.storage}.neededForBoot = true;
 
     preservation = {
       enable = true;
       preserveAt.${cfg.storage} = {
         directories = [
-          "/var/log"
           "/var/lib/nixos"
           "/var/lib/systemd"
         ]
@@ -49,19 +47,12 @@ in
             file = "/etc/machine-id";
             inInitrd = true;
           }
-          {
-            file = "/etc/ssh/ssh_host_ed25519_key";
-            mode = "0600";
-            inInitrd = true;
-          }
-          {
-            file = "/etc/age/keys.txt";
-            mode = "0600";
-            inInitrd = true;
-          }
-        ];
+        ]
+        ++ cfg.files;
       };
     };
+
+    systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
 
     boot.initrd.systemd = {
       enable = true;

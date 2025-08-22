@@ -1,5 +1,19 @@
 {
   disko.devices = {
+    nodev = {
+      "/tmp" = {
+        fsType = "tmpfs";
+        mountOptions = [
+          "size=1G"
+          "defaults"
+          "noatime"
+          "nosuid"
+          "nodev"
+          "noexec"
+          "mode=1777"
+        ];
+      };
+    };
     disk = {
       main = {
         type = "disk";
@@ -46,11 +60,24 @@
         type = "lvm_vg";
         lvs = {
           root = {
-            size = "5G";
+            size = "1G";
             content = {
               type = "filesystem";
               format = "ext4";
               mountpoint = "/";
+              mountOptions = [
+                "defaults"
+                "noatime"
+                "nodiratime"
+              ];
+            };
+          };
+          var = {
+            size = "1G";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/var";
               mountOptions = [
                 "defaults"
                 "noatime"

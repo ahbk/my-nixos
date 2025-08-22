@@ -1,29 +1,30 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2317
 
-set -uo pipefail
+set -euo pipefail
 shopt -s globstar
 
 usage() {
     cat <<'EOF'
-Usage: ./tools/manage.sh [-h|-u|-d] <host|user|domain> <action> <type>
+
+Usage: ./tools/manage.sh <-h|-u|-d> <host|user|domain> <action> [<type>]
 EOF
 }
 
 usage-full() {
-    usage
-    cat <<'EOF'
+    less <<'EOF'
 
 DESCRIPTION
     This script is for managing secrets within a SOPS-based infrastructure.
     It automates the generation, encryption, synchronization, and deployment
     of various ephemeral keys and credentials. The core principle is that all
-    secrets are protected by a master AGE key, allowing the rest of the secrets
-    to be automated.
+    secrets are protected by a master age-key, allowing the rest of the secrets
+    to be disposable.
 
 USAGE
-    ./tools/manage.sh <mode> <entity> <action> <type>
-    ./tools/manage.sh -u <admin> bootstrap
+    ./tools/manage.sh <-h|-u|-d> <host|user|domain> <action> [<type>]
+    ./tools/manage.sh -u <user> bootstrap
+    ./tools/manage.sh -h <host> factory-reset
     ./tools/manage.sh updatekeys
     ./tools/manage.sh --help
 
@@ -63,17 +64,16 @@ ACTIONS
     check         Verifies the integrity and consistency of secrets.
                   - For key pairs, it confirms the public key matches the
                     private key.
-                  - For hosts, it remotely verifies the deployed SSH/AGE key.
+                  - For hosts, it remotely verifies the deployed SSH/Age key.
                   - For `passwd`, it verifies the plaintext and hashed versions.
 
     pull          (Host SSH keys only) Retrieves the public SSH key from a remote
                   host via `ssh-keyscan` and writes it to the entitys public file.
 
-    sideload      (Host SSH/AGE keys only) Deploys the private key to a remote host
-                  and installs it, restarting services if necessary.
+    sideload      (Age keys only) Deploys the private key to a remote host.
 
     factory-reset (Hosts only) Uses `nixos-anywhere` to reinstall a host from
-                  scratch, pre-seeding it with its existing LUKS, SSH, and AGE keys
+                  scratch, pre-seeding it with its existing LUKS, SSH, and Age keys
                   from the secrets store.
 
 SPECIAL ACTIONS
@@ -81,13 +81,13 @@ SPECIAL ACTIONS
         Initialize the secret management system with a new administrative user.
         It should only be run once and performs the following critical steps:
         1. Creates a default `.sops.yaml` configuration if one does not exist.
-        2. Generates a new master AGE key pair.
+        2. Generates a new master Age key pair.
         3. Saves the private master key to the path specified in `.sops.yaml`
            (e.g., `./age.key`). This file is the root of all trust and MUST be
            backed up and kept secure.
         4. In `.sops.yaml`, it records the public master key under an anchor
            for the specified admin user (e.g., `&user-admin`).
-        5. Encrypts the admin's private AGE key into their own secrets file,
+        5. Encrypts the admin's private Age key into their own secrets file,
            protected by the master key itself.
 
         This establishes a model where one or more admins hold the master key(s),
@@ -96,14 +96,14 @@ SPECIAL ACTIONS
 
     updatekeys
         Scans all secret files and updates their SOPS metadata. This is done
-        automatically after changing a master AGE key or adding a new recipient
+        automatically after changing a master Age key or adding a new recipient
         to a file's `key_groups` in `.sops.yaml`. It ensures all files can be
         decrypted by the currently configured keys.
 
 KEY / RESOURCE TYPES
     The TYPE argument specifies the kind of secret to manage.
 
-    age-key     AGE encryption key pair.
+    age-key     Age encryption key pair.
     ssh-key     SSH key pair (Ed25519).
     wg-key      WireGuard key pair.
     luks-key    A passphrase for LUKS disk encryption.
@@ -113,7 +113,7 @@ KEY / RESOURCE TYPES
 
 ENVIRONMENT VARIABLES
     SOPS_AGE_KEY_FILE
-        Path to the master AGE private key file. The script sets this
+        Path to the master Age private key file. The script sets this
         automatically based on the `.sops.yaml` configuration.
 
     DEBUG=true
@@ -127,7 +127,7 @@ CONFIGURATION: .sops.yaml
     The script parses it to understand the repository's structure and encryption
     rules. Key sections include:
 
-    `keys`: Defines YAML anchors for AGE public keys, which are used to grant
+    `keys`: Defines YAML anchors for Age public keys, which are used to grant
     decryption rights. The `bootstrap` command sets up the first admin key here.
 
     `env`: Defines environment variables, most importantly `SOPS_AGE_KEY_FILE`,
@@ -160,7 +160,6 @@ main() {
 
 # --- utils
 
-# instead of `echo`
 log() {
     local \
         log=false \
@@ -169,19 +168,18 @@ log() {
         caller=${FUNCNAME[1]} \
         depth=${#FUNCNAME[@]}
 
-    # The name of the function that called die (or post-cmd -> die) is more useful than die
-    if [[ $caller == die || $caller == post-cmd ]]; then
+    if [[ $caller == die ]]; then
         caller=${FUNCNAME[2]}
     fi
 
-    if [[ $caller == post-cmd ]]; then
+    if [[ $caller == try ]]; then
         caller=${FUNCNAME[3]}
     fi
 
     case $level in
     success) msg="[$depth]: $GB${caller}$GN: $msg$NC" ;;
     debug) msg="[$depth]: $YB${caller}$NC: $msg$NC" ;;
-    info) msg="[$depth]: $YB${caller}$YN: $msg$NC" ;;
+    info) msg="[$depth]: $BB${caller}$BN: $msg$NC" ;;
     warning) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
     error) msg="[$depth]: $RB${caller}$RN: $msg$NC" ;;
     esac
@@ -202,13 +200,15 @@ log() {
     fi
 }
 
-# die with mandatory exit code and optional message
 die() {
-    local exit_code=$1 msg=$2 fn=${3-}
+    local \
+        exit_code=${1-$?} \
+        msg=${2-$(tr -d '\r' <"$err")} \
+        fn=${3-}
 
     case $exit_code in
     0) log "$msg" info ;;
-    *) log "$msg" error ;;
+    *) log "$msg (exit $exit_code)" error ;;
     esac
 
     [[ -n "$fn" ]] && "$fn"
@@ -217,13 +217,24 @@ die() {
     exit "$exit_code"
 }
 
-#  switch for exit codes from commands with side effects
-post-cmd() {
-    local exit_code=$1 err=$2
-    [[ $exit_code == 0 ]] || die "$exit_code" "$(cat "$err")"
+try() {
+    local stderr_file output exit_code
+    stderr_file=$(mktemp)
+    output=$("$@" 2>"$stderr_file")
+    exit_code=$?
+    if [[ $exit_code -eq 0 ]]; then
+        echo "$output"
+    else
+        die "$exit_code" "$(tr -d '\r' <"$stderr_file")"
+    fi
+    rm "$stderr_file"
 }
 
-# misc 'setup the environment' thingies
+fn-exists() {
+    local fn=$1
+    declare -F "$fn" >/dev/null
+}
+
 setup() {
     domain="kompismoln.se"
 
@@ -234,6 +245,8 @@ setup() {
     GB='\033[1;32m'
     YN='\033[0;33m'
     YB='\033[1;33m'
+    BN='\033[0;34m'
+    BB='\033[1;34m'
     NC='\033[0m'
 
     tmp=$(mktemp -d)
@@ -281,7 +294,7 @@ setup() {
         types=(age-key ssh-key wg-key luks-key)
 
         [[ $action == "factory-reset" ]] && type=age-key
-        [[ $type == "ssh-key" ]] && actions+=(sideload pull)
+        [[ $type == "ssh-key" ]] && actions+=(pull)
         [[ $type == "age-key" ]] && actions+=(sideload factory-reset)
         ;;
     -u)
@@ -291,7 +304,7 @@ setup() {
         [[ $action == "bootstrap" ]] && {
             type=age-key
             actions+=(bootstrap)
-            init-.sops-yaml
+            init-sops-yaml
         }
         ;;
     -d)
@@ -314,10 +327,7 @@ setup() {
     set-secrets-location
 }
 
-# make sure actions and types are accepted and that $secrets_file exists
 sanitize-dispatcher-input() {
-    log "hello" debug
-
     # shellcheck disable=SC2076
     [[ " ${actions[*]} " =~ " $action " ]] ||
         die 1 "'$action' is not an action. Allowed actions: ${actions[*]}" usage
@@ -331,28 +341,18 @@ sanitize-dispatcher-input() {
     }
 }
 
-# check if a function is defined here
-fn-exists() {
-    local fn=$1
-    declare -F "$fn" >/dev/null
-}
-
 # Function dispatcher array - lists functions in priority order until one exists
 # Pattern: most specific -> least specific -> fallback
 #   1. mode::action::type  (e.g., "host::new::ssh-key")
 #   2. mode::action        (e.g., "host::new")
 #   3. action::type        (e.g., "new::ssh-key")
 #   4. action              (e.g., "new")
-#   5. cmd-not-found       (fallback handler)
 dispatch() {
-    log "hello" debug
-
     dispatcher=(
         "$mode::$action::$type"
         "$mode::$action"
         "$action::$type"
         "$action"
-        cmd-not-found
     )
     for run in "${dispatcher[@]}"; do
         log "$run?" debug
@@ -371,8 +371,6 @@ dispatch() {
 # See new-private + sync
 
 new() {
-    log "hello" debug
-
     action=new-private dispatch
     action=sync dispatch
 }
@@ -381,8 +379,6 @@ new() {
 # Generate/copy a private resource then validate and encrypt it
 
 new-private() {
-    log "hello" debug
-
     if [[ -n ${PRIVATE_FILE:-} ]]; then
         action=copy-private dispatch
     else
@@ -395,14 +391,11 @@ new-private() {
 # Decrypt a private resource and use it to generate and save/replace a public key
 
 sync() {
-    log "hello" debug
-
     decrypt
     action=generate-public dispatch >"$public_file"
 }
 
 sync::age-key() {
-    log "hello" debug
     sync && sync::age-key--sops
 }
 
@@ -433,8 +426,6 @@ sync::luks-key() {
 # Linux passwords are famously hashed so we need to encrypt both plain and
 # hashed format and keep them in sync.
 user::sync::passwd() {
-    log "hello" debug
-
     decrypt
 
     cp "$private_file" "$private_file.plain"
@@ -447,274 +438,125 @@ user::sync::passwd() {
 
 # nixos-mailserver uses linux-like password management
 user::sync::mail() {
-    log "hello" debug
     user::sync::passwd
 }
 
 # --- *::check::*
 
-check::age-key() {
-    log "hello" debug
-    decrypt
+diff--public-file() {
+    log "diff public file" info
     [[ -f $public_file ]] || die 1 "public key doesn't exist"
-    test "$(age-keygen -y <"$private_file")" = "$(cat "$public_file")"
+    echo "$1" | diff - "$public_file"
 }
 
-check::ssh-key() {
-    log "hello" debug
-
-    local \
-        exit_code=0 \
-        match=true \
-        log_level=success \
-        from_secret \
-        from_file
-
-    decrypt
-
-    from_secret=$(action=generate-public dispatch)
-    log "public key (from secret): $from_secret" info
-
-    [[ -f $public_file ]] || die 1 "public key doesn't exist"
-    from_file=$(<"$public_file")
-    log "public key (from file): $from_file" info
-
-    if [[ ! "$from_secret" == "$from_file" ]]; then
-        exit_code=1
-        match=false
-        log_level=error
-    fi
-
-    log "match: $match" "$log_level"
-    log "exit code: $exit_code" debug
-
-    return "$exit_code"
-}
-
-check::wg-key() {
-    log "hello" debug
-    check::ssh-key
+diff--sops-anchor() {
+    log "diff sops anchor" info
+    echo "$1" | diff - <(get-anchor)
 }
 
 host::check::age-key() {
-    log "hello" debug
+    local exit_code=0 host_priv host_pub
+    decrypt
+    ref="$(action=generate-public dispatch)"
 
-    local exit_code=0
+    diff--public-file "$ref" || exit_code=1
+    diff--sops-anchor "$ref" || exit_code=1
 
-    check::age-key || exit_code=1
-    check::age-key--sops || exit_code=1
-    check::age-key--host || exit_code=1
+    log "diff host key" info
+    host_priv="$(try ssh "admin@$host.$domain" "cat /etc/age/keys.txt")"
+    [[ $host_priv == "trust-me" ]] && return "$exit_code"
+    host_pub=$(echo "$host_priv" | age-keygen -y | head -n1) || die
+    echo "$ref" | diff - <(echo "$host_pub") || exit_code=1
 
-    log "exit code: $exit_code" debug
     return "$exit_code"
 }
 
 host::check::ssh-key() {
-    log "hello" debug
+    local exit_code=0 host_pub
+    decrypt
+    ref="$(action=generate-public dispatch)"
 
-    local exit_code=0
+    diff--public-file "$ref" || exit_code=1
 
-    check::ssh-key || exit_code=1
-    check::ssh-key--host || exit_code=1
-
-    log "exit code: $exit_code" debug
-    return "$exit_code"
-}
-
-# check's helpers (not dispatchable)
-check::age-key--sops() {
-    log "hello" debug
-
-    local \
-        exit_code=0 \
-        match=true \
-        log_level=success \
-        from_secret \
-        from_sops
-
-    from_secret=$("generate-public::$type")
-    log "public key (from secret): $from_secret" info
-
-    from_sops=$(get-anchor)
-    log "public key (from .sops.yaml): $from_sops" info
-
-    if [[ ! "$from_secret" == "$from_sops" ]]; then
-        exit_code=1
-        match=false
-        log_level=error
-    fi
-
-    log "match: $match" "$log_level"
-    log "exit code: $exit_code" debug
+    log "diff host key" info
+    host_pub=$(ssh-keyscan -q "$host.$domain" | cut -d' ' -f2-3) || die
+    [[ $host_pub == "trust-me" ]] && return "$exit_code"
+    echo "$ref" | cut -d' ' -f1-2 | diff - <(echo "$host_pub") || exit_code=1
 
     return "$exit_code"
 }
 
-check::age-key--host() {
-    log "hello" debug
-
-    local \
-        exit_code=0 \
-        match=true \
-        log_level=success \
-        from_host="" \
-        from_file
-
-    from_file=$(cut -d' ' -f1-2 "$public_file")
-    log "public key (from file): $from_file" info
-
-    from_host=$(
-        ssh "admin@$host.$domain" "sudo cat /etc/age/keys.txt" 2>"$err"
-        echo
-    )
-    if [[ $from_host == "trust-me" ]]; then
-        from_host=$from_file
-    else
-        from_host=$(echo "$from_host" | age-keygen -y | head -n1)
-    fi
-    log "public key (from host): $from_host" info
-
-    if [[ $from_host == "trust-me" ]]; then
-        from_host=$from_file
-    fi
-
-    if [[ "$from_host" != "$from_file" ]]; then
-        exit_code=1
-        match=false
-        log_level=error
-    fi
-
-    log "match: $match" "$log_level"
-    log "exit code: $exit_code" debug
-
-    return "$exit_code"
-}
-
-check::ssh-key--host() {
-    log "hello" debug
-
-    local \
-        exit_code=0 \
-        match=true \
-        log_level=success \
-        from_host \
-        from_file
-
-    from_file=$(cut -d' ' -f1-2 "$public_file")
-    log "public key (from file): $from_file" info
-
-    from_host=$(ssh-keyscan -q "$host.$domain" | cut -d' ' -f2-3)
-    log "public key (from host): $from_host" info
-
-    if [[ $from_host == "trust-me" ]]; then
-        from_host=$from_file
-    fi
-
-    if [[ "$from_host" != "$from_file" ]]; then
-        exit_code=1
-        match=false
-        log_level=error
-    fi
-
-    log "match: $match" "$log_level"
-    log "exit code: $exit_code" debug
-
-    return "$exit_code"
+host::check::wg-key() {
+    decrypt
+    diff--public-file "$(action=generate-public dispatch)"
 }
 
 host::check::luks-key() {
     decrypt
+
     ssh "admin@$host.$domain" \
-        'sudo $(type -P cryptsetup) open --test-passphrase --key-file=- /dev/sda3' \
-        2>"$err" <"$private_file"
-    post-cmd $? "$err"
+        'sudo cryptsetup open --test-passphrase --key-file=- /dev/sda3' \
+        2>"$err" <"$private_file" || die
 }
 
-# Password and hashed password should match
-user::check::passwd() {
-    log "hello" debug
-
-    local \
-        match=true \
-        exit_code=0 \
-        salt \
-        log_level=success \
-        from_secret \
-        from_passwd
-
-    type=$type-hashed decrypt
-    from_secret=$(cat "$private_file")
-    salt=$(awk -F'$' '{print $3}' "$private_file")
-
+user::check::age-key() {
+    local exit_code=0 ref
     decrypt
-    from_passwd=$(mkpasswd -m sha-512 -S "$salt" "$(cat "$private_file")")
+    ref="$(action=generate-public dispatch)"
 
-    log "hash (from secret): $from_secret" info
-    log "hash (from password): $from_passwd" info
-
-    if [[ ! "$from_secret" == "$from_passwd" ]]; then
-        exit_code=1
-        match=false
-        log_level=error
-    fi
-
-    log "match: $match" "$log_level"
-    log "exit code: $exit_code" debug
+    diff--public-file "$ref" || exit_code=1
+    diff--sops-anchor "$ref" || exit_code=1
 
     return "$exit_code"
 }
 
+user::check::ssh-key() {
+    decrypt
+    diff--public-file "$(action=generate-public dispatch)"
+}
+
+user::check::passwd() {
+    local salt
+    # shellcheck disable=SC2015
+    decrypt && cp "$private_file" "$private_file.plain" || die
+    type=$type-hashed decrypt
+
+    salt=$(awk -F'$' '{print $3}' "$private_file")
+    mkpasswd -m sha-512 -S "$salt" "$(cat "$private_file.plain")" |
+        diff - "$private_file"
+}
+
 user::check::mail() {
-    log "hello" debug
     user::check::passwd
 }
 
 domain::check::tls-cert() {
-    log "hello" debug
-
-    local \
-        exit_code=0 \
-        match=true \
-        log_level=success \
-        from_secret \
-        from_file \
-        san
+    local exit_code=0 san key cert
 
     decrypt
 
-    if openssl x509 -in "$public_file" -checkend 2592000 >/dev/null 2>&1; then
-        log "certificate is still valid for 30 days." info
-    else
-        log "Certificate will expire within 30 days or is already expired." warning
-        match=false
+    if ! openssl x509 -in "$public_file" -checkend 2592000 >/dev/null 2>&1; then
+        log "Certificate expires within 30 days" warning
+        exit_code=1
     fi
 
     san=$(openssl x509 -in "$public_file" -noout -ext subjectAltName 2>/dev/null |
         grep -E "DNS:" | sed 's/.*DNS://g' | tr ',' '\n' | sort)
 
-    if [[ ! "$san" == "$domain" ]]; then
+    if [[ "$san" != *"$domain"* ]]; then
+        log "Domain $domain not found in SAN: $san" warning
         exit_code=1
-        match=false
-        log_level=error
-        log "incorrect SAN '$san'" error
-    else
-        log "correct SAN '$san'" info
     fi
 
-    from_secret=$(openssl pkey -in "$private_file" -pubout)
-    log "certificate (from secret): $(echo "$from_secret" | sed -n '2p')" info
+    key=$(openssl pkey -in "$private_file" -pubout)
+    cert=$(openssl x509 -in "$public_file" -pubkey -noout)
 
-    from_file=$(openssl x509 -in "$public_file" -pubkey -noout)
-    log "certificate (from file): $(echo "$from_file" | sed -n '2p')" info
-
-    if [[ ! "$from_secret" == "$from_file" ]]; then
+    if [[ "$key" != "$cert" ]]; then
+        log "Public key mismatch between certificate and private key" error
         exit_code=1
-        match=false
-        log_level=error
     fi
 
-    log "match: $match" "$log_level"
-    log "exit code: $exit_code" debug
+    log "Certificate public key: $(echo "$cert" | sed -n '2p')" info
 
     return "$exit_code"
 }
@@ -727,26 +569,8 @@ host::pull::ssh-key() {
 
 # --- *::sideload::*
 
-host::sideload::ssh-key() {
-    log "hello" debug
-    local host_key=/etc/ssh/ssh_host_ed25519_key
-
-    check::ssh-key ||
-        die 1 "Error: Keys are out of sync, run '$0 $host sync ssh-key' first"
-
-    check::ssh-key--host &&
-        die 1 "current key is already active"
-
-    scp "$private_file" "$host.$domain:/tmp/ssh-key"
-
-    ssh -t "$host.$domain" "sudo sh -c 'cat /tmp/ssh-key >$host_key && rm -f /tmp/ssh-key && systemctl restart sshd'" 2>"$err"
-    post-cmd $? "$err"
-}
-
 host::sideload::age-key() {
-    log "hello" debug
     local host_key=/etc/age/keys.txt
-    local from_host
 
     # shellcheck disable=SC2015
     check::age-key && check::age-key--sops ||
@@ -755,14 +579,9 @@ host::sideload::age-key() {
     check::age-key--host &&
         die 1 "current key is already active"
 
-    from_host=$(ssh -t "admin@$host.$domain" "sudo cat $host_key" 2>"$err")
-    echo "$from_host" >>"$private_file"
-
-    scp "$private_file" "$host.$domain:/tmp/age-key"
-
-    ssh -t "$host.$domain" "sudo sh -c 'cat /tmp/age-key >$host_key && rm -f /tmp/age-key'" 2>"$err"
-    post-cmd $? "$err"
-
+    # shellcheck disable=SC2029
+    ssh "admin@$host.$domain" "head -n 3 $host_key" 2>"$err" >>"$private_file" || die
+    scp "$private_file" "admin@$host.$domain:$host_key" >"$out" 2>"$err" || die
     log "rebuild $host now or suffer the consequences" warning
 }
 
@@ -798,51 +617,34 @@ host::factory-reset() {
         --disk-encryption-keys /luks-key "$luks_key" \
         --generate-hardware-config nixos-facter hosts/"$host"/facter.json \
         --extra-files "$extra_files" \
-        --copy-host-keys 2>"$err"
-    post-cmd $? "$err"
+        --copy-host-keys 2>"$err" || die
 }
 
 # --- *::create-private::*
 
 create-private::age-key() {
-    log "hello" debug
     rm "$private_file"
-    age-keygen >"$private_file" 2>"$err"
-    post-cmd $? "$err"
+    age-keygen >"$private_file" 2>"$err" || die
 }
 
 create-private::ssh-key() {
-    log "hello" debug
-
     ssh-keygen -q -t "ed25519" -f "$private_file" -N "" \
-        -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>"$err"
-    post-cmd $? "$err"
+        -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>"$err" || die
 }
 
 create-private::wg-key() {
-    log "hello" debug
-
-    wg genkey >"$private_file" 2>"$err"
-    post-cmd $? "$err"
+    wg genkey >"$private_file" 2>"$err" || die
 }
 
 create-private::luks-key() {
-    log "hello" debug
-
-    openssl rand -base64 12 >"$private_file" 2>"$out"
-    post-cmd $? "$err"
+    openssl rand -base64 12 >"$private_file" 2>"$out" || die
 }
 
 create-private::tls-cert() {
-    log "hello" debug
-
-    openssl genpkey -algorithm ED25519 -out "$private_file" 2>"$err"
-    post-cmd $? "$err"
+    openssl genpkey -algorithm ED25519 -out "$private_file" 2>"$err" || die
 }
 
 create-private::passwd() {
-    log "hello" debug
-
     read -r -p "Enter password: " password
     echo "$password" >"$private_file"
 }
@@ -850,67 +652,48 @@ create-private::passwd() {
 # --- *::generate-public::*
 
 generate-public::age-key() {
-    log "hello" debug
-    local pubkey
-
-    pubkey=$(age-keygen -y <"$private_file" 2>"$err")
-    post-cmd $? "$err"
-
-    echo "$pubkey"
+    age-keygen -y <"$private_file" 2>"$err" || die
 }
 
 generate-public::ssh-key() {
-    log "hello" debug
-    ssh-keygen -y -f "$private_file" 2>"$err"
-    post-cmd $? "$err"
+    ssh-keygen -y -f "$private_file" 2>"$err" || die
 }
 
 generate-public::wg-key() {
-    log "hello" debug
-    wg pubkey <"$private_file" 2>"$err"
-    post-cmd $? "$err"
+    wg pubkey <"$private_file" 2>"$err" || die
 }
 
 generate-public::tls-cert() {
-    log "hello" debug
     openssl req -new -x509 -key "$private_file" \
         -subj "/CN=*.$domain" \
         -addext "subjectAltName=DNS:*.$domain,DNS:$domain" \
-        -nodes -out - -days 3650 2>"$err"
-    post-cmd $? "$err"
+        -nodes -out - -days 3650 2>"$err" || die
 }
 
 # --- *::verify::*
 
 verify::age-key() {
-    log "hello" debug
     action=generate-public dispatch >/dev/null
 }
 
 verify::ssh-key() {
-    log "hello" debug
     action=generate-public dispatch >/dev/null
 }
 
 verify::wg-key() {
-    log "hello" debug
     action=generate-public dispatch >/dev/null
 }
 
 verify::tls-cert() {
-    log "hello" debug
     action=generate-public dispatch >/dev/null
 }
 
 verify::luks-key() {
-    log "hello" debug
     log "luks-key: $(cat "$private_file")" info
 }
 
 # TODO: make a more comprehensive security audit on passwd
 verify::passwd() {
-    log "hello" debug
-
     [[ -s "$private_file" && -n "$(cat "$private_file")" ]] || {
         log "password is empty" error
         return 1
@@ -918,8 +701,6 @@ verify::passwd() {
 }
 
 verify::passwd-hashed() {
-    log "hello" debug
-
     local \
         salt \
         password \
@@ -942,8 +723,6 @@ verify::passwd-hashed() {
 # --- *::init::*
 
 init() {
-    log "hello" debug
-
     mkdir -p "$(dirname "$secrets_file")"
 
     sed -i "1a\ \ - &$mode-$entity" .sops.yaml
@@ -954,60 +733,44 @@ init() {
         - *user-admin
         - *$mode-$entity
 EOF
-
     # shellcheck disable=SC2094
-    echo "init: true" |
-        sops encrypt --filename-override "$secrets_file" /dev/stdin >"$secrets_file" 2>"$err"
-
-    post-cmd $? "$err"
+    echo "init: true" | sops encrypt \
+        --filename-override "$secrets_file" \
+        /dev/stdin >"$secrets_file" 2>"$err" || die
 }
 
 # --- sops integrations
 encrypt() {
-    log "hello" debug
-
     set-secrets-location
     log "encrypting secret > $secrets_path@$private_file" debug
 
-    action=verify dispatch 2>"$err"
-    post-cmd $? "$err"
-
-    sops set "$secrets_file" "$secrets_path" "$(jq -Rs <"$private_file")" >"$out" 2>"$err"
-    post-cmd $? "$err"
+    action=verify dispatch 2>"$err" || die
+    sops set "$secrets_file" "$secrets_path" "$(jq -Rs <"$private_file")" >"$out" 2>"$err" || die
 }
 
 decrypt() {
-    log "hello" debug
-
     set-secrets-location
     log "decrypting secret < $secrets_path@$private_file" debug
 
-    sops decrypt --extract "$secrets_path" "$secrets_file" >"$private_file" 2>"$err"
-    post-cmd $? "$err"
+    sops decrypt --extract "$secrets_path" "$secrets_file" >"$private_file" 2>"$err" || die
 }
 
 get-anchor() {
-    log "hello" debug
-    yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml 2>"$err"
-    post-cmd $? "$err"
+    yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml 2>"$err" || die
 }
 
 set-anchor() {
-    log "hello" debug
-
     local age_key=$1 new_age_key
 
     [[ -z $age_key ]] && die 1 "age key invalid: '$age_key'"
 
-    yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$age_key\"" .sops.yaml 2>"$err"
-    post-cmd $? "$err"
+    yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$age_key\"" .sops.yaml 2>"$err" || die
 
     new_age_key=$(get-anchor)
     [[ "$new_age_key" == "$age_key" ]] || die 1 "update fail: $new_age_key != $age_key"
 }
 
 updatekeys() {
-    log "hello" debug
     local mode
 
     for mode in user host domain; do
@@ -1049,14 +812,10 @@ set-secrets-location() {
 }
 
 copy-private() {
-    log "hello" debug
-
-    cat "$PRIVATE_FILE" >"$private_file" 2>"$err"
-    post-cmd $? "$err"
+    cat "$PRIVATE_FILE" >"$private_file" 2>"$err" || die
 }
 
 bootstrap() {
-    log "hello" debug
     local key
 
     mkdir -p "$(dirname "$secrets_file")"
@@ -1068,8 +827,9 @@ bootstrap() {
     key=$(generate-public::age-key)
     set-anchor "$key"
 
-    echo "$user: { age-key: }" |
-        sops encrypt --filename-override "users/$user-enc.yaml" /dev/stdin >"$secrets_file"
+    echo "$user: { age-key: }" | sops encrypt \
+        --filename-override "users/$user-enc.yaml" \
+        /dev/stdin >"$secrets_file" 2>"$err" || die
 
     encrypt
 
@@ -1077,21 +837,14 @@ bootstrap() {
 }
 
 .sops-yaml() {
-    log "hello" debug
-
     local key=$1 template
 
     log "get '$key'" debug
-    template=$(yq "$key" .sops.yaml 2>"$err")
-    post-cmd $? "$err"
-
-    eval "echo \"${template//\{/\$\{}\"" 2>"$err"
-    post-cmd $? "$err"
+    template=$(yq "$key" .sops.yaml 2>"$err") || die
+    eval "echo \"${template//\{/\$\{}\"" 2>"$err" || die
 }
 
-init-.sops-yaml() {
-    log "hello" debug
-
+init-sops-yaml() {
     [ -f .sops.yaml ] &&
         die 1 "will not overwrite existing .sops.yaml"
 
