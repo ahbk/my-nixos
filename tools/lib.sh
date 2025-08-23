@@ -1,29 +1,38 @@
 #!/usr/bin/env bash
 
+tmpdir=$(mktemp -d)
+export tmpdir
+trap 'rm -rf "$tmpdir"' EXIT
+
+RN='\033[0;31m'
+RB='\033[1;31m'
+GN='\033[0;32m'
+GB='\033[1;32m'
+YN='\033[0;33m'
+YB='\033[1;33m'
+BN='\033[0;34m'
+BB='\033[1;34m'
+NC='\033[0m'
+
+declare -A LOG_LEVELS=(
+    [debug]=0
+    [info]=1
+    [warning]=3
+    [success]=4
+    [error]=4
+    [off]=99
+)
+
 log() {
-    # bold or not bold red green yellow and normal colors
-    local RN='\033[0;31m'
-    local RB='\033[1;31m'
-    local GN='\033[0;32m'
-    local GB='\033[1;32m'
-    local YN='\033[0;33m'
-    local YB='\033[1;33m'
-    local BN='\033[0;34m'
-    local BB='\033[1;34m'
-    local NC='\033[0m'
-    local log=false
     local msg=$1
     local level=$2
     local caller=${FUNCNAME[1]}
     local depth=${#FUNCNAME[@]}
 
-    if [[ $caller == die ]]; then
-        caller=${FUNCNAME[2]}
-    fi
+    [[ $caller != die ]] || caller=${FUNCNAME[2]}
+    [[ $caller != try ]] || caller=${FUNCNAME[3]}
 
-    if [[ $caller == try ]]; then
-        caller=${FUNCNAME[3]}
-    fi
+    msg="$(printf "%s" "$msg" | sed ':a;N;$!ba;s/\n/\n |   /g')"
 
     case $level in
     success) msg="[$depth]: $GB${caller}$GN: $msg$NC" ;;
@@ -33,18 +42,7 @@ log() {
     error) msg="[$depth]: $RB${caller}$RN: $msg$NC" ;;
     esac
 
-    case $level in
-    warning | error | success | info)
-        log=true
-        ;;
-    *)
-        if [[ ${DEBUG:-} == true ]]; then
-            log=true
-        fi
-        ;;
-    esac
-
-    if [[ $log == true ]]; then
+    if [[ ${LOG_LEVELS[$level]} -ge ${LOG_LEVELS[${LOG_LEVEL:-info}]:-99} ]]; then
         echo -e "$msg" >&2
     fi
 }
@@ -59,24 +57,23 @@ die() {
     *) log "$msg (exit $exit_code)" error ;;
     esac
 
-    [[ -n "$fn" ]] && "$fn"
+    [[ -z "$fn" ]] || "$fn"
 
-    log "exit code $exit_code" debug
     exit "$exit_code"
 }
 
 try() {
-    local stderr_file stdout_file exit_code
-    stderr_file=$(mktemp)
-    stdout_file=$(mktemp)
-    "$@" >"$stdout_file" 2>"$stderr_file"
+    local std=$tmpdir/std.$$.$BASHPID
+    local exit_code
+
+    "$@" >"$std.out" 2>"$std.err"
     exit_code=$?
+
     if [[ $exit_code -eq 0 ]]; then
-        cat "$stdout_file"
+        cat "$std.out"
     else
-        die "$exit_code" "$(tr -d '\r' <"$stderr_file")"
+        die "$exit_code" "$(tr -d '\r' <"$std.err")"
     fi
-    rm "$stderr_file"
 }
 
 fn-exists() {
