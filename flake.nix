@@ -114,6 +114,11 @@
             nixos-rebuild switch --ask-sudo-password --flake ./#$1 \
             --target-host $1.${domain} --build-host ${buildHost}.${domain}
           '')
+          (pkgs.writeShellScriptBin "deploy-test" ''
+            #!/usr/bin/env bash
+            nixos-rebuild test --ask-sudo-password --flake ./#$1 \
+            --target-host $1.${domain} --build-host ${buildHost}.${domain}
+          '')
           (pkgs.writeShellScriptBin "switch" ''
             #!/usr/bin/env bash
             nixos-rebuild switch --use-remote-sudo --show-trace --verbose \

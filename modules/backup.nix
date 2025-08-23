@@ -48,7 +48,7 @@ in
 
   config = mkIf (eachTarget != { }) {
 
-    sops.secrets.backup-password = { };
+    sops.secrets.backup-key = { };
 
     services.restic.backups.km = {
       paths = cfg.km.paths;
@@ -64,7 +64,7 @@ in
         Persistent = true;
       };
       repository = "rest:http://${cfg.km.target}:${toString ids.restic.port}/repository";
-      passwordFile = config.sops.secrets.backup-password.path;
+      passwordFile = config.sops.secrets.backup-key.path;
     };
   };
 }

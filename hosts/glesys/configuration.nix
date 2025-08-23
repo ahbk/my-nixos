@@ -2,11 +2,11 @@
   inputs,
   pkgs,
   ids,
+  users,
   ...
 }:
 let
-  users = import ../users.nix;
-  sites = import ../sites.nix;
+  sites = import ../../sites.nix;
 in
 {
   imports = [
@@ -104,7 +104,6 @@ in
       inherit
         admin
         alex
-        backup
         ludvig
         ;
     };

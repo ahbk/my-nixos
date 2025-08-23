@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+unset SOPS_AGE_KEY_FILE
+
 setup() {
   export DEBUG=true
   echo "=== BEGIN SETUP ===" >&2
@@ -7,7 +9,7 @@ setup() {
 
   cp -R "./tools" "$testroot"
 
-  cd "$testroot" && ./tools/manage.sh -u admin bootstrap
+  cd "$testroot" && ./tools/manage.sh -r 1 new age-key
 
   mock_command() {
     local cmd_name=$1
@@ -54,7 +56,7 @@ check-output() {
 
 @test "host new age-key" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new age-key
   check-output "-h testhost new age-key" 0 "host::new::age-key completed"
@@ -65,7 +67,7 @@ check-output() {
 
 @test "host new age-key (mismatch)" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new age-key
   check-output "-h testhost new age-key" 0 "host::new::age-key completed"
@@ -79,7 +81,7 @@ check-output() {
 
 @test "host new age-key (no public)" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new-private age-key
   check-output "-h testhost new-private age-key" 0 "host::new-private::age-key completed"
@@ -90,7 +92,7 @@ check-output() {
 
 @test "host new ssh-key" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new ssh-key
   check-output "-h testhost new ssh-key" 0 "host::new::ssh-key completed"
@@ -101,7 +103,7 @@ check-output() {
 
 @test "host new ssh-key (mismatch)" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new ssh-key
   check-output "-h testhost new ssh-key" 0 "host::new::ssh-key completed"
@@ -115,7 +117,7 @@ check-output() {
 
 @test "host new ssh-key (no public)" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new-private ssh-key
   check-output "-h testhost new-private ssh-key" 0 "host::new-private::ssh-key completed"
@@ -126,7 +128,7 @@ check-output() {
 
 @test "host new wg-key" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new wg-key
   check-output "-h testhost new wg-key" 0 "host::new::wg-key completed"
@@ -137,7 +139,7 @@ check-output() {
 
 @test "host new wg-key (mismatch)" {
   run ./tools/manage.sh -h testhost init
-  check-output "-h testhost init" 0 "host::init:: completed"
+  check-output "-h testhost init" 0 "host::init::age-key completed"
 
   run ./tools/manage.sh -h testhost new wg-key
   check-output "-h testhost new wg-key" 0 "host::new::wg-key completed"
@@ -151,7 +153,7 @@ check-output() {
 
 @test "user new age-key" {
   run ./tools/manage.sh -u testuser init
-  check-output "-u testuser init" 0 "user::init:: completed"
+  check-output "-u testuser init" 0 "user::init::age-key completed"
 
   run ./tools/manage.sh -u testuser new age-key
   check-output "-u testuser new age-key" 0 "user::new::age-key completed"
@@ -162,7 +164,7 @@ check-output() {
 
 @test "user new age-key (mismatch)" {
   run ./tools/manage.sh -u testuser init
-  check-output "-u testuser init" 0 "user::init:: completed"
+  check-output "-u testuser init" 0 "user::init::age-key completed"
 
   run ./tools/manage.sh -u testuser new age-key
   check-output "-u testuser new age-key" 0 "user::new::age-key completed"
@@ -176,7 +178,7 @@ check-output() {
 
 @test "user new age-key (no public)" {
   run ./tools/manage.sh -u testuser init
-  check-output "-u testuser init" 0 "user::init:: completed"
+  check-output "-u testuser init" 0 "user::init::age-key completed"
 
   run ./tools/manage.sh -u testuser new-private age-key
   check-output "-u testuser new-private age-key" 0 "user::new-private::age-key completed"
@@ -187,7 +189,7 @@ check-output() {
 
 @test "user new ssh-key" {
   run ./tools/manage.sh -u testuser init
-  check-output "-h testuser init" 0 "user::init:: completed"
+  check-output "-h testuser init" 0 "user::init::age-key completed"
 
   run ./tools/manage.sh -u testuser new ssh-key
   check-output "-h testuser new ssh-key" 0 "user::new::ssh-key completed"
@@ -198,7 +200,7 @@ check-output() {
 
 @test "user new ssh-key (mismatch)" {
   run ./tools/manage.sh -u testuser init
-  check-output "-h testuser init" 0 "user::init:: completed"
+  check-output "-h testuser init" 0 "user::init::age-key completed"
 
   run ./tools/manage.sh -u testuser new ssh-key
   check-output "-h testuser new ssh-key" 0 "user::new::ssh-key completed"
@@ -212,7 +214,7 @@ check-output() {
 
 @test "user new passwd" {
   run ./tools/manage.sh -u testuser init
-  check-output "-h testuser init" 0 "user::init:: completed"
+  check-output "-h testuser init" 0 "user::init::age-key completed"
 
   run bash -c './tools/manage.sh -u testuser new passwd' <<EOF
 mypassword
@@ -223,19 +225,19 @@ EOF
 
 @test "user new passwd (mismatch)" {
   run ./tools/manage.sh -u testuser init
-  check-output "-h testuser init" 0 "user::init:: completed"
+  check-output "-h testuser init" 0 "user::init::age-key completed"
 
   run bash -c './tools/manage.sh -u testuser new passwd' <<EOF
 mypassword
 mypasswor
 EOF
 
-  check-output "-h testuser new passwd (mismatch)" 1 "password doesn't match"
+  check-output "-h testuser new passwd (mismatch)" 1 "verification failed"
 }
 
 @test "domain new tls-cert" {
   run ./tools/manage.sh -d testdomain init
-  check-output "-h testdomain init" 0 "domain::init:: completed"
+  check-output "-h testdomain init" 0 "domain::init::age-key completed"
 
   run ./tools/manage.sh -d testdomain new tls-cert
   check-output "-h testdomain new tls-cert" 0 "domain::new::tls-cert completed"
@@ -246,7 +248,7 @@ EOF
 
 @test "domain new tls-cert (mismatch)" {
   run ./tools/manage.sh -d testdomain init
-  check-output "-h testdomain init" 0 "domain::init:: completed"
+  check-output "-h testdomain init" 0 "domain::init::age-key completed"
 
   run ./tools/manage.sh -d testdomain new tls-cert
   check-output "-h testdomain new tls-cert" 0 "domain::new::tls-cert completed"

@@ -1,15 +1,11 @@
 keys:
-  - &user-alex age1pp95893x9syur6uwk0r0cptw03y4ttq3gde4hwxqertrmdu725fsxd3ktg
-  - &user-admin age1j6r6hexj9f5jtl0rpg5ekcr5ysvwf94mtzzx4hnpmlxvx97xfp3sek95tg
-  - &host-helsinki age1fwwsf2d0tvmere32458m4w2g0du9kknn0pm2g4nahdkn07nwf4zqhj8sza
+  - &root-1 age1cavc8kaykuqxk9xk6ca78fea73ym32ugxvhq9ek0xgg0aar23qpqg5psm3
+  - &host-stationary age15pv6x0rjv5x92daey2c0yg3lk926h8zprtku32uzp0a3fqskqa0q2wq8z6
   - &host-lenovo age14exhy3ck8m795zsm2mcck03d65w6xhryectwgxtj8w78re8lcuasrztl6y
-  - &host-laptop age10g0uxdzwp5f6z4dduma2eyzexve8qe8u36x2d9uuq95z44uahslsvv6y2k
-  - &host-friday age1jzztt2yus45ehsy27vw9pfw42mcfr2swttduy0hqlfawej7ydczsx2ua0c
-  - &host-glesys age18lyyvydaj58v0ysqe7ptq5j70zq8pfzjga5w0vvceejhagmutv5suc2ned
-  - &host-phone age18uw7lxqzaqc4qm5ule2n4kzuzjxc2necau59v0x6rn4am06j857q8rgmeu
-  - &host-stationary age12d6wk698ggscne9jz8fll6lt6auv6ekxsfejwa54578k7zpfechq8r07dw
-env:
-  SOPS_AGE_KEY_FILE: /home/alex/age.key
+  - &user-alex age18hl27m8zv5lclv2r89ltv5n0mpk5sr8s23fec3ve9sj0qufh2uqq4ccstz
+  - &host-helsinki age1pt8lptn7pz0uh09n6c7ys5455qp28c27xzg8mwp65f3wrmymmq8syqf6xa
+  - &user-admin age155m853rh0wqk4eejf955mt3j6hx0r6qjp6g3tcyp8hdg03tmyccq2vn55w
+key-file: ./keys.txt
 host-secrets: "['{type}'] hosts/{host}/secrets.yaml"
 user-secrets: "['{user}']['{type}'] users/{user}-enc.yaml"
 domain-secrets: "['{domain}']['{type}'] domains/{domain}-enc.yaml"
@@ -17,52 +13,32 @@ host-pub: hosts/{host}/{type}.pub
 user-pub: users/{user}-{type}.pub
 domain-pub: domains/{domain}-{type}.pem
 creation_rules:
-  - path_regex: hosts/stationary/secrets.yaml
-    key_groups:
-      - age:
-          - *user-admin
-          - *host-stationary
-  - path_regex: hosts/phone/secrets.yaml
-    key_groups:
-      - age:
-          - *user-admin
-          - *host-phone
-  - path_regex: hosts/glesys/secrets.yaml
-    key_groups:
-      - age:
-          - *user-admin
-          - *host-glesys
-  - path_regex: hosts/friday/secrets.yaml
-    key_groups:
-      - age:
-          - *user-admin
-          - *host-friday
-  - path_regex: hosts/lenovo/secrets.yaml
-    key_groups:
-      - age:
-          - *user-admin
-          - *host-lenovo
   - path_regex: hosts/helsinki/secrets.yaml
     key_groups:
       - age:
-          - *user-admin
+          - *root-1
           - *host-helsinki
-  - path_regex: hosts/laptop/secrets.yaml
+  - path_regex: hosts/lenovo/secrets.yaml
     key_groups:
       - age:
-          - *user-admin
-          - *host-laptop
+          - *root-1
+          - *host-lenovo
+  - path_regex: hosts/stationary/secrets.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *host-stationary
   - path_regex: users/.*-enc.yaml
     key_groups:
       - age:
-          - *user-admin
+          - *root-1
           - *host-helsinki
           - *host-lenovo
           - *host-stationary
   - path_regex: domains/.*-enc.yaml
     key_groups:
       - age:
-          - *user-admin
+          - *root-1
           - *host-helsinki
           - *host-lenovo
           - *host-stationary

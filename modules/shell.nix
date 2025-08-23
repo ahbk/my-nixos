@@ -67,6 +67,7 @@ in
       git
       vim
       tree
+      nixos-facter
     ];
   };
 }

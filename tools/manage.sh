@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2317
 
-set -euo pipefail
+set -uo pipefail
 shopt -s globstar
+unset SOPS_AGE_KEY_FILE
+
+# import log, die, try and fn-exists
+. ./tools/lib.sh
 
 usage() {
     cat <<'EOF'
@@ -77,8 +81,8 @@ ACTIONS
                   from the secrets store.
 
 SPECIAL ACTIONS
-    -u <admin> bootstrap
-        Initialize the secret management system with a new administrative user.
+    -u <root> bootstrap
+        Initialize the secret management system with a new root user.
         It should only be run once and performs the following critical steps:
         1. Creates a default `.sops.yaml` configuration if one does not exist.
         2. Generates a new master Age key pair.
@@ -86,13 +90,11 @@ SPECIAL ACTIONS
            (e.g., `./age.key`). This file is the root of all trust and MUST be
            backed up and kept secure.
         4. In `.sops.yaml`, it records the public master key under an anchor
-           for the specified admin user (e.g., `&user-admin`).
-        5. Encrypts the admin's private Age key into their own secrets file,
-           protected by the master key itself.
+           named 'root'.
 
-        This establishes a model where one or more admins hold the master key(s),
-        while all other keys (for hosts, users, etc.) are ephemeral and can be
-        rotated and managed safely within a Git repository.
+        This establishes a model where a root entity hold the master key, while
+        all other keys (for hosts, users, etc.) are ephemeral and can be rotated
+        and managed safely within a Git repository.
 
     updatekeys
         Scans all secret files and updates their SOPS metadata. This is done
@@ -144,119 +146,26 @@ EOF
 }
 
 main() {
-    setup "$@"
+    setup "$@" || die 1 "setup failed"
+    authorize-key
 
     sanitize-dispatcher-input && dispatch
     exit_code=$?
 
     case $exit_code in
-    0) log "$mode::$action::$type completed" success ;;
+    0) log "$mode::$action::$type completed successfully" success ;;
     *) log "$mode::$action::$type completed with errors" error ;;
     esac
 
     log "exit code: $exit_code" debug
-    exit $exit_code
-}
-
-# --- utils
-
-log() {
-    local \
-        log=false \
-        msg=$1 \
-        level=$2 \
-        caller=${FUNCNAME[1]} \
-        depth=${#FUNCNAME[@]}
-
-    if [[ $caller == die ]]; then
-        caller=${FUNCNAME[2]}
-    fi
-
-    if [[ $caller == try ]]; then
-        caller=${FUNCNAME[3]}
-    fi
-
-    case $level in
-    success) msg="[$depth]: $GB${caller}$GN: $msg$NC" ;;
-    debug) msg="[$depth]: $YB${caller}$NC: $msg$NC" ;;
-    info) msg="[$depth]: $BB${caller}$BN: $msg$NC" ;;
-    warning) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
-    error) msg="[$depth]: $RB${caller}$RN: $msg$NC" ;;
-    esac
-
-    case $level in
-    warning | error | success | info)
-        log=true
-        ;;
-    *)
-        if [[ ${DEBUG:-} == true ]]; then
-            log=true
-        fi
-        ;;
-    esac
-
-    if [[ $log == true ]]; then
-        echo -e "$msg" >&2
-    fi
-}
-
-die() {
-    local \
-        exit_code=${1-$?} \
-        msg=${2-$(tr -d '\r' <"$err")} \
-        fn=${3-}
-
-    case $exit_code in
-    0) log "$msg" info ;;
-    *) log "$msg (exit $exit_code)" error ;;
-    esac
-
-    [[ -n "$fn" ]] && "$fn"
-
-    log "exit code $exit_code" debug
     exit "$exit_code"
-}
-
-try() {
-    local stderr_file output exit_code
-    stderr_file=$(mktemp)
-    output=$("$@" 2>"$stderr_file")
-    exit_code=$?
-    if [[ $exit_code -eq 0 ]]; then
-        echo "$output"
-    else
-        die "$exit_code" "$(tr -d '\r' <"$stderr_file")"
-    fi
-    rm "$stderr_file"
-}
-
-fn-exists() {
-    local fn=$1
-    declare -F "$fn" >/dev/null
 }
 
 setup() {
     domain="kompismoln.se"
 
-    # bold or not bold red green yellow and normal colors
-    RN='\033[0;31m'
-    RB='\033[1;31m'
-    GN='\033[0;32m'
-    GB='\033[1;32m'
-    YN='\033[0;33m'
-    YB='\033[1;33m'
-    BN='\033[0;34m'
-    BB='\033[1;34m'
-    NC='\033[0m'
-
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
-
-    err="$tmp/.err"
-    touch "$err"
-
-    out="$tmp/.out"
-    touch "$out"
 
     private_file="$tmp/private_file"
     touch "$private_file"
@@ -267,11 +176,11 @@ setup() {
     mode=$1
 
     case $mode in
-    -h | -u | -d)
+    -h | -u | -d | -r)
         [[ $# -ge 3 ]] || die 1 "wrong number of arguments provided." usage
         entity=$2
         action=$3
-        type=${4-}
+        type=${4-"age-key"}
         ;;
 
     --help)
@@ -293,7 +202,7 @@ setup() {
         host=$entity
         types=(age-key ssh-key wg-key luks-key)
 
-        [[ $action == "factory-reset" ]] && type=age-key
+        [[ $action == "factory-reset" ]]
         [[ $type == "ssh-key" ]] && actions+=(pull)
         [[ $type == "age-key" ]] && actions+=(sideload factory-reset)
         ;;
@@ -301,30 +210,35 @@ setup() {
         mode="user"
         user=$entity
         types=(age-key ssh-key passwd mail)
-        [[ $action == "bootstrap" ]] && {
-            type=age-key
-            actions+=(bootstrap)
-            init-sops-yaml
-        }
         ;;
     -d)
         mode="domain"
         domain=$entity
-        types=(tls-cert)
+        types=(age-key tls-cert)
+        ;;
+    -r)
+        mode="root"
+        type=age-key
+        types=(age-key)
         ;;
     esac
 
-    if [[ $action == "init" ]]; then
-        types+=("")
-    fi
-
-    SOPS_AGE_KEY_FILE=$(.sops-yaml '.env.SOPS_AGE_KEY_FILE')
-    [[ -z $SOPS_AGE_KEY_FILE ]] && die 1 "SOPS_AGE_KEY_FILE is empty"
-    export SOPS_AGE_KEY_FILE
-
-    public_file=$(.sops-yaml ".$mode-pub")
-
+    [[ $action == "init" ]] && types+=("")
+    [[ -f .sops.yaml ]] || try init-sops-yaml
     set-secrets-location
+}
+
+authorize-key() {
+    [[ $mode != "root" ]] || return 0
+    [[ -f $SOPS_AGE_KEY_FILE ]] || die 1 "no key file"
+
+    local exit_code
+    SOPS_AGE_KEY_FILE=$(.sops-yaml '.key-file')
+    cat "$SOPS_AGE_KEY_FILE" >"$private_file"
+    mode=root action=check type=age-key user=1 entity=1 check-anchor
+    exit_code=$?
+    : >"$private_file"
+    return "$exit_code"
 }
 
 sanitize-dispatcher-input() {
@@ -336,7 +250,7 @@ sanitize-dispatcher-input() {
     [[ " ${types[*]} " =~ " $type " ]] ||
         die 1 "'$type' is not a valid key type. Allowed key types: ${types[*]}" usage
 
-    [[ $action == "bootstrap" || $action == "init" || -f "$secrets_file" ]] || {
+    [[ $mode == "root" || $action == "init" || -f "$secrets_file" ]] || {
         die 1 "no file found in '$secrets_file', did you spell $mode correctly?"
     }
 }
@@ -366,6 +280,7 @@ dispatch() {
 }
 
 # DISPATCHABLE FUNCTIONS START HERE
+# Helpers suffixed with --*
 
 # --- *::new::*
 # See new-private + sync
@@ -396,27 +311,12 @@ sync() {
 }
 
 sync::age-key() {
-    sync && sync::age-key--sops
+    sync && sync-anchor::age-key
 }
 
-sync::age-key--sops() {
-    local age_key new_age_key
-
-    age_key="$(cat "$public_file")"
-
-    set-anchor "$age_key"
-    new_age_key=$(get-anchor)
-
-    if [[ -z "$new_age_key" ]]; then
-        log "ssh-key '$mode-$entity' doesn't have an anchor in .sops.yaml." warning
-        return 0
-    fi
-
-    if [[ "$age_key" != "$new_age_key" ]]; then
-        die 127 "unexpected code path, '$mode-$entity' was not correctly updated."
-    else
-        updatekeys
-    fi
+sync-anchor::age-key() {
+    try set-anchor "$(cat "$public_file")"
+    updatekeys
 }
 
 sync::luks-key() {
@@ -443,30 +343,51 @@ user::sync::mail() {
 
 # --- *::check::*
 
-diff--public-file() {
+check-public() {
+    local ref=${1-$(action=generate-public dispatch)}
     log "diff public file" info
+
     [[ -f $public_file ]] || die 1 "public key doesn't exist"
-    echo "$1" | diff - "$public_file"
+    echo "$ref" | diff - "$public_file"
 }
 
-diff--sops-anchor() {
-    log "diff sops anchor" info
-    echo "$1" | diff - <(get-anchor)
+check-anchor() {
+    local ref=${1-$(action=generate-public dispatch)}
+    log "diff sops anchor $ref" info
+    echo "$ref" | diff - <(get-anchor)
+}
+
+check-host::age-key() {
+    local ref=${1-$(action=generate-public dispatch)}
+    local host_priv host_pub
+
+    log "check host..." info
+    host_priv="$(try ssh "admin@$host.$domain" "cat /etc/age/keys.txt")"
+
+    [[ $host_priv == "trust-me" ]] && return
+
+    host_pub=$(echo "$host_priv" | age-keygen -y | head -n1) || die
+
+    echo "$ref" | diff - <(echo "$host_pub")
+}
+
+check-host::ssh-key() {
+    local ref=$1
+    log "diff host key" info
+    host_pub=$(ssh-keyscan -q "$host.$domain" | cut -d' ' -f2-3) || die
+    [[ $host_pub == "trust-me" ]] && return
+    echo "$ref" | cut -d' ' -f1-2 | diff - <(echo "$host_pub")
 }
 
 host::check::age-key() {
-    local exit_code=0 host_priv host_pub
+    local exit_code=0
     decrypt
+
     ref="$(action=generate-public dispatch)"
 
-    diff--public-file "$ref" || exit_code=1
-    diff--sops-anchor "$ref" || exit_code=1
-
-    log "diff host key" info
-    host_priv="$(try ssh "admin@$host.$domain" "cat /etc/age/keys.txt")"
-    [[ $host_priv == "trust-me" ]] && return "$exit_code"
-    host_pub=$(echo "$host_priv" | age-keygen -y | head -n1) || die
-    echo "$ref" | diff - <(echo "$host_pub") || exit_code=1
+    check-public "$ref" || exit_code=1
+    check-anchor "$ref" || exit_code=1
+    check-host::age-key "$ref" || exit_code=1
 
     return "$exit_code"
 }
@@ -476,27 +397,21 @@ host::check::ssh-key() {
     decrypt
     ref="$(action=generate-public dispatch)"
 
-    diff--public-file "$ref" || exit_code=1
-
-    log "diff host key" info
-    host_pub=$(ssh-keyscan -q "$host.$domain" | cut -d' ' -f2-3) || die
-    [[ $host_pub == "trust-me" ]] && return "$exit_code"
-    echo "$ref" | cut -d' ' -f1-2 | diff - <(echo "$host_pub") || exit_code=1
+    check-public "$ref" || exit_code=1
+    check-host::ssh-key "$ref" || exit_code=1
 
     return "$exit_code"
 }
 
 host::check::wg-key() {
     decrypt
-    diff--public-file "$(action=generate-public dispatch)"
+    check-public
 }
 
 host::check::luks-key() {
     decrypt
-
-    ssh "admin@$host.$domain" \
-        'sudo cryptsetup open --test-passphrase --key-file=- /dev/sda3' \
-        2>"$err" <"$private_file" || die
+    local remote_cmd='sudo cryptsetup open --test-passphrase --key-file=- /dev/sda3'
+    try ssh "admin@$host.$domain" "$remote_cmd" <"$private_file"
 }
 
 user::check::age-key() {
@@ -504,15 +419,15 @@ user::check::age-key() {
     decrypt
     ref="$(action=generate-public dispatch)"
 
-    diff--public-file "$ref" || exit_code=1
-    diff--sops-anchor "$ref" || exit_code=1
+    check-public "$ref" || exit_code=1
+    check-anchor "$ref" || exit_code=1
 
     return "$exit_code"
 }
 
 user::check::ssh-key() {
     decrypt
-    diff--public-file "$(action=generate-public dispatch)"
+    check-public
 }
 
 user::check::passwd() {
@@ -570,43 +485,42 @@ host::pull::ssh-key() {
 # --- *::sideload::*
 
 host::sideload::age-key() {
-    local host_key=/etc/age/keys.txt
+    local public_key host_key=/etc/age/keys.txt
+
+    decrypt
+    public_key="$(action=generate-public dispatch)"
 
     # shellcheck disable=SC2015
-    check::age-key && check::age-key--sops ||
+    check-public "$public_key" && check-anchor "$public_key" ||
         die 1 "Error: Keys are out of sync, run '$0 $host sync age-key' first"
 
-    check::age-key--host &&
+    check-host::age-key "$public_key" &&
         die 1 "current key is already active"
 
     # shellcheck disable=SC2029
-    ssh "admin@$host.$domain" "head -n 3 $host_key" 2>"$err" >>"$private_file" || die
-    scp "$private_file" "admin@$host.$domain:$host_key" >"$out" 2>"$err" || die
+    try ssh "admin@$host.$domain" "head -n 3 $host_key" >>"$private_file"
+    try scp "$private_file" "admin@$host.$domain:$host_key" >/dev/null
     log "rebuild $host now or suffer the consequences" warning
 }
 
 # --- *::factory-reset::*
 
 host::factory-reset() {
-    local extra_files="$tmp/mnt"
+    local extra_files="$tmp/extra-files"
     local luks_key="$tmp/luks_key"
     local store="$extra_files/srv/storage"
-    local ssh_host_key="$store/etc/ssh/ssh_host_ed25519_key"
     local age_key="$store/etc/age/keys.txt"
 
-    install -d -m755 "$(dirname "$ssh_host_key")"
     install -d -m700 "$(dirname "$age_key")"
 
     type=luks-key decrypt && cp "$private_file" "$luks_key"
-    type=ssh-key decrypt && cp "$private_file" "$ssh_host_key"
     type=age-key decrypt && cp "$private_file" "$age_key"
 
-    chmod 600 "$ssh_host_key" "$age_key"
+    chmod 600 "$age_key"
     cp -a "$store/." "$extra_files"
 
     log "luks key prepared: $(cat "$luks_key")" info
     log "age key prepared: $(sed -n '3p' "$age_key")" info
-    log "ssh host key prepared: $(sed -n '3p' "$ssh_host_key")" info
     log "these extra files will be copied:" info
     tree -a "$extra_files"
 
@@ -617,31 +531,30 @@ host::factory-reset() {
         --disk-encryption-keys /luks-key "$luks_key" \
         --generate-hardware-config nixos-facter hosts/"$host"/facter.json \
         --extra-files "$extra_files" \
-        --copy-host-keys 2>"$err" || die
+        --copy-host-keys
 }
 
 # --- *::create-private::*
 
 create-private::age-key() {
-    rm "$private_file"
-    age-keygen >"$private_file" 2>"$err" || die
+    try age-keygen >"$private_file"
 }
 
 create-private::ssh-key() {
-    ssh-keygen -q -t "ed25519" -f "$private_file" -N "" \
-        -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null 2>"$err" || die
+    try ssh-keygen -q -t "ed25519" -f "$private_file" -N "" \
+        -C "$mode-key-$(date +%Y-%m-%d)" <<<y >/dev/null
 }
 
 create-private::wg-key() {
-    wg genkey >"$private_file" 2>"$err" || die
+    try wg genkey >"$private_file"
 }
 
 create-private::luks-key() {
-    openssl rand -base64 12 >"$private_file" 2>"$out" || die
+    try openssl rand -base64 12 >"$private_file"
 }
 
 create-private::tls-cert() {
-    openssl genpkey -algorithm ED25519 -out "$private_file" 2>"$err" || die
+    try openssl genpkey -algorithm ED25519 -out "$private_file"
 }
 
 create-private::passwd() {
@@ -649,25 +562,28 @@ create-private::passwd() {
     echo "$password" >"$private_file"
 }
 
+create-private::mail() {
+    create-private::passwd
+}
 # --- *::generate-public::*
 
 generate-public::age-key() {
-    age-keygen -y <"$private_file" 2>"$err" || die
+    try age-keygen -y <"$private_file"
 }
 
 generate-public::ssh-key() {
-    ssh-keygen -y -f "$private_file" 2>"$err" || die
+    try ssh-keygen -y -f "$private_file"
 }
 
 generate-public::wg-key() {
-    wg pubkey <"$private_file" 2>"$err" || die
+    try wg pubkey <"$private_file"
 }
 
 generate-public::tls-cert() {
-    openssl req -new -x509 -key "$private_file" \
+    try openssl req -new -x509 -key "$private_file" \
         -subj "/CN=*.$domain" \
         -addext "subjectAltName=DNS:*.$domain,DNS:$domain" \
-        -nodes -out - -days 3650 2>"$err" || die
+        -nodes -out - -days 3650
 }
 
 # --- *::verify::*
@@ -692,12 +608,20 @@ verify::luks-key() {
     log "luks-key: $(cat "$private_file")" info
 }
 
+verify::mail() {
+    verify::passwd
+}
+
 # TODO: make a more comprehensive security audit on passwd
 verify::passwd() {
     [[ -s "$private_file" && -n "$(cat "$private_file")" ]] || {
         log "password is empty" error
         return 1
     }
+}
+
+verify::mail-hashed() {
+    verify::passwd-hashed
 }
 
 verify::passwd-hashed() {
@@ -725,18 +649,24 @@ verify::passwd-hashed() {
 init() {
     mkdir -p "$(dirname "$secrets_file")"
 
-    sed -i "1a\ \ - &$mode-$entity" .sops.yaml
+    sed -i "1a\ \ - &$mode-$entity unset" .sops.yaml
+
     cat >>.sops.yaml <<EOF
   - path_regex: $secrets_file
     key_groups:
       - age:
-        - *user-admin
+        - *root-1
         - *$mode-$entity
 EOF
+    create-private::age-key
+    generate-public::age-key | set-anchor
+
     # shellcheck disable=SC2094
-    echo "init: true" | sops encrypt \
+    echo "age-key: unset" | try sops encrypt \
         --filename-override "$secrets_file" \
-        /dev/stdin >"$secrets_file" 2>"$err" || die
+        /dev/stdin >"$secrets_file"
+
+    encrypt
 }
 
 # --- sops integrations
@@ -744,27 +674,29 @@ encrypt() {
     set-secrets-location
     log "encrypting secret > $secrets_path@$private_file" debug
 
-    action=verify dispatch 2>"$err" || die
-    sops set "$secrets_file" "$secrets_path" "$(jq -Rs <"$private_file")" >"$out" 2>"$err" || die
+    action=verify dispatch || die 1 "verification failed"
+    try sops set "$secrets_file" "$secrets_path" "$(jq -Rs <"$private_file")"
 }
 
 decrypt() {
     set-secrets-location
     log "decrypting secret < $secrets_path@$private_file" debug
 
-    sops decrypt --extract "$secrets_path" "$secrets_file" >"$private_file" 2>"$err" || die
+    try sops decrypt --extract "$secrets_path" "$secrets_file" >"$private_file"
 }
 
+# never allow empty anchors!
+# an empty anchor is indistinguishable from absent anchor (both return '')
 get-anchor() {
-    yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml 2>"$err" || die
+    try yq "(.keys[] | select(anchor == \"$mode-$entity\"))" .sops.yaml
 }
 
 set-anchor() {
-    local age_key=$1 new_age_key
+    local age_key=${1-$(cat)} new_age_key
 
-    [[ -z $age_key ]] && die 1 "age key invalid: '$age_key'"
+    [[ -n $age_key ]] || die 1 "empty anchors not allowed"
 
-    yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$age_key\"" .sops.yaml 2>"$err" || die
+    try yq -i "(.keys[] | select(anchor == \"$mode-$entity\")) |= \"$age_key\"" .sops.yaml
 
     new_age_key=$(get-anchor)
     [[ "$new_age_key" == "$age_key" ]] || die 1 "update fail: $new_age_key != $age_key"
@@ -793,7 +725,7 @@ updatekeys() {
 
 secrets-glob() {
     local key=$1 template
-    IFS=" " read -r _ template <<<"$(yq ".$key-secrets" .sops.yaml 2>"$err")"
+    IFS=" " read -r _ template <<<"$(yq ".$key-secrets" .sops.yaml)"
     glob=$(sed -E 's:/\{[^}]+\}/:/**/:g; s:\{[^}]+\}:*:g' <<<"$template")
 
     eval "files=($glob)"
@@ -808,40 +740,41 @@ secrets-glob() {
 }
 
 set-secrets-location() {
+    public_file=$(.sops-yaml ".$mode-pub")
+    SOPS_AGE_KEY_FILE=$(.sops-yaml '.key-file')
+    export SOPS_AGE_KEY_FILE
     IFS=" " read -r secrets_path secrets_file <<<"$(.sops-yaml ".$mode-secrets")"
 }
 
 copy-private() {
-    cat "$PRIVATE_FILE" >"$private_file" 2>"$err" || die
+    try cat "$PRIVATE_FILE" >"$private_file"
 }
 
-bootstrap() {
+root::new::age-key() {
     local key
 
-    mkdir -p "$(dirname "$secrets_file")"
-    touch "$secrets_file"
+    key=$(get-anchor)
+    [[ "$key" != age* ]] || die 1 "$mode-$entity already exists: $key"
+    [[ -n "$key" ]] || sed -i "1a\ \ - &$mode-$entity unset" .sops.yaml
 
     create-private::age-key
-    cp -a "$private_file" "$SOPS_AGE_KEY_FILE"
 
-    key=$(generate-public::age-key)
-    set-anchor "$key"
+    set-anchor "$(generate-public::age-key)"
+    key=$(get-anchor)
 
-    echo "$user: { age-key: }" | sops encrypt \
-        --filename-override "users/$user-enc.yaml" \
-        /dev/stdin >"$secrets_file" 2>"$err" || die
-
-    encrypt
-
-    sync::age-key
+    touch "$SOPS_AGE_KEY_FILE"
+    echo "# root-$entity" >>"$SOPS_AGE_KEY_FILE"
+    cat "$private_file" >>"$SOPS_AGE_KEY_FILE"
+    : >"$private_file"
 }
 
 .sops-yaml() {
     local key=$1 template
 
     log "get '$key'" debug
-    template=$(yq "$key" .sops.yaml 2>"$err") || die
-    eval "echo \"${template//\{/\$\{}\"" 2>"$err" || die
+    template="$(try yq "$key" .sops.yaml)"
+    log "template: $template" debug
+    try eval "echo \"${template//\{/\$\{}\""
 }
 
 init-sops-yaml() {
@@ -850,10 +783,9 @@ init-sops-yaml() {
 
     cat >.sops.yaml <<EOF
 keys:
-  - &user-$user
+  - &root-1 unset
 
-env:
-    SOPS_AGE_KEY_FILE: ./age.key
+key-file: ./keys.txt
 
 host-secrets: "['{type}'] hosts/{host}/secrets.yaml"
 user-secrets: "['{user}']['{type}'] users/{user}-enc.yaml"
@@ -864,10 +796,6 @@ user-pub: users/{user}-{type}.pub
 domain-pub: domains/{domain}-{type}.pem
 
 creation_rules:
-  - path_regex: users/$user-enc.yaml
-    key_groups:
-      - age:
-        - *user-$user
 EOF
 }
 

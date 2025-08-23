@@ -44,6 +44,12 @@ in
       sops.age = {
         keyFile = "/etc/age/keys.txt";
         sshKeyPaths = [ ];
+
+      };
+
+      sops.secrets."ssh-key" = {
+        path = "/etc/host/ssh_host_ed25519_key";
+        mode = "0400";
       };
 
       programs.ssh.knownHosts = mapAttrs (host: cfg: {
@@ -73,13 +79,7 @@ in
       my-nixos.preserve = {
         files = [
           {
-            file = "/etc/ssh/ssh_host_ed25519_key";
-            mode = "0600";
-            inInitrd = true;
-          }
-          {
             file = "/etc/age/keys.txt";
-            user = "admin";
             mode = "0600";
             inInitrd = true;
           }
