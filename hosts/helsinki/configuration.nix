@@ -7,6 +7,7 @@
   imports = [
     ./disko.nix
   ];
+  facter.reportPath = ./facter.json;
 
   sops.secrets.luks-key = { };
   boot = {

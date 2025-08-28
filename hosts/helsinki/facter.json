@@ -72,28 +72,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.7",
         "sysfs_bus_id": "0000:00:02.7",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271996928,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 7,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 8,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -161,7 +144,6 @@
           "command": 259,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 0,
           "prog_if": 0
         },
         "driver": "lpc_ich",
@@ -224,28 +206,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.5",
         "sysfs_bus_id": "0000:00:02.5",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271988736,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 5,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 6,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -308,28 +273,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.3",
         "sysfs_bus_id": "0000:00:02.3",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271980544,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 3,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 4,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -392,28 +340,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.1",
         "sysfs_bus_id": "0000:00:02.1",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271972352,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 1,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 2,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -477,7 +408,6 @@
           "command": 259,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 0,
           "prog_if": 0
         },
         "module_alias": "pci:v00008086d000029C0sv00001AF4sd00001100bc06sc00i00"
@@ -532,28 +462,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:03.0",
         "sysfs_bus_id": "0000:00:03.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 23,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4272001024,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 9,
-          "irq": 23,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -616,28 +529,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.6",
         "sysfs_bus_id": "0000:00:02.6",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271992832,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 6,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 7,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -700,28 +596,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.4",
         "sysfs_bus_id": "0000:00:02.4",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271984640,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 4,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 5,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -784,28 +663,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.2",
         "sysfs_bus_id": "0000:00:02.2",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271976448,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 2,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 3,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -868,28 +730,11 @@
         "model": "PCI bridge",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.0",
         "sysfs_bus_id": "0000:00:02.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4271968256,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 1287,
           "header_type": 1,
           "secondary_bus": 1,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "pcieport",
@@ -955,13 +800,6 @@
         "sysfs_id": "/class/block/sr0",
         "sysfs_bus_id": "1:0:0:0",
         "sysfs_device_link": "/devices/pci0000:00/0000:00:1f.2/ata1/host1/target1:0:0/1:0:0:0",
-        "unix_device_name": "/dev/sr0",
-        "unix_device_number": {
-          "type": 98,
-          "major": 11,
-          "minor": 0,
-          "range": 1
-        },
         "unix_device_names": [
           "/dev/cdrom",
           "/dev/disk/by-id/ata-QEMU_DVD-ROM_QM00001",
@@ -970,12 +808,6 @@
           "/dev/sr0"
         ],
         "unix_device_name2": "/dev/sg1",
-        "unix_device_number2": {
-          "type": 99,
-          "major": 21,
-          "minor": 1,
-          "range": 1
-        },
         "driver": "ahci",
         "driver_module": "ahci",
         "drivers": [
@@ -1096,7 +928,7 @@
           "srso",
           "ibpb_no_ret"
         ],
-        "bogo": 4799.99,
+        "bogo": 4799,
         "cache": 512,
         "units": 4,
         "physical_id": 0,
@@ -1162,25 +994,12 @@
         "sysfs_id": "/class/block/sda",
         "sysfs_bus_id": "0:0:0:0",
         "sysfs_device_link": "/devices/pci0000:00/0000:00:02.5/0000:06:00.0/virtio5/host0/target0:0:0/0:0:0:0",
-        "unix_device_name": "/dev/sda",
-        "unix_device_number": {
-          "type": 98,
-          "major": 8,
-          "minor": 0,
-          "range": 16
-        },
         "unix_device_names": [
           "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_101498674",
           "/dev/disk/by-path/pci-0000:06:00.0-scsi-0:0:0:0",
           "/dev/sda"
         ],
         "unix_device_name2": "/dev/sg0",
-        "unix_device_number2": {
-          "type": 99,
-          "major": 21,
-          "minor": 0,
-          "range": 1
-        },
         "rom_id": "0x80",
         "resources": [
           {
@@ -1265,52 +1084,11 @@
         "model": "VGA compatible controller",
         "sysfs_id": "/devices/pci0000:00/0000:00:01.0",
         "sysfs_bus_id": "0000:00:01.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 21,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4244635648,
-            "range": 8388608,
-            "enabled": true,
-            "access": "read_only",
-            "prefetch": "no"
-          },
-          {
-            "type": "mem",
-            "base": 4271964160,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          },
-          {
-            "type": "mem",
-            "base": 786432,
-            "range": 131072,
-            "enabled": false,
-            "access": "read_write",
-            "prefetch": "no"
-          },
-          {
-            "type": "mem",
-            "base": 966904512512,
-            "range": 16384,
-            "enabled": true,
-            "access": "read_only",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 1287,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 21,
           "prog_if": 0
         },
         "driver": "virtio-pci",
@@ -1510,14 +1288,6 @@
         "model": "Main Memory",
         "resources": [
           {
-            "type": "mem",
-            "base": 0,
-            "range": 8130961408,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "unknown"
-          },
-          {
             "type": "phys_mem",
             "range": 8053063680
           }
@@ -1715,23 +1485,10 @@
         "model": "QEMU USB Tablet",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.1/0000:02:00.0/usb1/1-1/1-1:1.0",
         "sysfs_bus_id": "1-1:1.0",
-        "unix_device_name": "/dev/input/mice",
-        "unix_device_number": {
-          "type": 99,
-          "major": 13,
-          "minor": 63,
-          "range": 1
-        },
         "unix_device_names": [
           "/dev/input/mice"
         ],
         "unix_device_name2": "/dev/input/mouse0",
-        "unix_device_number2": {
-          "type": 99,
-          "major": 13,
-          "minor": 32,
-          "range": 1
-        },
         "resources": [
           {
             "type": "baud",
@@ -1822,7 +1579,6 @@
         "model": "Virtio Ethernet Card 0",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.0/0000:01:00.0/virtio1",
         "sysfs_bus_id": "virtio1",
-        "unix_device_name": "enp1s0",
         "unix_device_names": [
           "enp1s0"
         ],
@@ -1850,29 +1606,6 @@
     "network_interface": [
       {
         "index": 41,
-        "attached_to": 0,
-        "class_list": [
-          "network_interface"
-        ],
-        "base_class": {
-          "hex": "0107",
-          "name": "Network Interface",
-          "value": 263
-        },
-        "sub_class": {
-          "hex": "0000",
-          "name": "Loopback",
-          "value": 0
-        },
-        "model": "Loopback network interface",
-        "sysfs_id": "/class/net/lo",
-        "unix_device_name": "lo",
-        "unix_device_names": [
-          "lo"
-        ]
-      },
-      {
-        "index": 42,
         "attached_to": 28,
         "class_list": [
           "network_interface"
@@ -1890,7 +1623,6 @@
         "model": "Ethernet network interface",
         "sysfs_id": "/class/net/enp1s0",
         "sysfs_device_link": "/devices/pci0000:00/0000:00:02.0/0000:01:00.0/virtio1",
-        "unix_device_name": "enp1s0",
         "unix_device_names": [
           "enp1s0"
         ],
@@ -1911,6 +1643,28 @@
         ],
         "driver_modules": [
           "virtio_net"
+        ]
+      },
+      {
+        "index": 42,
+        "attached_to": 0,
+        "class_list": [
+          "network_interface"
+        ],
+        "base_class": {
+          "hex": "0107",
+          "name": "Network Interface",
+          "value": 263
+        },
+        "sub_class": {
+          "hex": "0000",
+          "name": "Loopback",
+          "value": 0
+        },
+        "model": "Loopback network interface",
+        "sysfs_id": "/class/net/lo",
+        "unix_device_names": [
+          "lo"
         ]
       }
     ],
@@ -1964,36 +1718,11 @@
         "model": "Communication controller",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.2/0000:03:00.0",
         "sysfs_bus_id": "0000:03:00.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4265607168,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          },
-          {
-            "type": "mem",
-            "base": 965293899776,
-            "range": 16384,
-            "enabled": true,
-            "access": "read_only",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 1287,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "virtio-pci",
@@ -2055,44 +1784,11 @@
         "model": "Ethernet controller",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.0/0000:01:00.0",
         "sysfs_bus_id": "0000:01:00.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4269801472,
-            "range": 524288,
-            "enabled": false,
-            "access": "read_only",
-            "prefetch": "no"
-          },
-          {
-            "type": "mem",
-            "base": 4270325760,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          },
-          {
-            "type": "mem",
-            "base": 966367641600,
-            "range": 16384,
-            "enabled": true,
-            "access": "read_only",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 1287,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "virtio-pci",
@@ -2162,12 +1858,6 @@
             "range": 64,
             "enabled": true,
             "access": "read_write"
-          },
-          {
-            "type": "irq",
-            "base": 16,
-            "triggered": 0,
-            "enabled": true
           }
         ],
         "detail": {
@@ -2175,7 +1865,6 @@
           "command": 259,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 16,
           "prog_if": 0
         },
         "driver": "i801_smbus",
@@ -2236,28 +1925,11 @@
         "model": "Unclassified device",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.4/0000:05:00.0",
         "sysfs_bus_id": "0000:05:00.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 964220157952,
-            "range": 16384,
-            "enabled": true,
-            "access": "read_only",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 263,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "virtio-pci",
@@ -2318,28 +1990,11 @@
         "model": "Unclassified device",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.3/0000:04:00.0",
         "sysfs_bus_id": "0000:04:00.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 964757028864,
-            "range": 16384,
-            "enabled": true,
-            "access": "read_only",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 263,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "virtio-pci",
@@ -2414,20 +2069,6 @@
             "range": 32,
             "enabled": true,
             "access": "read_write"
-          },
-          {
-            "type": "irq",
-            "base": 50,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4272005120,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
           }
         ],
         "detail": {
@@ -2435,7 +2076,6 @@
           "command": 1287,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 50,
           "prog_if": 1
         },
         "driver": "ahci",
@@ -2497,36 +2137,11 @@
         "model": "SCSI storage controller",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.5/0000:06:00.0",
         "sysfs_bus_id": "0000:06:00.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4259315712,
-            "range": 4096,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          },
-          {
-            "type": "mem",
-            "base": 963683287040,
-            "range": 16384,
-            "enabled": true,
-            "access": "read_only",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 1287,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 22,
           "prog_if": 0
         },
         "driver": "virtio-pci",
@@ -2726,7 +2341,6 @@
           "value": 0
         },
         "model": "16550A",
-        "unix_device_name": "/dev/ttyS0",
         "unix_device_names": [
           "/dev/ttyS0"
         ],
@@ -2737,12 +2351,6 @@
             "range": 0,
             "enabled": true,
             "access": "read_write"
-          },
-          {
-            "type": "irq",
-            "base": 4,
-            "triggered": 0,
-            "enabled": true
           }
         ]
       }
@@ -2801,28 +2409,11 @@
         "model": "USB Controller",
         "sysfs_id": "/devices/pci0000:00/0000:00:02.1/0000:02:00.0",
         "sysfs_bus_id": "0000:02:00.0",
-        "resources": [
-          {
-            "type": "irq",
-            "base": 22,
-            "triggered": 0,
-            "enabled": true
-          },
-          {
-            "type": "mem",
-            "base": 4267704320,
-            "range": 16384,
-            "enabled": true,
-            "access": "read_write",
-            "prefetch": "no"
-          }
-        ],
         "detail": {
           "function": 0,
           "command": 1287,
           "header_type": 0,
           "secondary_bus": 0,
-          "irq": 22,
           "prog_if": 48
         },
         "driver": "xhci_hcd",
