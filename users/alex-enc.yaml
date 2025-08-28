@@ -44,7 +44,7 @@ sops:
             U29ycSsxVVM1NVVIQ1BQMDJkYXBYZVUKo8So8IutI1ufIv9EHX5nyzkmWxBkMqZK
             duAErHsR3n0384FgnvM4/YogIdPiJNbPxMWGk7UB6vjpglnxTi1pjg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-08-22T21:08:27Z"
-    mac: ENC[AES256_GCM,data:4yajqvAKdJTBOP65vYwu6BPu3xVrdGKQpcVNW3gKxXDX7kmtU8JYzkNq5Gejx9jCxq5O0Dbk7YuGRB5bRYvpbKDg82bNo1QnddxIPj8G234gevIyPZyqo/tUT1dnoNIM2RzQZBt7eXk0F80Hzh2x60jrua5wnCvJJFsqA5Nr2uM=,iv:V81txnoyybpzYQAoRKUguCiQ5tmY2RekiDeJUB2P9v0=,tag:6nFH+kdYmXr37R5j/BSV4A==,type:str]
+    lastmodified: "2025-08-28T22:40:31Z"
+    mac: ENC[AES256_GCM,data:GzOv2rQ1NNeGNNTf9wgCI1ssbSgOJLobd0QN/NL4IE5AMLYTisA/fqpfAtPbaw8d3FMMD03Vi59f+RWTE0BtjdXP6DF9VMJmnfF26D0vKsoFPDXdS7kRMXDBGrJWD2asiv/k5SqJC12AjRX9zwYAL2P9g+p6RiLozesKVkr7yHw=,iv:+XbT2KoOI1s8xZNIfHwAF/EpCbvS7+6vGJsHB7Q9wdg=,tag:wK/grftd7FCytuH6wMXnYg==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.10.2

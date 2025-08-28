@@ -45,4 +45,12 @@
     name = "ludvig";
     email = "ludvig.janiuk@proton.me";
   };
+
+  ami = {
+    enable = true;
+    groups = [ ];
+    uid = 1104;
+    name = "ami";
+    email = "gunami59@gmail.com";
+  };
 }

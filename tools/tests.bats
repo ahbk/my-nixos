@@ -9,11 +9,25 @@ setup() {
   mkdir -p "$testroot"
   wrong_age_key=AGE-SECRET-KEY-1V782VQAQT6QJPARYTCD8CLES04Q83V068FRFDWG02HGLE96U93FSVACDKF
   right_age_key=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D
+  testhost_age_key=AGE-SECRET-KEY-1L0EJY3FLSYHDE46Y80F0KLUKUWP6V3J340UR7G2GWNFGXJQ0P6ZQ6X37TN
+
+  testhost_ssh_key="-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+QyNTUxOQAAACDEE3csx1IE4hhJQOzYQh7xZ8iZY6wj1C1xYp2DjxjmOAAAAKDYIpSm2CKU
+pgAAAAtzc2gtZWQyNTUxOQAAACDEE3csx1IE4hhJQOzYQh7xZ8iZY6wj1C1xYp2DjxjmOA
+AAAEA4YkpxaWCNi2sH27/j3HB+cMO81OHPrAzAeD15B1N9BcQTdyzHUgTiGElA7NhCHvFn
+yJljrCPULXFinYOPGOY4AAAAF3Rlc3R1c2VyQHRlc3Rob3N0LmxvY2FsAQIDBAUG
+-----END OPENSSH PRIVATE KEY-----"
+
+  ssh_ed25519_pub="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMQTdyzHUgTiGElA7NhCHvFnyJljrCPULXFinYOPGOY4 testuser@testhost.local"
 
   cp -R "./tools" "$testroot"
   script_name=./tools/manage-entities.sh
 
   cd "$testroot" && PRIVATE_FILE=<(echo "$right_age_key") "$script_name" -r 1 new age-key
+
+  echo "$testhost_age_key" >./testhost-age-key
+  echo "$testhost_ssh_key" >./testhost-ssh-key
 
   mock_command() {
     local cmd_name=$1
@@ -24,8 +38,8 @@ setup() {
   }
   mkdir -p "$testroot/bin"
   export PATH="$testroot/bin:$PATH"
-  mock_command ssh-keyscan "echo \"trust-me\""
-  mock_command ssh "echo \"trust-me\""
+  mock_command ssh-keyscan "echo \"testhost.local $ssh_ed25519_pub\""
+  mock_command ssh "cat ./testhost-age-key"
   echo "=== END SETUP ===" >&2
 }
 
@@ -117,22 +131,16 @@ check-output() {
 }
 
 @test "host new age-key" {
-  run "$script_name" -h testhost init
+  PRIVATE_FILE=./testhost-age-key run "$script_name" -h testhost init
   check-output 0 "host::init::age-key completed"
-
-  run "$script_name" -h testhost new age-key
-  check-output 0 "host::new::age-key completed"
 
   run "$script_name" -h testhost check age-key
   check-output 0 "host::check::age-key completed"
 }
 
 @test "host new age-key (mismatch)" {
-  run "$script_name" -h testhost init
+  PRIVATE_FILE=./testhost-age-key run "$script_name" -h testhost init
   check-output 0 "host::init::age-key completed"
-
-  run "$script_name" -h testhost new age-key
-  check-output 0 "host::new::age-key completed"
 
   run "$script_name" -h testhost new-private age-key
   check-output 0 "host::new-private::age-key completed"
@@ -141,31 +149,21 @@ check-output() {
   check-output 1 "host::check::age-key completed with errors"
 }
 
-@test "host new ssh-key" {
+@test "host sync ssh-key" {
   run "$script_name" -h testhost init
   check-output 0 "host::init::age-key completed"
 
   run "$script_name" -h testhost new ssh-key
   check-output 0 "host::new::ssh-key completed"
+
+  run "$script_name" -h testhost check ssh-key
+  check-output 1 "host::check::ssh-key completed"
+
+  run "$script_name" -h testhost sync ssh-key
+  check-output 0 "host::sync::ssh-key completed"
 
   run "$script_name" -h testhost check ssh-key
   check-output 0 "host::check::ssh-key completed"
-
-  [[ -f $testroot/hosts/testhost/ssh-key.pub ]]
-}
-
-@test "host new ssh-key (mismatch)" {
-  run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
-
-  run "$script_name" -h testhost new ssh-key
-  check-output 0 "host::new::ssh-key completed"
-
-  run "$script_name" -h testhost new-private ssh-key
-  check-output 0 "host::new-private::ssh-key completed"
-
-  run "$script_name" -h testhost check ssh-key
-  check-output 1 "host::check::ssh-key completed with errors"
 }
 
 @test "host new ssh-key (no public)" {

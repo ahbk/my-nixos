@@ -56,4 +56,20 @@
     system = "x86_64-linux";
     stateVersion = "24.11";
   };
+
+  adele = {
+    name = "adele";
+    hostname = "adele.km";
+    address = "10.0.0.8";
+    system = "x86_64-linux";
+    stateVersion = "25.11";
+  };
+
+  iso = {
+    name = "iso";
+    hostname = "iso";
+    system = "x86_64-linux";
+    stateVersion = "25.11";
+    address = "10.0.0.254";
+  };
 }

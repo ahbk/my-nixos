@@ -42,14 +42,8 @@ in
       };
 
       sops.age = {
-        keyFile = "/etc/age/keys.txt";
+        keyFile = "/srv/storage/host/keys.txt";
         sshKeyPaths = [ ];
-
-      };
-
-      sops.secrets."ssh-key" = {
-        path = "/etc/host/ssh_host_ed25519_key";
-        mode = "0400";
       };
 
       programs.ssh.knownHosts = mapAttrs (host: cfg: {
@@ -67,27 +61,10 @@ in
           type = "ed25519";
         }
       ];
-
-      system.activationScripts = {
-        successful-decryption = {
-          deps = [ "setupSecrets" ];
-          text = ''
-            date > /var/lib/last-rebuild
-          '';
-        };
-      };
-      my-nixos.preserve = {
-        files = [
-          {
-            file = "/etc/age/keys.txt";
-            mode = "0600";
-            inInitrd = true;
-          }
-        ];
-      };
     }
 
     (mkIf (cfg.rescueMode) {
+      users.mutableUsers = false;
       users.users.root = {
         hashedPassword = "$2b$05$EHOSTmw3WZeWt27ZhQC4c.kaZksxtu0YSYgrImApwxYjuXfonvSUO";
         openssh.authorizedKeys.keys = [

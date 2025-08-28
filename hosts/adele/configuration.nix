@@ -21,6 +21,10 @@
     };
   };
 
+  sops.secrets.wifi-keys = {
+    mode = "644";
+    owner = "ami";
+  };
   networking = {
     useDHCP = lib.mkDefault true;
     networkmanager = {
@@ -28,26 +32,31 @@
     };
   };
 
-  hardware.bluetooth.enable = true;
-  services.blueman.enable = true;
-  programs.light.brightnessKeys.enable = true;
+  services.xserver.enable = true;
+  services.xserver.displayManager.lightdm = {
+    enable = true;
+  };
+  services.xserver.desktopManager.cinnamon.enable = true;
+  programs.firefox.enable = true;
 
   my-nixos = {
     sysadm.rescueMode = true;
+    preserve = {
+      enable = true;
+      directories = [
+        "/home"
+        "/etc/NetworkManager"
+      ];
+    };
+
     users = with users; {
       inherit admin ami;
     };
+
     shell.admin.enable = true;
-
     shell.ami.enable = true;
-    ide.ami = {
-      enable = true;
-      postgresql = true;
-      redis = true;
-    };
-    hm.ami.enable = true;
-    desktop-env.ami.enable = true;
 
+    hm.ami.enable = true;
     wireguard.wg0.enable = true;
   };
 }

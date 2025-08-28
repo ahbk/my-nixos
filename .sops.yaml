@@ -1,5 +1,5 @@
 key-file: ./keys.txt
-host-key-file: /etc/age/keys.txt
+host-key-file: /srv/storage/host/keys.txt
 dns-suffix: .kompismoln.se
 key-admin: keyservice
 secrets:
@@ -19,14 +19,31 @@ entities:
   host-helsinki: &host-helsinki age1pt8lptn7pz0uh09n6c7ys5455qp28c27xzg8mwp65f3wrmymmq8syqf6xa
   user-admin: &user-admin age1hu7gh8r6knwss6lkm5vf8dyfuxc536ym970mx78phv04ev74c9mq6lx44n
   user-keyservice: &user-keyservice age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2
+  host-iso: &host-iso age1dr88a544hn400m9euguppp92w56l59t5xtysr29lnu8wljtftqusd38sdt
+  host-adele: &host-adele age19qc5cv0sutfd5r2ygpl2vwy2cf6che0zhkpz2vthjmt7qljrk47qgn46vy
+  user-ami: &user-ami age1avku5tyyvu9ndlqfcvd7r4nme84alce4f3shpqrxr93e8a747amskte558
 creation_rules:
-  - path_regex: users/.*-enc.yaml
+  - path_regex: users/admin-enc.yaml
     key_groups:
       - age:
           - *root-1
           - *host-helsinki
           - *host-lenovo
           - *host-stationary
+          - *host-adele
+  - path_regex: users/alex-enc.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *host-helsinki
+          - *host-lenovo
+          - *host-stationary
+  - path_regex: users/ami-enc.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *user-ami
+          - *host-adele
   - path_regex: domains/.*-enc.yaml
     key_groups:
       - age:
@@ -70,3 +87,21 @@ creation_rules:
       - age:
           - *root-1
           - *user-keyservice
+  - auto: true
+    path_regex: hosts/iso/secrets.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *host-iso
+  - auto: true
+    path_regex: hosts/adele/secrets.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *host-adele
+  - auto: true
+    path_regex: users/ami-enc.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *user-ami
