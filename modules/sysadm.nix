@@ -21,24 +21,11 @@ in
 
   config = mkMerge [
     {
+
       security.sudo = {
         extraConfig = ''
           Defaults lecture = never
         '';
-        extraRules = [
-          {
-            users = [
-              "admin"
-            ];
-            runAs = "root";
-            commands = [
-              {
-                command = "/run/current-system/sw/bin/cryptsetup open --test-passphrase *";
-                options = [ "NOPASSWD" ];
-              }
-            ];
-          }
-        ];
       };
 
       sops.age = {

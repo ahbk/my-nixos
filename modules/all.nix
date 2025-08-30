@@ -24,6 +24,7 @@
     ./glesys-updaterecord.nix
     ./hm.nix
     ./ide.nix
+    ./keyservice.nix
     ./mailserver.nix
     ./mobilizon.nix
     ./monitor.nix

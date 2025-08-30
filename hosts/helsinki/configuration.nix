@@ -1,6 +1,8 @@
 {
   config,
   users,
+  hosts,
+  lib,
   ...
 }:
 {
@@ -17,9 +19,29 @@
     };
   };
 
+  services.kresd =
+    let
+      generateHints =
+        hosts:
+        lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: host: "hints['${host.name}.km'] = '${host.address}'") hosts
+        );
+    in
+    {
+      enable = true;
+      listenPlain = [ "10.0.0.5:53" ];
+      extraConfig = ''
+        modules = { 'hints > iterate' }
+        ${generateHints hosts}
+      '';
+    };
+
+  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
   networking = {
     useDHCP = false;
     firewall = {
+      allowedTCPPorts = [ 53 ];
+      allowedUDPPorts = [ 53 ];
       logRefusedConnections = false;
     };
   };

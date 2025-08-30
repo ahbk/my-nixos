@@ -1,9 +1,8 @@
-key-file: ./keys.txt
 host-key-file: /srv/storage/host/keys.txt
 dns-suffix: .kompismoln.se
 key-admin: keyservice
 secrets:
-  root: root/$entity-enc.yaml
+  root: keys/$entity
   host: hosts/$entity/secrets.yaml
   user: users/$entity-enc.yaml
   domain: domains/$entity-enc.yaml

@@ -7,8 +7,9 @@ setup() {
   echo "=== BEGIN SETUP ===" >&2
   testroot=$BATS_TEST_TMPDIR/testroot
   mkdir -p "$testroot"
+  mkdir "$testroot/keys"
   wrong_age_key=AGE-SECRET-KEY-1V782VQAQT6QJPARYTCD8CLES04Q83V068FRFDWG02HGLE96U93FSVACDKF
-  right_age_key=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D
+  root_1=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D
   testhost_age_key=AGE-SECRET-KEY-1L0EJY3FLSYHDE46Y80F0KLUKUWP6V3J340UR7G2GWNFGXJQ0P6ZQ6X37TN
 
   testhost_ssh_key="-----BEGIN OPENSSH PRIVATE KEY-----
@@ -24,7 +25,7 @@ yJljrCPULXFinYOPGOY4AAAAF3Rlc3R1c2VyQHRlc3Rob3N0LmxvY2FsAQIDBAUG
   cp -R "./tools" "$testroot"
   script_name=./tools/manage-entities.sh
 
-  cd "$testroot" && PRIVATE_FILE=<(echo "$right_age_key") "$script_name" -r 1 new age-key
+  cd "$testroot" && PRIVATE_FILE=<(echo "$root_1") "$script_name" -r 1 init age-key
 
   echo "$testhost_age_key" >./testhost-age-key
   echo "$testhost_ssh_key" >./testhost-ssh-key
@@ -68,11 +69,11 @@ check-output() {
 }
 
 @test "setup works" {
-  key_file=$(yq ".key-file" .sops.yaml)
-  [[ "$key_file" == "./keys.txt" ]]
+  key_file=$(yq ".secrets.root" .sops.yaml | entity=1 envsubst)
+  [[ "$key_file" == "keys/1" ]]
   cat "$key_file"
   public_key=$(age-keygen -y <"$key_file")
-  [[ $public_key == $(echo "$right_age_key" | age-keygen -y) ]]
+  [[ $public_key == $(echo "$root_1" | age-keygen -y) ]]
   root_anchor=$(yq ".entities.root-1" .sops.yaml)
   echo "public key: $public_key"
   echo "root anchor: $root_anchor"
@@ -87,10 +88,9 @@ check-output() {
 @test "init host works" {
   local secrets_file="hosts/testhost/secrets.yaml"
   run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
   export SOPS_AGE_KEY_FILE
-  # host secrets can be decrypted with root key
-  SOPS_AGE_KEY_FILE=./keys.txt
+  SOPS_AGE_KEY_FILE=keys/1
   init=$(sops decrypt --extract "['init']" $secrets_file)
   [[ $init == true ]]
 
@@ -103,223 +103,244 @@ check-output() {
 
 @test "not authorized" {
   run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
 
-  echo "$wrong_age_key" >"./keys.txt"
+  echo "$wrong_age_key" >"keys/1"
 
   run "$script_name" -h testhost new age-key
-  check-output 1 "root key not authorized"
+  check-output 1 "incorrect root key"
 }
 
 @test "new root" {
   run "$script_name" -r 2 new age-key
-  check-output 0 "root::new::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -r 1 check age-key
-  check-output 0 "root::check::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -r 2 check age-key
-  check-output 0 "root::check::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -r 3 check age-key
-  check-output 1 "root::check::age-key completed with errors"
+  check-output 1 "completed with errors"
 }
 
-@test "new root (conflict)" {
+@test "rotate root" {
+  run "$script_name" -u testuser init age-key
+  check-output 0 "completed"
+
+  run "$script_name" -u testuser check age-key
+  check-output 0 "completed"
+
   run "$script_name" -r 1 new age-key
-  check-output 1 "insert-anchor failed"
+  check-output 1 "can't rotate current"
+
+  ROOT_KEY=2 run "$script_name" -u testuser check age-key
+  check-output 1 "no key file"
+
+  run "$script_name" -r 2 new age-key
+  check-output 0 "completed"
+
+  ROOT_KEY=2 run "$script_name" -u testuser check age-key
+  check-output 0 "completed"
+
+  ROOT_KEY=2 run "$script_name" -r 1 new age-key
+  check-output 0 "completed"
+
+  run "$script_name" -u testuser check age-key
+  check-output 0 "completed"
 }
 
 @test "host new age-key" {
   PRIVATE_FILE=./testhost-age-key run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost check age-key
-  check-output 0 "host::check::age-key completed"
+  check-output 0 "completed"
 }
 
 @test "host new age-key (mismatch)" {
   PRIVATE_FILE=./testhost-age-key run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost new-private age-key
-  check-output 0 "host::new-private::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost check age-key
-  check-output 1 "host::check::age-key completed with errors"
+  check-output 1 "completed with errors"
 }
 
 @test "host sync ssh-key" {
   run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost new ssh-key
-  check-output 0 "host::new::ssh-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost check ssh-key
-  check-output 1 "host::check::ssh-key completed"
+  check-output 1 "completed"
 
   run "$script_name" -h testhost sync ssh-key
-  check-output 0 "host::sync::ssh-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost check ssh-key
-  check-output 0 "host::check::ssh-key completed"
+  check-output 0 "completed"
 }
 
 @test "host new ssh-key (no public)" {
   run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost new-private ssh-key
-  check-output 0 "host::new-private::ssh-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost check ssh-key
-  check-output 1 "public key doesn't exist"
+  check-output 1 "failed to read hosts/testhost/ssh-key.pub"
 }
 
 @test "host new wg-key" {
   run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost new wg-key
-  check-output 0 "host::new::wg-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost check wg-key
-  check-output 0 "host::check::wg-key completed"
+  check-output 0 "completed"
 
   [[ -f $testroot/hosts/testhost/wg-key.pub ]]
 }
 
 @test "host new wg-key (mismatch)" {
   run "$script_name" -h testhost init
-  check-output 0 "host::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost new wg-key
-  check-output 0 "host::new::wg-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost new-private wg-key
-  check-output 0 "host::new-private::wg-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -h testhost check wg-key
-  check-output 1 "host::check::wg-key completed with errors"
+  check-output 1 "check failed"
 }
 
 @test "user new age-key" {
   run "$script_name" -u testuser init
-  check-output 0 "user::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new age-key
-  check-output 0 "user::new::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check age-key
-  check-output 0 "user::check::age-key completed"
+  check-output 0 "completed"
 }
 
 @test "user new age-key (mismatch)" {
   run "$script_name" -u testuser init
-  check-output 0 "user::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new age-key
-  check-output 0 "user::new::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new-private age-key
-  check-output 0 "user::new-private::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check age-key
-  check-output 1 "user::check::age-key completed with errors"
+  check-output 1 "completed with errors"
 }
 
 @test "user new ssh-key" {
   run "$script_name" -u testuser init
-  check-output 0 "user::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new ssh-key
-  check-output 0 "user::new::ssh-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check ssh-key
-  check-output 0 "user::check::ssh-key completed"
+  check-output 0 "completed"
 
   [[ -f $testroot/users/testuser-ssh-key.pub ]]
 }
 
 @test "user new ssh-key (mismatch)" {
   run "$script_name" -u testuser init
-  check-output 0 "user::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new ssh-key
-  check-output 0 "user::new::ssh-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new-private ssh-key
-  check-output 0 "user::new-private::ssh-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check ssh-key
-  check-output 1 "user::check::ssh-key completed with errors"
+  check-output 1 "check failed"
 }
 
 @test "user new ssh-key (no public)" {
   run "$script_name" -u testuser init
-  check-output 0 "user::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new-private ssh-key
-  check-output 0 "user::new-private::ssh-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check ssh-key
-  check-output 1 "public key doesn't exist"
+  check-output 1 "check failed"
 }
 
 @test "user new passwd" {
   run "$script_name" -u testuser init
-  check-output 0 "user::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new passwd
-  check-output 0 "user::new::passwd completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check passwd
-  check-output 0 "user::check::passwd completed"
+  check-output 0 "completed"
 }
 
 @test "user new passwd (mismatch)" {
   run "$script_name" -u testuser init
-  check-output 0 "user::init::age-key completed"
+  check-output 0 "age-key completed"
 
   run "$script_name" -u testuser new passwd
 
   run "$script_name" -u testuser new-private passwd
-  check-output 0 "user::new-private::passwd completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check passwd
-  check-output 1 "user::check::passwd completed with errors"
+  check-output 1 "completed with errors"
 
   run "$script_name" -u testuser sync passwd
-  check-output 0 "user::sync::passwd completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser check passwd
-  check-output 0 "user::check::passwd completed"
+  check-output 0 "completed"
 }
 
 @test "domain new tls-cert" {
   run "$script_name" -d testdomain init
-  check-output 0 "domain::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -d testdomain new tls-cert
-  check-output 0 "domain::new::tls-cert completed"
+  check-output 0 "completed"
 
   run "$script_name" -d testdomain check tls-cert
-  check-output 0 "domain::check::tls-cert completed"
+  check-output 0 "completed"
 
   [[ -f $testroot/domains/testdomain-tls-cert.pem ]]
 }
 
 @test "domain new tls-cert (mismatch)" {
   run "$script_name" -d testdomain init
-  check-output 0 "domain::init::age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -d testdomain new tls-cert
-  check-output 0 "domain::new::tls-cert completed"
+  check-output 0 "completed"
 
   run "$script_name" -d testdomain new-private tls-cert
-  check-output 0 "domain::new-private::tls-cert completed"
+  check-output 0 "completed"
 
   run "$script_name" -d testdomain check tls-cert
-  check-output 1 "domain::check::tls-cert completed with errors"
+  check-output 1 "completed with errors"
 }

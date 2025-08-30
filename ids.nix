@@ -19,4 +19,7 @@
     uid = 291;
     port = 7100;
   };
+  keyservice = {
+    uid = 601;
+  };
 }

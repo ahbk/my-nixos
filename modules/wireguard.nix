@@ -20,7 +20,7 @@ let
     ;
 
   cfg = config.my-nixos.wireguard;
-  isGateway = cfg: cfg.name == "stationary";
+  isGateway = cfg: cfg.name == "helsinki";
   isServer = cfg: hasAttr "publicAddress" cfg;
   isPeer = cfg: hasAttr "address" cfg;
 in
@@ -125,7 +125,7 @@ in
       networks."10-wg0" = {
         matchConfig.Name = "wg0";
         address = [ "${host.address}/24" ];
-        dns = [ "10.0.0.1" ];
+        dns = [ "10.0.0.5" ];
       };
 
       networks."40-wg0" = {

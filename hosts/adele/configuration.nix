@@ -2,6 +2,7 @@
   config,
   lib,
   users,
+  pkgs,
   ...
 }:
 {
@@ -38,6 +39,18 @@
   };
   services.xserver.desktopManager.cinnamon.enable = true;
   programs.firefox.enable = true;
+
+  home-manager.users.ami =
+    { pkgs, ... }:
+    {
+      home.stateVersion = "25.11";
+      home.packages = with pkgs; [
+        libreoffice
+        hunspell
+        hunspellDicts.sv_SE
+        hunspellDicts.en_US
+      ];
+    };
 
   my-nixos = {
     sysadm.rescueMode = true;

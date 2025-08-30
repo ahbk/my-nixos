@@ -13,7 +13,8 @@
 set -uo pipefail
 shopt -s globstar
 unset SOPS_AGE_KEY_FILE
-declare -x SOPS_AGE_KEY_FILE mode entity action type
+declare -x SOPS_AGE_KEY_FILE root_key mode entity action type
+root_key=${ROOT_KEY:-1}
 
 # import tmpdir, log, die, try and fn-exists
 . ./tools/lib.sh
@@ -75,8 +76,8 @@ ACTIONS
     sideload  (Host-specific) Injects a new age key into a host's
               /etc/age/keys.txt file. Requires a subsequent host rebuild.
 
-    reset     (Host-specific) Re-installs a NixOS host using nixos-anywhere,
-              injecting LUKS and age keys during the installation.
+    factory-  (Host-specific) Re-installs a NixOS host using nixos-anywhere,
+    reset     injecting LUKS and age keys during the installation.
 
 KEY TYPES
     The optional type argument specifies the kind of secret to manage.
@@ -150,8 +151,8 @@ main() {
     local exit_code=$?
 
     case $exit_code in
-    0) log "$mode::$action::$type completed successfully" success ;;
-    *) log "$mode::$action::$type completed with errors ($exit_code)" error ;;
+    0) log "$mode-$entity::$action::$type completed successfully" success ;;
+    *) log "$mode-$entity::$action::$type completed with errors ($exit_code)" error ;;
     esac
     exit "$exit_code"
 }
@@ -203,6 +204,7 @@ setup() {
     root)
         type=age-key
         types=(age-key)
+        actions=(init new check)
         ;;
     host)
         types=(age-key ssh-key wg-key luks-key)
@@ -210,7 +212,6 @@ setup() {
         [[ $type == "age-key" ]] && actions+=(
             sideload
             factory-reset
-            check-host
         )
         ;;
     user)
@@ -222,9 +223,19 @@ setup() {
     esac
 
     [[ -f .sops.yaml ]] || try init-sops-yaml
-    SOPS_AGE_KEY_FILE=$(yq-sops ".key-file")
-    set-key-admin
-    authorize-key
+    SOPS_AGE_KEY_FILE=$(entity=$root_key yq-sops ".secrets.root")
+
+    [[ -z ${PRIVATE_FILE:-} || -r $PRIVATE_FILE ]] || die 1 "$PRIVATE_FILE is not a file"
+
+    (
+        LOG_LEVEL=off
+        mode=user
+        entity=$(key-admin)
+        type=ssh-key
+        get-secret >/dev/null
+    ) || log "user '$(key-admin)' doesn't have an ssh key, host checks wont work." warning
+
+    authorize-key || die 1 "authorization failed"
 
     # shellcheck disable=SC2076
     [[ " ${actions[*]} " =~ " $action " ]] ||
@@ -240,8 +251,9 @@ setup() {
 }
 
 authorize-key() {
+    [[ "$mode-$entity" != "root-$root_key" ]] || return 0
     log "authorize-key" debug
-    [[ "$mode-$entity" != "root-1" ]] || return 0
+
     [[ -f $SOPS_AGE_KEY_FILE ]] || die 1 "no key file: $SOPS_AGE_KEY_FILE"
 
     local exit_code
@@ -249,10 +261,9 @@ authorize-key() {
         mode=root
         action=check
         type=age-key
-        entity=1
-        root::set-secret <"$SOPS_AGE_KEY_FILE"
-        check-anchor::age-key "$(generate-public::age-key)"
-    ) || die 1 "root key not authorized"
+        entity=$root_key
+        check-anchor::age-key
+    ) || die 1 "incorrect root key"
 }
 
 # Function dispatcher array - lists functions in priority order until one exists
@@ -286,7 +297,7 @@ dispatch() {
 # See new-private + sync
 
 new() {
-    action=new-private dispatch
+    new-private
     action=sync dispatch
 }
 
@@ -295,32 +306,39 @@ new() {
 
 new-private() {
     if [[ -n ${PRIVATE_FILE:-} ]]; then
-        action=copy-private dispatch
+        action=set-secret dispatch <"$PRIVATE_FILE"
     else
-        action=create-private dispatch
+        action=create-private dispatch | action=set-secret dispatch
     fi
 }
 
-root::new::age-key() {
+root::init::age-key() {
+    [[ ! -f $(secrets-file) ]] || die 1 "root key $root_key already exists"
     new-private
-    generate-public::age-key | insert-anchor || die 1 "insert-anchor failed"
+    upsert-anchor
+}
+
+root::new::age-key() {
+    [[ "$entity" != "$root_key" ]] || die 1 "can't rotate current root key"
+    new-private
+    upsert-anchor
 }
 
 host::new::ssh-key() {
     new-private
-    generate-public::ssh-key >"$(public-file)"
+    set-public
+    log "public ssh keys will be overwritten by host's ssh keys on sync" warning
 }
 
 # --- *::sync::*
 # Decrypt a private resource and use it to generate and save/replace a public key
 
 sync() {
-    action=generate-public dispatch >"$(public-file)"
+    set-public
 }
 
 sync::age-key() {
-    generate-public::age-key | upsert-anchor
-    updatekeys
+    gen-public | upsert-anchor && updatekeys
 }
 
 host::sync::ssh-key() {
@@ -328,7 +346,7 @@ host::sync::ssh-key() {
 }
 
 sync::luks-key() {
-    return 0
+    log "luks-key sync not implemented yet" warning
 }
 
 # Linux passwords are famously hashed so we need to encrypt both plain and
@@ -350,32 +368,22 @@ user::sync::mail() {
 # --- *::check::*
 
 host::check::age-key() {
-    local exit_code=0 ref
-
-    ref="$(action=generate-public dispatch)"
-
-    check-anchor::age-key "$ref" || exit_code=1
-    check-host::age-key "$ref" || exit_code=1
-
-    return "$exit_code"
+    check-anchor::age-key && check-host::age-key
 }
 
 host::check::ssh-key() {
     local file host
 
-    [[ -f $(public-file) ]] || die 1 "public key doesn't exist"
     log "check ssh-keyscan against public file" info
 
     host=$(host::pull::ssh-key | try ssh-keygen -lf -) || die 1 "keyscan failed"
-    file=$(try ssh-keygen -lf "$(public-file)") || die 1 "failed to read $(public-file)"
+    file=$(try ssh-keygen -lf "$(get-public)") || die 1 "failed to read $(public-file)"
 
     diff <(echo "$host") <(echo "$file")
 }
 
 host::check::wg-key() {
-    local ref
-    ref="$(action=generate-public dispatch)"
-    check-public "$ref"
+    check-public
 }
 
 host::check::luks-key() {
@@ -384,11 +392,11 @@ host::check::luks-key() {
 }
 
 check::age-key() {
-    check-anchor::age-key "$(action=generate-public dispatch)"
+    check-anchor::age-key
 }
 
 user::check::ssh-key() {
-    check-public "$(generate-public::ssh-key)"
+    check-public
 }
 
 user::check::passwd() {
@@ -407,14 +415,15 @@ user::check::mail() {
 }
 
 domain::check::tls-cert() {
-    local exit_code=0 san key cert
+    local exit_code=0 san key cert public_file
+    public_file=$(get-public)
 
-    if ! openssl x509 -in "$(public-file)" -checkend 2592000 >/dev/null 2>&1; then
+    if ! openssl x509 -in "$public_file" -checkend 2592000 >/dev/null 2>&1; then
         log "Certificate expires within 30 days" warning
         exit_code=1
     fi
 
-    san=$(openssl x509 -in "$(public-file)" -noout -ext subjectAltName 2>/dev/null |
+    san=$(openssl x509 -in "$public_file" -noout -ext subjectAltName 2>/dev/null |
         grep -E "DNS:" | sed 's/.*DNS://g' | tr ',' '\n' | sort)
 
     if [[ "$san" != *"$entity"* ]]; then
@@ -423,7 +432,7 @@ domain::check::tls-cert() {
     fi
 
     key=$(openssl pkey -in "$(get-secret)" -pubout)
-    cert=$(openssl x509 -in "$(public-file)" -pubkey -noout)
+    cert=$(openssl x509 -in "$public_file" -pubkey -noout)
 
     if [[ "$key" != "$cert" ]]; then
         log "Public key mismatch between certificate and private key" error
@@ -436,24 +445,15 @@ domain::check::tls-cert() {
 }
 
 check-public() {
-    local ref=$1
-    log "diff public file" info
-
-    [[ -f $(public-file) ]] || die 1 "public key doesn't exist"
-    echo "$ref" | diff - "$(public-file)"
+    diff "$(gen-public)" "$(get-public)" || die 1 "check failed"
 }
 
 check-anchor::age-key() {
-    local ref=$1
-    log "public keys:"$'\n'"$ref" info
-    log "$(get-anchor)" info
-    grep -Fxq "$(get-anchor)" <<<"$ref"
+    grep -Fxq "$(get-anchor)" "$(gen-public)"
 }
 
 check-host::age-key() {
-    local ref=$1
-    log "check host..." info
-    grep -Fxq "$ref" <<<"$(action=pull dispatch)"
+    grep -Fxq "$(action=pull dispatch)" "$(gen-public)"
 }
 
 # --- *::pull::*
@@ -463,7 +463,7 @@ host::pull::age-key() {
     try ssh "$(key-admin)@$(fqdn)" "cat $(host-key-file)" | set-secret ||
         die 1 "failed to retreive key from host"
 
-    generate-public::age-key
+    gen-public-key
 }
 
 host::pull::ssh-key() {
@@ -474,14 +474,10 @@ host::pull::ssh-key() {
 # --- *::sideload::*
 
 host::sideload::age-key() {
-    local public_key
-
-    public_key="$(action=generate-public dispatch)"
-
-    check-anchor::age-key "$public_key" ||
+    check-anchor::age-key ||
         die 1 "Error: Keys are out of sync, run '$0 $entity sync age-key' first"
 
-    check-host::age-key "$public_key" &&
+    check-host::age-key &&
         die 1 "current key is already active"
 
     try ssh "$(key-admin)@$(fqdn)" "head -n 3 $(host-key-file)" | set-secret
@@ -498,14 +494,8 @@ host::factory-reset() {
 
     install -d -m700 "$(dirname "$decryption_keys")"
 
-    (
-        type=luks-key
-        cp "$(get-secret)" "$luks_key"
-    )
-    (
-        type=age-key
-        cp "$(get-secret)" "$decryption_keys"
-    )
+    type=luks-key cp "$(get-secret)" "$luks_key"
+    type=age-key cp "$(get-secret)" "$decryption_keys"
 
     chmod 600 "$decryption_keys"
 
@@ -525,29 +515,29 @@ host::factory-reset() {
 # --- *::create-private::*
 
 create-private::age-key() {
-    try age-keygen | set-secret
+    try age-keygen
 }
 
 create-private::ssh-key() {
     try ssh-keygen -q -t "ed25519" -f "$tmpdir/tmp-ssh-key" -N "" \
         -C "$mode-key-$(date +%Y-%m-%d)" <<<y 2>/dev/null
-    set-secret <"$tmpdir/tmp-ssh-key"
+    cat "$tmpdir/tmp-ssh-key"
 }
 
 create-private::wg-key() {
-    try wg genkey | set-secret
+    try wg genkey
 }
 
 create-private::luks-key() {
-    try gen-passwd | set-secret
+    try gen-passwd
 }
 
 create-private::tls-cert() {
-    try openssl genpkey -algorithm ED25519 | set-secret
+    try openssl genpkey -algorithm ED25519
 }
 
 create-private::passwd() {
-    try gen-passwd | set-secret
+    try gen-passwd
 }
 
 create-private::mail() {
@@ -576,24 +566,12 @@ generate-public::tls-cert() {
 
 # --- *::verify::*
 
-verify::age-key() {
-    action=generate-public dispatch >/dev/null
-}
-
-verify::ssh-key() {
-    action=generate-public dispatch >/dev/null
-}
-
-verify::wg-key() {
-    action=generate-public dispatch >/dev/null
-}
-
-verify::tls-cert() {
-    action=generate-public dispatch >/dev/null
+verify() {
+    gen-public >/dev/null
 }
 
 verify::luks-key() {
-    log "luks-key: $(cat "$(get-secret)")" info
+    log "luks-key verification not implemented yet" warning
 }
 
 verify::mail() {
@@ -617,7 +595,7 @@ verify::passwd-hashed() {
 init() {
     mkdir -p "$(dirname "$(secrets-file)")"
 
-    if [[ -n ${PRIVATE_FILE:-} ]]; then
+    if [[ -n ${PRIVATE_FILE-} ]]; then
         try cat "$PRIVATE_FILE" >"$(secret)"
     else
         try age-keygen >"$(secret)"
@@ -625,7 +603,7 @@ init() {
     chmod 600 "$(secret)"
     action=verify dispatch || die 1 "verification failed"
 
-    generate-public::age-key | insert-anchor
+    upsert-anchor
     update-creation-rules
 
     # shellcheck disable=SC2094
@@ -646,12 +624,8 @@ get-anchor() {
 
 upsert-anchor() {
     local query='with(.entities.$mode-$entity; . = "$age_key" | . anchor = "$mode-$entity")'
-    age_key=$(cat) yq-sops "$query" -i
-}
-
-insert-anchor() {
-    yq-sops '.entities | has("$mode-$entity") | not' >/dev/null || die 1 "anchor exists"
-    upsert-anchor
+    age_key=$(gen-public-key) yq-sops "$query" -i
+    updatekeys
 }
 
 update-creation-rules() {
@@ -675,7 +649,6 @@ update-creation-rules() {
 }
 
 updatekeys() {
-    SOPS_AGE_KEY_FILE=$(yq-sops ".key-file")
     update-creation-rules
 
     local _mode
@@ -703,7 +676,7 @@ yq-sops() {
     if [[ ${2-} == "-i" ]]; then
         try yq -i "$query" .sops.yaml || die 1 "could not get $query"
     else
-        try yq -e "$query" .sops.yaml | envsubst || die 1 "could not get $query"
+        try yq -e "$query" .sops.yaml | envsubst
     fi
 }
 
@@ -712,12 +685,12 @@ init-sops-yaml() {
         die 1 "will not overwrite existing .sops.yaml"
 
     cat >.sops.yaml <<'EOF'
-key-file: ./keys.txt
 host-key-file: /etc/age/keys.txt
 dns-suffix: .local
 key-admin: keyservice
 
 secrets:
+    root: keys/$entity
     host: hosts/$entity/secrets.yaml
     user: users/$entity-enc.yaml
     domain: domains/$entity-enc.yaml
@@ -736,8 +709,7 @@ secret() {
 }
 
 root::get-secret() {
-    local entity=1
-    [[ -f $(secret) ]] || root::set-secret <"$SOPS_AGE_KEY_FILE"
+    [[ -f $(secret) ]] || root::set-secret <"$(secrets-file)"
     secret
 }
 
@@ -748,11 +720,10 @@ get-secret() {
 }
 
 root::set-secret() {
-    cat >>"$(secret)"
+    cat >"$(secret)"
     chmod 600 "$(secret)"
-
     action=verify dispatch || die 1 "verification failed"
-    cat "$(secret)" >"$SOPS_AGE_KEY_FILE"
+    cp -a "$(secret)" "$(secrets-file)"
 }
 
 set-secret() {
@@ -761,15 +732,6 @@ set-secret() {
 
     action=verify dispatch || die 1 "verification failed"
     try sops set "$(secrets-file)" "$(secrets-path)" "$(jq -Rs <"$(secret)")"
-}
-
-set-key-admin() {
-    (
-        mode=user
-        entity=$(key-admin)
-        type=ssh-key
-        get-secret >/dev/null 2>/dev/null
-    ) || log "user '$(key-admin)' doesn't have an ssh key, host checks wont work." warning
 }
 
 fqdn() {
@@ -784,7 +746,32 @@ key-admin() {
     yq-sops ".key-admin"
 }
 
+get-public() {
+    local public_file
+    public_file=$(public-file)
+    [[ -f $public_file ]] || die 1 "public file doesn't exist"
+    echo "$public_file"
+}
+
+gen-public-key() {
+    action=generate-public dispatch
+}
+
+gen-public() {
+    local public_file="$tmpdir/$mode.$entity.$type.public"
+    [[ -f $public_file ]] || gen-public-key >"$public_file"
+    echo "$public_file"
+}
+
+set-public() {
+    local public_file
+    public_file=$(public-file)
+    gen-public-key >"$public_file"
+    echo "$public_file"
+}
+
 public-file() {
+    local pubext
     case $type in
     tls-cert) pubext="pem" ;;
     ssh-key) pubext="pub" ;;
@@ -815,10 +802,6 @@ secrets-glob() {
     [[ "${files[0]}" != "$glob" ]] || return 0
 
     echo "${files[@]}"
-}
-
-copy-private() {
-    action=set-secret dispatch <"$PRIVATE_FILE"
 }
 
 gen-passwd() {
