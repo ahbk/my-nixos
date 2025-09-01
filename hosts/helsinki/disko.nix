@@ -85,6 +85,22 @@
               ];
             };
           };
+          keys = {
+            size = "100M";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/keys";
+              mountOptions = [
+                "defaults"
+                "noatime"
+                "nodiratime"
+                "noexec"
+                "nosuid"
+                "nodev"
+              ];
+            };
+          };
           swap = {
             size = "8G";
             content = {

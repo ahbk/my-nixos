@@ -32,8 +32,6 @@ in
 
   config = mkIf cfg.enable {
 
-    fileSystems.${cfg.storage}.neededForBoot = true;
-
     preservation = {
       enable = true;
       preserveAt.${cfg.storage} = {
@@ -47,15 +45,12 @@ in
             file = "/etc/machine-id";
             inInitrd = true;
           }
-          {
-            file = "/etc/ssh/ssh_host_ed25519_key";
-            how = "symlink";
-            configureParent = true;
-          }
         ]
         ++ cfg.files;
       };
     };
+
+    fileSystems."/keys".neededForBoot = true;
 
     systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
 

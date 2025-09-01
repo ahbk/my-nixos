@@ -2,6 +2,7 @@
   config,
   hosts,
   lib,
+  host,
   ...
 }:
 let
@@ -29,7 +30,7 @@ in
       };
 
       sops.age = {
-        keyFile = "/srv/storage/host/keys.txt";
+        keyFile = "/keys/host-${host.name}";
         sshKeyPaths = [ ];
       };
 
@@ -44,7 +45,7 @@ in
 
       services.openssh.hostKeys = [
         {
-          path = "/etc/ssh/ssh_host_ed25519_key";
+          path = "/keys/ssh_host_ed25519_key";
           type = "ed25519";
         }
       ];

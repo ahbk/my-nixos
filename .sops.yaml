@@ -1,8 +1,7 @@
-host-key-file: /srv/storage/host/keys.txt
 dns-suffix: .kompismoln.se
 key-admin: keyservice
 secrets:
-  root: keys/$entity
+  root: keys/root-$entity
   host: hosts/$entity/secrets.yaml
   user: users/$entity-enc.yaml
   domain: domains/$entity-enc.yaml
@@ -10,7 +9,7 @@ public-file:
   host: hosts/$entity/$type.$pubext
   user: users/$entity-$type.$pubext
   domain: domains/$entity-$type.$pubext
-entities:
+identities:
   root-1: &root-1 age1cavc8kaykuqxk9xk6ca78fea73ym32ugxvhq9ek0xgg0aar23qpqg5psm3
   host-stationary: &host-stationary age15pv6x0rjv5x92daey2c0yg3lk926h8zprtku32uzp0a3fqskqa0q2wq8z6
   host-lenovo: &host-lenovo age14exhy3ck8m795zsm2mcck03d65w6xhryectwgxtj8w78re8lcuasrztl6y

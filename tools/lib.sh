@@ -3,6 +3,8 @@
 tmpdir=$(mktemp -d)
 export tmpdir
 trap 'rm -rf "$tmpdir"' EXIT
+PN='\033[0;35m'
+PB='\033[1;35m'
 
 RN='\033[0;31m'
 RB='\033[1;31m'
@@ -16,6 +18,7 @@ NC='\033[0m'
 
 declare -A LOG_LEVELS=(
     [debug]=0
+    [focus]=99
     [info]=1
     [warning]=3
     [success]=4
@@ -37,6 +40,7 @@ log() {
     case $level in
     success) msg="[$depth]: $GB${caller}$GN: $msg$NC" ;;
     debug) msg="[$depth]: $YB${caller}$NC: $msg$NC" ;;
+    focus) msg="$PB [$depth]:$PN $PN${caller}$PB: $msg$NC" ;;
     info) msg="[$depth]: $BB${caller}$BN: $msg$NC" ;;
     warning) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
     error) msg="[$depth]: $RB${caller}$RN: $msg$NC" ;;
@@ -72,6 +76,7 @@ try() {
     if [[ $exit_code -eq 0 ]]; then
         cat "$std.out"
     else
+        cat "$std.out" >>"$std.err"
         die "$exit_code" "$(tr -d '\r' <"$std.err")"
     fi
 }
