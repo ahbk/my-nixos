@@ -30,7 +30,7 @@ in
       };
 
       sops.age = {
-        keyFile = "/keys/host-${host.name}";
+        keyFiles = "/keys/host-${host.name}";
         sshKeyPaths = [ ];
       };
 

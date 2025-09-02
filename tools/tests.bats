@@ -19,8 +19,28 @@ EOF
 }
 
 mock-cryptsetup() {
-  cat <<EOF
+  cat <<'EOF'
 #!/usr/bin/env bash
+store=$BATS_TEST_TMPDIR/hostroot/luks-key
+key="$(<"${3#--key-file=}")"
+grep -Fxq  "$key" "$store" || {
+  echo "No key available with this passphrase."
+  exit 1
+}
+
+case $1 in
+  open)
+    exit 0
+    ;;
+  luksAddKey)
+    cat "${4#--new-keyfile=}" >>"$store"
+    ;;
+  luksRemoveKey)
+    grep -Fxv "$key" "$store" >"$store.tmp" && mv "$store.tmp" "$store" ;;
+  *)
+    exit 1
+    ;;
+esac
 EOF
 }
 
@@ -43,6 +63,9 @@ SQAAAAtzc2gtZWQyNTUxOQAAACA14z675Z3GWyxUL52M7HXZ8J7Yv9dsVEMU42433oHBRw
 AAAEAXNvZ6ERXP6Ap2WicroGxnLozh/+wBGot6zcKm4dIPcDXjPrvlncZbLFQvnYzsddnw
 nti/12xUQxTjbjfegcFHAAAAC2FsZXhAbGVub3ZvAQI=
 -----END OPENSSH PRIVATE KEY-----"
+
+luks1=Atzc2gtZWQyNTUxO
+luks2=roGxnLozh/+wBGot
 
 setup() {
   testroot=$BATS_TEST_TMPDIR/testroot
@@ -72,11 +95,14 @@ setup-testhost() {
 
   mock-ssh-keyscan "$ssh1" >"$testroot/bin/ssh-keyscan"
 
-  local hostroot=$BATS_TEST_TMPDIR/hostroot
+  hostroot=$BATS_TEST_TMPDIR/hostroot
   mkdir -p "$hostroot/keys"
 
+  echo "$luks1" >"$hostroot/luks-key"
   echo "$age1" >"$hostroot/keys/host-testhost"
   mock-ssh "$hostroot/keys/host-testhost" >"$testroot/bin/ssh"
+
+  mock-cryptsetup >"$testroot/bin/cryptsetup"
 
   chmod +x "$testroot/bin/"*
 }
@@ -85,25 +111,28 @@ teardown() {
   rm -r "$testroot"
 }
 
+strip-color() {
+  sed 's/\x1B\[[0-9;]*[JKmsu]//g'
+}
+
 check-output() {
   local expected_status=$1
   local expected_lastline=$2
 
   echo ""
+  echo "in '$BATS_TEST_NAME'"
   echo "run '$BATS_RUN_COMMAND':" >&2
   echo "$output" >&2
 
-  lastline=$(echo "$output" | tail -n 1)
+  lastline=$(echo "$output" | tail -n 1 | strip-color)
 
-  if [[ $lastline == *"$expected_lastline"* && "$status" == "$expected_status" ]]; then
-    return 0
-  else
-    echo ""
-    echo "'$BATS_RUN_COMMAND' failed:" >&2
-    echo "expected: $expected_lastline ($expected_status)" >&2
-    echo "got:      $lastline ($status)" >&2
-    return 1
-  fi
+  [[ $lastline == *"$expected_lastline"* && "$status" == "$expected_status" ]] && return 0
+
+  echo ""
+  echo "'$BATS_RUN_COMMAND' failed:" >&2
+  echo "expected: $expected_lastline ($expected_status)" >&2
+  echo "got:      $lastline ($status)" >&2
+  return 1
 }
 
 @test "setup works" {
@@ -206,7 +235,65 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost check age-key
-  check-output 1 "not same"
+  check-output 1 "check-identity::age-key: not same"
+
+  run "$script_name" -h testhost sync age-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost check age-key
+  check-output 1 "check-host::age-key: not same"
+
+}
+
+@test "host sideload age-key" {
+  PRIVATE_FILE=<(echo $age1) run "$script_name" -h testhost init
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost sideload age-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost check age-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost new-private age-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost sideload age-key
+  check-output 1 "keys are not in sync"
+}
+
+@test "host check luks-key" {
+  PRIVATE_FILE=<(echo $age1) run "$script_name" -h testhost init
+  check-output 0 "completed"
+
+  PRIVATE_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost check luks-key
+  check-output 1 "No key"
+}
+
+@test "host sideload luks-key" {
+  PRIVATE_FILE=<(echo $age1) run "$script_name" -h testhost init
+  check-output 0 "completed"
+
+  PRIVATE_FILE=<(echo "$luks1") run "$script_name" -h testhost new luks-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost check luks-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost sideload luks-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost check luks-key
+  check-output 0 "completed"
+
+  PRIVATE_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost check luks-key
+  check-output 1 "No key"
 }
 
 @test "host sync ssh-key" {
@@ -348,7 +435,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -u testuser check passwd
-  check-output 1 "completed with errors"
+  check-output 1 "not same"
 
   run "$script_name" -u testuser sync passwd
   check-output 0 "completed"

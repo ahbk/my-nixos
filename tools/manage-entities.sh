@@ -13,8 +13,7 @@
 set -uo pipefail
 shopt -s globstar
 unset SOPS_AGE_KEY_FILE
-declare -x SOPS_AGE_KEY_FILE root_key mode entity action type
-root_key=${ROOT_KEY:-1}
+declare -x SOPS_AGE_KEY_FILE mode entity action type
 
 # import tmpdir, log, die, try and fn-exists
 . ./tools/lib.sh
@@ -22,7 +21,7 @@ root_key=${ROOT_KEY:-1}
 usage() {
     cat <<'EOF'
 USAGE
-    ./manage-entities.sh [-h|-u|-d|-r] entity action [type]
+    ./manage-entities.sh [--host|--user|--domain|--root] <entity> <action> [type]
     ./manage-entities.sh updatekeys
     ./manage-entities.sh --help
 EOF
@@ -34,7 +33,7 @@ NAME
     ./manage-entities.sh - Manage sops-encrypted secrets for hosts, users, and domains.
 
 SYNOPSIS
-    ./manage-entities.sh [-h|-u|-d|-r] entity action [type]
+    ./manage-entities.sh [--host|--user|--domain|--root] <entity> <action> [type]
     ./manage-entities.sh updatekeys
     ./manage-entities.sh --help
 
@@ -55,6 +54,10 @@ MODES
 ACTIONS
     The action specifies the operation to perform on the entity.
 
+    init      Initializes a new entity by creating its configuration in
+              .sops.yaml, generating a new age key, and creating an initial
+              encrypted secrets file.
+
     new       Generates a new private key, encrypts it with sops, and derives
               the corresponding public key.
 
@@ -66,18 +69,17 @@ ACTIONS
               the public key, the sops identity, and the key deployed on a remote
               target (if applicable).
 
-    init      Initializes a new entity by creating its configuration in
-              .sops.yaml, generating a new age key, and creating an initial
-              encrypted secrets file.
-
     pull      (Host-specific) Fetches the public SSH key from a remote host and
               saves it.
 
-    sideload  (Host-specific) Injects a new age key into a host's
-              /etc/age/keys.txt file. Requires a subsequent host rebuild.
+    sideload  (Host-specific) Injects a new age/luks key and requires a
+              subsequent host rebuild.
 
     factory-  (Host-specific) Re-installs a NixOS host using nixos-anywhere,
     reset     injecting LUKS and age keys during the installation.
+
+    show      Echoes the secret or public artifact to stdout
+    show-public
 
 KEY TYPES
     The optional type argument specifies the kind of secret to manage.
@@ -96,34 +98,39 @@ COMMANDS
                 them with the latest set of public keys defined in .sops.yaml.
 
 ENVIRONMENT VARIABLES
+    ROOT_KEY=<identity>
+        Sets the root idenity to load into SOPS_AGE_KEY_FILE
+
     LOG_LEVEL=[debug|info|warning|error]
         Sets logging verbosity
 
     PRIVATE_FILE=<path>
-        If set during a `new` action, the script will use the contents of the
-        specified file as the private key instead of generating a new.
+        If set during a `new` or `sideload` action, the script will use the
+        contents of the specified file as the private key instead of generating
+        a new.
 
 CONFIGURATION: .sops.yaml
     The script parses .sops.yaml to understand the repository's structure and
     encryption rules. Example configuration:
 
-    keys:
+    identities:
       - &root-1 [age...]
+      - &host-server01 [age...]
+      - &user-admin [age...]
 
-    key-host-file: /etc/age/keys.txt
     dns-suffix: .local
     key-admin: keyservice
 
     secrets:
-        host: root/$entity
+        root: root/root-$entity
         host: hosts/$entity/secrets.yaml
         user: users/$entity-enc.yaml
         domain: domains/$entity-enc.yaml
 
     public-file:
-        host: hosts/$entity/$type
-        user: users/$entity-$type
-        domain: domains/$entity-$type
+        host: hosts/$entity/$type.$pubext
+        user: users/$entity-$type.$pubext
+        domain: domains/$entity-$type.$pubext
 
 EXAMPLES
 
@@ -163,12 +170,10 @@ setup() {
     -h | --host) mode="host" ;;
     -u | --user) mode="user" ;;
     -d | --domain) mode="domain" ;;
-    --help) mode="help" ;;
-    updatekeys) mode="updatekeys" ;;
-    *) die 1 "hello! try --help" usage ;;
+    *) mode=${1-} ;;
     esac
 
-    case $mode in
+    case ${mode:-} in
     root | host | user | domain)
         [[ $# -eq 3 || $# -eq 4 ]] ||
             die 1 "wrong number of arguments provided." usage
@@ -176,96 +181,75 @@ setup() {
         action=$3
         type=${4-"age-key"}
         ;;
-    help)
+    updatekeys) ;;
+    --help)
         usage-full
         exit 0
         ;;
-    updatekeys)
-        updatekeys
-        exit 0
-        ;;
-    esac
-
-    local types
-    local actions=(
-        new
-        new-private
-        sync
-        check
-    )
-
-    [[ $type == "age-key" ]] && actions+=(
-        check-identity
-        sync-identity
-        init
-    )
-
-    case $mode in
-    root)
-        type=age-key
-        types=(age-key)
-        actions=(init new check)
-        ;;
-    host)
-        types=(age-key ssh-key wg-key luks-key)
-
-        [[ $type == "age-key" ]] && actions+=(
-            sideload
-            factory-reset
-        )
-        ;;
-    user)
-        types=(age-key ssh-key passwd mail)
-        ;;
-    domain)
-        types=(age-key tls-cert)
+    *)
+        log "hello! try --help" error
+        usage
+        exit 1
         ;;
     esac
 
     [[ -f .sops.yaml ]] || try init-sops-yaml
+
+    auth-check
+
+    [[ $mode == updatekeys ]] && {
+        updatekeys
+        exit
+    }
+
+    backend-check
+    keyadmin-check
+    envvar-check
+}
+
+backend-check() {
+    [[ $mode == "root" || $action == "init" || -f "$(backend-file)" ]] || {
+        die 1 "'$(backend-file)' doesn't exist, did you spell $mode correctly?"
+    }
+}
+
+auth-check() {
     SOPS_AGE_KEY_FILE=$(
         mode=root
-        entity=$root_key
+        entity=$(root-key)
         yq-sops ".secrets.root"
     )
 
-    [[ -z ${PRIVATE_FILE:-} || -r $PRIVATE_FILE ]] || die 1 "$PRIVATE_FILE is not a file"
+    authorize-key || die 1 "'$SOPS_AGE_KEY_FILE' is not root-$(root-key)"
+}
 
+keyadmin-check() {
     (
         LOG_LEVEL=off
         mode=user
         entity=$(key-admin)
+        action=check
         type=ssh-key
         get-secret >/dev/null
-    ) || log "user '$(key-admin)' doesn't have an ssh key, host checks wont work." warning
+    ) || log "key admin '$(key-admin)' is not inited, host checks wont work." warning
+}
 
-    authorize-key || die 1 "authorization failed"
-
-    # shellcheck disable=SC2076
-    [[ " ${actions[*]} " =~ " $action " ]] ||
-        die 1 "Action '$action' is not for '$mode'+'$type'."$'\n'"Allowed actions are: ${actions[*]}" usage
-
-    # shellcheck disable=SC2076
-    [[ " ${types[*]} " =~ " $type " ]] ||
-        die 1 "'$type' is not a valid key type. Allowed key types: ${types[*]}" usage
-
-    [[ $mode == "root" || $action == "init" || -f "$(secrets-file)" ]] || {
-        die 1 "no file found in '$(secrets-file)', did you spell $mode correctly?"
-    }
+envvar-check() {
+    [[ -z ${PRIVATE_FILE:-} || -r $PRIVATE_FILE ]] || die 1 "'$PRIVATE_FILE' is not a file"
 }
 
 authorize-key() {
-    [[ "$mode-$entity" != "root-$root_key" ]] || return 0
+    [[ "$mode-${entity-}" != "root-$(root-key)" ]] || return 0
     log "authorize-key" debug
 
-    [[ -f $SOPS_AGE_KEY_FILE ]] || die 1 "no key file: $SOPS_AGE_KEY_FILE"
+    [[ -f $SOPS_AGE_KEY_FILE ]] || die 1 "no key file: '$SOPS_AGE_KEY_FILE'"
 
     local exit_code
     (
         mode=root
+        entity=$(root-key)
         action=check
         type=age-key
-        entity=$root_key
         check-identity::age-key
     ) || die 1 "incorrect root key"
 }
@@ -295,35 +279,54 @@ dispatch() {
 }
 
 # DISPATCHABLE FUNCTIONS START HERE
-# Helpers suffixed with --*
+
+# --- *::init::*
+
+init() {
+    mkdir -p "$(dirname "$(backend-file)")"
+
+    # Almost like new-private but it writes directly to secret instead of set-secret
+    # because set-secret expects a backend that doesn't exist yet.
+    if [[ -n ${PRIVATE_FILE-} ]]; then
+        try cat "$PRIVATE_FILE" >"$(secret)"
+    else
+        try age-keygen >"$(secret)"
+    fi
+    chmod 600 "$(secret)"
+
+    action=verify dispatch || die 1 "verification failed"
+
+    upsert-identity
+    update-creation-rules
+
+    init-backend
+    flush-secret
+}
+
+root::init::age-key() {
+    [[ ! -f $(backend-file) ]] || die 1 "root key '$(root-key)' already exists"
+    new-private
+    upsert-identity
+}
+
+init-backend() {
+    # shellcheck disable=SC2094
+    # SC believes we're reading from $(backend-file) here, but --filename-override
+    # simply tells sops what creation rule to use, so this is ok.
+    echo "init: true" | try sops encrypt \
+        --filename-override "$(backend-file)" \
+        /dev/stdin >"$(backend-file)" || die 1 "could not create $(backend-file)"
+}
 
 # --- *::new::*
-# See new-private + sync
 
 new() {
     new-private
     action=sync dispatch
 }
 
-# --- *::new-private::*
-# Generate/copy a private resource then validate and encrypt it
-
-new-private() {
-    if [[ -n ${PRIVATE_FILE:-} ]]; then
-        action=set-secret dispatch <"$PRIVATE_FILE"
-    else
-        action=create-private dispatch | action=set-secret dispatch
-    fi
-}
-
-root::init::age-key() {
-    [[ ! -f $(secrets-file) ]] || die 1 "root key $root_key already exists"
-    new-private
-    upsert-identity
-}
-
 root::new::age-key() {
-    [[ "$entity" != "$root_key" ]] || die 1 "can't rotate current root key"
+    [[ "$entity" != "$(root-key)" ]] || die 1 "can't rotate current root key"
     new-private
     upsert-identity
 }
@@ -334,8 +337,21 @@ host::new::ssh-key() {
     log "public ssh keys will be overwritten by host's ssh keys on sync" warning
 }
 
+host::new::luks-key() {
+    new-private
+}
+
+# --- *::new-private::*
+
+new-private() {
+    if [[ -n ${PRIVATE_FILE:-} ]]; then
+        action=set-secret dispatch <"$PRIVATE_FILE"
+    else
+        action=create-private dispatch | action=set-secret dispatch
+    fi
+}
+
 # --- *::sync::*
-# Decrypt a private resource and use it to generate and save/replace a public key
 
 sync() {
     set-public
@@ -349,65 +365,52 @@ host::sync::ssh-key() {
     host::pull::ssh-key >"$(public-file)"
 }
 
-sync::luks-key() {
-    log "luks-key sync not implemented yet" warning
+user::sync::passwd() {
+    sync-hash
 }
 
-# Linux passwords are famously hashed so we need to encrypt both plain and
-# hashed format and keep them in sync.
-user::sync::passwd() {
+user::sync::mail() {
+    sync-hash
+}
+
+sync-hash() {
     local hash
     hash=$(mkpasswd -sm sha-512 <"$(get-secret)")
     (
         type=$type-hashed
         echo "$hash" | set-secret
-    )
-}
-
-# nixos-mailserver uses linux-like password management
-user::sync::mail() {
-    user::sync::passwd
+    ) || die 1 "could not sync '$type-hashed'"
 }
 
 # --- *::check::*
 
-host::check::age-key() {
-    check-identity::age-key && check-host::age-key
-}
-
-host::check::ssh-key() {
-    host::pull::ssh-key | try diff - "$(get-public)" >&2 || die 1 "not same"
-}
-
-host::check::wg-key() {
+check() {
     check-public
-}
-
-host::check::luks-key() {
-    try ssh "$(key-admin)@$(fqdn)" luks-key <"$(get-secret)"
 }
 
 check::age-key() {
     check-identity::age-key
 }
 
-user::check::ssh-key() {
-    check-public
+host::check::age-key() {
+    check-identity::age-key
+    check-host::age-key
+}
+
+host::check::ssh-key() {
+    host::pull::ssh-key | try diff - "$(get-public)" >&2 || die 1 "not same"
+}
+
+host::check::luks-key() {
+    try ssh "$(key-admin)@$(fqdn)" luks-key <"$(get-secret)"
 }
 
 user::check::passwd() {
-    local salt hash
-    salt=$(
-        type=$type-hashed
-        awk -F'$' '{print $3}' "$(get-secret)"
-    )
-
-    hash=$(mkpasswd -sm sha-512 -S "$salt" <"$(get-secret)")
-    echo "$hash" | diff - "$(type=$type-hashed get-secret)"
+    check-hash
 }
 
 user::check::mail() {
-    user::check::passwd
+    check-hash
 }
 
 domain::check::tls-cert() {
@@ -440,42 +443,61 @@ domain::check::tls-cert() {
     return "$exit_code"
 }
 
+# --- *::check-[public|identity|host|hash]::*
+
 check-public() {
-    diff "$(gen-public)" "$(get-public)" || die 1 "not same"
+    (try diff "$(gen-public)" "$(get-public)") || die 1 "not same"
 }
 
 check-identity::age-key() {
-    grep -Fxq "$(get-identity)" "$(gen-public)" || die 1 "not same"
+    get-identity | try diff "$(gen-public)" - || die 1 "not same"
 }
 
 check-host::age-key() {
     tail -1 "$(get-secret)" | try ssh "$(key-admin)@$(fqdn)" age-key || die 1 "not same"
 }
 
+check-hash() {
+    local salt
+    salt=$(
+        type=$type-hashed
+        awk -F'$' '{print $3}' "$(get-secret)"
+    )
+
+    mkpasswd -sm sha-512 -S "$salt" <"$(get-secret)" |
+        try diff - "$(type=$type-hashed get-secret)" || die 1 "not same"
+}
+
 # --- *::pull::*
 
 host::pull::ssh-key() {
-    try ssh-keyscan -q "$(fqdn)" | ssh-keygen -lf - | awk '{print $2}' ||
+    try ssh-keyscan -q "$(fqdn)" | awk '{print $2, $3}' ||
         die 1 "scan failed"
 }
 
 # --- *::sideload::*
 
-host::sideload::age-key() {
-    check-identity::age-key ||
-        die 1 "Error: Keys are out of sync, run '$0 $entity sync age-key' first"
+sideload() {
+    local current_key
+    current_key=$(mktemp "$tmpdir/XXXXXX")
 
-    check-host::age-key &&
-        die 1 "current key is already active"
-
-    {
-        tail -1 "$(get-secret)"
-        tail -1 "$PRIVATE_FILE"
-    } | try ssh "$(key-admin)@$(fqdn)" age-key
+    cat "$(get-secret)" >"$current_key"
 
     action=new dispatch
 
-    log "rebuild host '$entity' now or suffer the consequences" warning
+    {
+        tail -1 "$current_key"
+        tail -1 "$(get-secret)"
+    } | try ssh "$(key-admin)@$(fqdn)" "$type" || die 1 "sideload failed"
+
+    log "rebuild '$entity' now or suffer the consequences" warning
+}
+
+host::sideload::age-key() {
+    (action=check-identity dispatch) ||
+        die 1 "keys are not in sync, run '$0 -h $entity sync age-key' first"
+
+    sideload
 }
 
 # --- *::factory-reset::*
@@ -565,52 +587,79 @@ verify() {
 }
 
 verify::luks-key() {
-    head -n1 "$(get-secret)" | grep -qE '^.{12,}$'
-}
-
-verify::mail() {
-    verify::passwd
+    verify-passphrase
 }
 
 verify::passwd() {
-    head -n1 "$(get-secret)" | grep -qE '^.{12,}$'
+    verify-passphrase
 }
 
-verify::mail-hashed() {
-    verify::passwd-hashed
+verify::mail() {
+    verify-passphrase
 }
 
 verify::passwd-hashed() {
+    verify-hash
+}
+
+verify::mail-hashed() {
+    verify-hash
+}
+
+verify-hash() {
     [[ "$(<"$(get-secret)")" =~ ^\$6\$[^$]+\$[./0-9A-Za-z]+$ ]]
 }
 
-# --- *::init::*
+verify-passphrase() {
+    head -n1 "$(get-secret)" | grep -qE '^.{12,}$'
+}
 
-init() {
-    mkdir -p "$(dirname "$(secrets-file)")"
+# --- *::show::*
 
-    if [[ -n ${PRIVATE_FILE-} ]]; then
-        try cat "$PRIVATE_FILE" >"$(secret)"
-    else
-        try age-keygen >"$(secret)"
-    fi
-    chmod 600 "$(secret)"
-    action=verify dispatch || die 1 "verification failed"
+show() {
+    echo "$(<"$(get-secret)")"
+}
 
-    upsert-identity
-    update-creation-rules
+# --- *::show-public::*
 
-    # shellcheck disable=SC2094
-    # SC believes we're reading from $(secrets-file) here but --filename-override
-    # simply tells sops what creation rule to use.
-    echo "init: true" | try sops encrypt \
-        --filename-override "$(secrets-file)" \
-        /dev/stdin >"$(secrets-file)" || die 1 "could not create $(secrets-file)"
-
-    try sops set "$(secrets-file)" "$(secrets-path)" "$(jq -Rs <"$(secret)")"
+show-public() {
+    echo "$(<"$(get-public)")"
 }
 
 # --- sops integrations
+
+init-sops-yaml() {
+    [[ -f .sops.yaml ]] &&
+        die 1 "will not overwrite existing .sops.yaml"
+
+    cat >.sops.yaml <<'EOF'
+dns-suffix: .local
+key-admin: keyservice
+
+secrets:
+    root: keys/root-$entity
+    host: hosts/$entity/secrets.yaml
+    user: users/$entity-enc.yaml
+    domain: domains/$entity-enc.yaml
+
+public-file:
+    host: hosts/$entity/$type.$pubext
+    user: users/$entity-$type.$pubext
+    domain: domains/$entity-$type.$pubext
+EOF
+}
+
+yq-sops() {
+    [[ -f .sops.yaml ]] || die 1 ".sops.yaml doesn't exist"
+    local query
+
+    query=$(echo "$1" | envsubst)
+    if [[ ${2-} == "-i" ]]; then
+        try yq -i "$query" .sops.yaml || die 1 "could not get $query"
+    else
+        try yq -e "$query" .sops.yaml | envsubst
+    fi
+}
 
 get-identity() {
     yq-sops '.identities.$mode-$entity // error("identity $mode-$entity not found in .sops.yaml")'
@@ -645,65 +694,55 @@ update-creation-rules() {
 updatekeys() {
     update-creation-rules
 
-    local _mode
-    for _mode in user host domain; do
+    local _mode stderr stdout counter=0
 
-        files=$(secrets-glob "$_mode")
+    stderr=$(mktemp -u "$tmpdir/XXXXXX")
+    stdout=$(mktemp -u "$tmpdir/XXXXXX")
+
+    for _mode in user host domain; do
+        glob="$(entity="*" yq-sops ".secrets.$_mode" .sops.yaml)"
+        eval "files=($glob)"
+        [[ "${files[0]}" != "$glob" ]] || return 0
 
         [[ -z "${files[*]}" ]] && {
             log "no secrets in $_mode: skipping" info
             continue
         }
 
-        log "<$_mode>" info
-        # shellcheck disable=SC2068
-        sops updatekeys -y ${files[@]}
-        log "</$_mode>" info
+        sops updatekeys -y "${files[@]}" >"$stdout" 2> >(grep 'synced with' >"$stderr")
+
+        if [[ -s $stdout ]]; then
+            ((counter += $(wc -l <"$stderr")))
+            log "$(cat "$stderr")" info
+            log "$(cat "$stdout")" important
+        fi
     done
-}
-
-yq-sops() {
-    [[ -f .sops.yaml ]] || die 1 ".sops.yaml doesn't exist"
-    local query
-
-    query=$(echo "$1" | envsubst)
-    if [[ ${2-} == "-i" ]]; then
-        try yq -i "$query" .sops.yaml || die 1 "could not get $query"
-    else
-        try yq -e "$query" .sops.yaml | envsubst
-    fi
-}
-
-init-sops-yaml() {
-    [[ -f .sops.yaml ]] &&
-        die 1 "will not overwrite existing .sops.yaml"
-
-    cat >.sops.yaml <<'EOF'
-dns-suffix: .local
-key-admin: keyservice
-
-secrets:
-    root: keys/root-$entity
-    host: hosts/$entity/secrets.yaml
-    user: users/$entity-enc.yaml
-    domain: domains/$entity-enc.yaml
-
-public-file:
-    host: hosts/$entity/$type.$pubext
-    user: users/$entity-$type.$pubext
-    domain: domains/$entity-$type.$pubext
-EOF
+    log "$counter files updated" success
 }
 
 # --- derived variables
+
+fqdn() {
+    echo "$entity$(yq-sops ".dns-suffix")"
+}
+
+key-admin() {
+    yq-sops ".key-admin"
+}
+
+root-key() {
+    echo "${ROOT_KEY:-1}"
+}
 
 secret() {
     echo "$tmpdir/$mode.$entity.$type.secret"
 }
 
 get-secret() {
-    [[ -f $(secret) ]] ||
-        try sops decrypt --extract "$(secrets-path)" "$(secrets-file)" | set-secret
+    [[ -f $(secret) ]] || {
+        try sops decrypt --extract "$(backend-path)" "$(backend-file)" >"$(secret)"
+        chmod 600 "$(secret)"
+    }
     secret
 }
 
@@ -712,11 +751,15 @@ set-secret() {
     chmod 600 "$(secret)"
 
     action=verify dispatch || die 1 "verification failed"
-    try sops set "$(secrets-file)" "$(secrets-path)" "$(jq -Rs <"$(secret)")"
+    flush-secret
+}
+
+flush-secret() {
+    try sops set "$(backend-file)" "$(backend-path)" "$(jq -Rs <"$(secret)")"
 }
 
 root::get-secret() {
-    [[ -f $(secret) ]] || root::set-secret <"$(secrets-file)"
+    [[ -f $(secret) ]] || root::set-secret <"$(backend-file)"
     secret
 }
 
@@ -724,15 +767,7 @@ root::set-secret() {
     cat >"$(secret)"
     chmod 600 "$(secret)"
     action=verify dispatch || die 1 "verification failed"
-    cp -a "$(secret)" "$(secrets-file)"
-}
-
-fqdn() {
-    echo "$entity$(yq-sops ".dns-suffix")"
-}
-
-key-admin() {
-    yq-sops ".key-admin"
+    cp -a "$(secret)" "$(backend-file)"
 }
 
 get-public() {
@@ -770,28 +805,17 @@ public-file() {
     pubext=$pubext yq-sops ".public-file.$mode"
 }
 
-secrets-file() {
+backend-file() {
     yq-sops ".secrets.$mode"
 }
 
-secrets-path() {
+backend-path() {
     path="['$type']"
     [[ $mode != host ]] && path="['$entity']$path"
     echo "$path"
 }
 
 # --- misc helpers
-
-secrets-glob() {
-    local _mode=$1
-    glob="$(entity="*" yq-sops ".secrets.$_mode" .sops.yaml)"
-
-    eval "files=($glob)"
-
-    [[ "${files[0]}" != "$glob" ]] || return 0
-
-    echo "${files[@]}"
-}
 
 gen-passwd() {
     try openssl rand -base64 12

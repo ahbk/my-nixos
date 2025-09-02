@@ -21,6 +21,7 @@ declare -A LOG_LEVELS=(
     [focus]=99
     [info]=1
     [warning]=3
+    [important]=3
     [success]=4
     [error]=4
     [off]=99
@@ -35,7 +36,10 @@ log() {
     [[ $caller != die ]] || caller=${FUNCNAME[2]}
     [[ $caller != try ]] || caller=${FUNCNAME[3]}
 
-    msg="$(printf "%s" "$msg" | sed ':a;N;$!ba;s/\n/\n |   /g')"
+    [[ "$msg" == *$'\n'* ]] && {
+        msg=$'\n'"$msg"
+        msg="${msg//$'\n'/$'\n |        '}"
+    }
 
     case $level in
     success) msg="[$depth]: $GB${caller}$GN: $msg$NC" ;;
@@ -43,6 +47,7 @@ log() {
     focus) msg="$PB [$depth]:$PN $PN${caller}$PB: $msg$NC" ;;
     info) msg="[$depth]: $BB${caller}$BN: $msg$NC" ;;
     warning) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
+    important) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
     error) msg="[$depth]: $RB${caller}$RN: $msg$NC" ;;
     esac
 
