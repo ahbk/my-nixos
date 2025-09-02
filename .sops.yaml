@@ -1,4 +1,4 @@
-dns-suffix: .kompismoln.se
+dns-suffix: .km
 key-admin: keyservice
 secrets:
   root: keys/root-$entity
@@ -16,7 +16,7 @@ identities:
   host-iso: &host-iso age1dr88a544hn400m9euguppp92w56l59t5xtysr29lnu8wljtftqusd38sdt
   host-lenovo: &host-lenovo age14exhy3ck8m795zsm2mcck03d65w6xhryectwgxtj8w78re8lcuasrztl6y
   host-stationary: &host-stationary age15pv6x0rjv5x92daey2c0yg3lk926h8zprtku32uzp0a3fqskqa0q2wq8z6
-  user-admin: &user-admin age1hu7gh8r6knwss6lkm5vf8dyfuxc536ym970mx78phv04ev74c9mq6lx44n
+  user-admin: &user-admin age190l6kpf9l5dlmcgh6wjvn24cr7qazgrykjr653j2k6kuxma4w5mqf94qym
   user-alex: &user-alex age18hl27m8zv5lclv2r89ltv5n0mpk5sr8s23fec3ve9sj0qufh2uqq4ccstz
   user-ami: &user-ami age1avku5tyyvu9ndlqfcvd7r4nme84alce4f3shpqrxr93e8a747amskte558
   user-keyservice: &user-keyservice age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2

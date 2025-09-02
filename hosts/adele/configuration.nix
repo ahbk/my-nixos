@@ -32,6 +32,8 @@
       enable = true;
     };
   };
+  services.printing.enable = true;
+  services.printing.drivers = [ pkgs.gutenprint ];
 
   services.xserver.enable = true;
   services.xserver.displayManager.lightdm = {
@@ -51,6 +53,11 @@
         hunspellDicts.en_US
       ];
     };
+
+  sops.age = {
+    keyFile = "/srv/storage/host/keys.txt";
+    sshKeyPaths = [ ];
+  };
 
   my-nixos = {
     sysadm.rescueMode = true;

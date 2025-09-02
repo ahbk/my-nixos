@@ -21,65 +21,49 @@ declare -x SOPS_AGE_KEY_FILE mode entity action type
 usage() {
     cat <<'EOF'
 USAGE
-    ./manage-entities.sh [--host|--user|--domain|--root] <entity> <action> [type]
-    ./manage-entities.sh updatekeys
-    ./manage-entities.sh --help
+    id-entities.sh [--host|--user|--domain|--root] <entity> <action> [type]
+    id-entities.sh updatekeys
+    id-entities.sh --help
 EOF
 }
 
 usage-full() {
     less <<'EOF'
 NAME
-    ./manage-entities.sh - Manage sops-encrypted secrets for hosts, users, and domains.
+    id-entities.sh - Manage (id)entities like hosts, users or domains.
 
 SYNOPSIS
-    ./manage-entities.sh [--host|--user|--domain|--root] <entity> <action> [type]
-    ./manage-entities.sh updatekeys
-    ./manage-entities.sh --help
+    id-entities.sh [--root|--host|--user|--domain] <entity> <action> [type]
+    id-entities.sh updatekeys
+    id-entities.sh --help
 
 DESCRIPTION
-    This script provides a unified interface for managing cryptographic keys and
-    secrets using sops and age. It simplifies creating, synchronizing, and
-    auditing keys for different entities within a system.
+    This script provides a unified interface for managing the state and
+    whereabouts of secrets and artifacts derived from secrets.
+    It automates creation, synchronization, and audition of keys within an
+    infrastructure.
 
 MODES
    The first argument determines the operational mode, specifying the type of
    entity to manage.
 
-   -r <root-id>     The root age key(s), which is used to encrypt other keys.
+   -r <root-id>     Manages root identities used to encrypt other entities.
    -h <host>        Manages secrets for a specific host.
    -u <user>        Manages secrets for a specific user.
    -d <domain>      Manages secrets for a domain, such as TLS certificates.
 
 ACTIONS
-    The action specifies the operation to perform on the entity.
+    The action specifies the operation to perform on the entity:
 
-    init      Initializes a new entity by creating its configuration in
-              .sops.yaml, generating a new age key, and creating an initial
-              encrypted secrets file.
-
-    new       Generates a new private key, encrypts it with sops, and derives
-              the corresponding public key.
-
-    sync      Decrypts the private key, regenerates the public key, and updates
-              the .sops.yaml identity if applicable. This ensures public and
-              private keys are synchronized.
-
-    check     Performs a check to ensure consistency between the private key,
-              the public key, the sops identity, and the key deployed on a remote
-              target (if applicable).
-
-    pull      (Host-specific) Fetches the public SSH key from a remote host and
-              saves it.
-
-    sideload  (Host-specific) Injects a new age/luks key and requires a
-              subsequent host rebuild.
-
-    factory-  (Host-specific) Re-installs a NixOS host using nixos-anywhere,
-    reset     injecting LUKS and age keys during the installation.
-
-    show      Echoes the secret or public artifact to stdout
-    show-public
+    init             Create a new age identity and backend.
+    new              See new-secret + sync.
+    new-secret       Generate, encrypt and store a new secret.
+    sync             Regenerate artifacts from secret.
+    verify            Ensure consistency between the secret and artifacts.
+    show             Write secret to stdout.
+    show-public      Write public artifact to stdout.
+    sideload         Push imperative secrets to host (age identity and luks).
+    factory-reset    Wipe and re-install a host.
 
 KEY TYPES
     The optional type argument specifies the kind of secret to manage.
@@ -99,55 +83,14 @@ COMMANDS
 
 ENVIRONMENT VARIABLES
     ROOT_KEY=<identity>
-        Sets the root idenity to load into SOPS_AGE_KEY_FILE
+        Determines which root identity should be used for SOPS_AGE_KEY_FILE
 
-    LOG_LEVEL=[debug|info|warning|error]
+    LOG_LEVEL=[debug|info|warning|error|important|focus|off]
         Sets logging verbosity
 
     SECRET_FILE=<path>
-        If set during a `new` or `sideload` action, the script will use the
-        contents of the specified file as the private key instead of generating
-        a new.
-
-CONFIGURATION: .sops.yaml
-    The script parses .sops.yaml to understand the repository's structure and
-    encryption rules. Example configuration:
-
-    identities:
-      - &root-1 [age...]
-      - &host-server01 [age...]
-      - &user-admin [age...]
-
-    dns-suffix: .local
-    key-admin: keyservice
-
-    secrets:
-        root: root/root-$entity
-        host: hosts/$entity/secrets.yaml
-        user: users/$entity-enc.yaml
-        domain: domains/$entity-enc.yaml
-
-    public-file:
-        host: hosts/$entity/$type.$pubext
-        user: users/$entity-$type.$pubext
-        domain: domains/$entity-$type.$pubext
-
-EXAMPLES
-
-Create first root key:
-./manage-entities.sh -r 1 new
-
-Initialize a new host named server1:
-./manage-entities.sh -h server1 init
-
-Check if the age key for server1 is synchronized everywhere:
-./manage-entities.sh -h server1 check age-key
-
-Create a new password for user alice:
-./manage-entities.sh -u alice new passwd
-
-Update all secrets after changing an age key:
-./manage-entities.sh updatekeys
+        If set during a `new`, `init` or `sideload` action, the contents of the
+        specified file will be used as secret in lieu of generating a new.
 EOF
 }
 
@@ -158,8 +101,8 @@ main() {
     local exit_code=$?
 
     case $exit_code in
-    0) log "$mode-$entity::$action::$type completed successfully" success ;;
-    *) log "$mode-$entity::$action::$type completed with errors ($exit_code)" error ;;
+    0) log success "$mode-$entity::$action::$type completed successfully" ;;
+    *) log error "$mode-$entity::$action::$type completed with errors ($exit_code)" ;;
     esac
     exit "$exit_code"
 }
@@ -187,7 +130,7 @@ setup() {
         exit 0
         ;;
     *)
-        log "hello! try --help" error
+        log error "hello! try --help"
         usage
         exit 1
         ;;
@@ -228,10 +171,10 @@ keyadmin-check() {
         LOG_LEVEL=off
         mode=user
         entity=$(key-admin)
-        action=check
+        action=verify
         type=ssh-key
         get-secret >/dev/null
-    ) || log "key admin '$(key-admin)' is not inited, host checks wont work." warning
+    ) || log warning "key admin '$(key-admin)' has no ssh-key, host checks wont work."
 }
 
 envvar-check() {
@@ -240,7 +183,7 @@ envvar-check() {
 
 authorize-key() {
     [[ "$mode-${entity-}" != "root-$(root-key)" ]] || return 0
-    log "authorize-key" debug
+    log debug "authorize-key"
 
     [[ -f $SOPS_AGE_KEY_FILE ]] || die 1 "no key file: '$SOPS_AGE_KEY_FILE'"
 
@@ -248,9 +191,9 @@ authorize-key() {
     (
         mode=root
         entity=$(root-key)
-        action=check
+        action=verify
         type=age-key
-        check-identity::age-key
+        verify-identity::age-key
     ) || die 1 "incorrect root key"
 }
 
@@ -268,9 +211,9 @@ dispatch() {
         "$action"
     )
     for run in "${dispatcher[@]}"; do
-        log "$run?" debug
+        log debug "$run?"
         if fn-exists "$run"; then
-            log "$run!" info
+            log info "$run!"
             "$run"
             return
         fi
@@ -294,7 +237,7 @@ init() {
     fi
     chmod 600 "$(secret)"
 
-    action=verify dispatch || die 1 "verification failed"
+    action=validate dispatch || die 1 "verification failed"
 
     upsert-identity
     update-creation-rules
@@ -334,7 +277,7 @@ root::new::age-key() {
 host::new::ssh-key() {
     new-secret
     set-public
-    log "public ssh keys will be overwritten by host's ssh keys on sync" warning
+    log warning "public ssh keys will be overwritten by host's ssh keys on sync"
 }
 
 host::new::luks-key() {
@@ -354,11 +297,11 @@ new-secret() {
 # --- *::sync::*
 
 sync() {
-    set-public
+    set-public >/dev/null
 }
 
 sync::age-key() {
-    gen-public | upsert-identity && updatekeys
+    gen-public | upsert-identity
 }
 
 host::sync::ssh-key() {
@@ -382,43 +325,43 @@ sync-hash() {
     ) || die 1 "could not sync '$type-hashed'"
 }
 
-# --- *::check::*
+# --- *::verify::*
 
-check() {
-    check-public
+verify() {
+    verify-public
 }
 
-check::age-key() {
-    check-identity::age-key
+verify::age-key() {
+    verify-identity::age-key
 }
 
-host::check::age-key() {
-    check-identity::age-key
-    check-host::age-key
+host::verify::age-key() {
+    verify-identity::age-key
+    verify-host::age-key
 }
 
-host::check::ssh-key() {
+host::verify::ssh-key() {
     host::pull::ssh-key | try diff - "$(get-public)" >&2 || die 1 "not same"
 }
 
-host::check::luks-key() {
+host::verify::luks-key() {
     try ssh "$(key-admin)@$(fqdn)" luks-key <"$(get-secret)"
 }
 
-user::check::passwd() {
-    check-hash
+user::verify::passwd() {
+    verify-hash
 }
 
-user::check::mail() {
-    check-hash
+user::verify::mail() {
+    verify-hash
 }
 
-domain::check::tls-cert() {
+domain::verify::tls-cert() {
     local exit_code=0 san key cert public_file
     public_file=$(get-public)
 
     if ! openssl x509 -in "$public_file" -checkend 2592000 >/dev/null 2>&1; then
-        log "Certificate expires within 30 days" warning
+        log warning "Certificate expires within 30 days"
         exit_code=1
     fi
 
@@ -426,7 +369,7 @@ domain::check::tls-cert() {
         grep -E "DNS:" | sed 's/.*DNS://g' | tr ',' '\n' | sort)
 
     if [[ "$san" != *"$entity"* ]]; then
-        log "Domain $entity not found in SAN: $san" warning
+        log warning "Domain $entity not found in SAN: $san"
         exit_code=1
     fi
 
@@ -434,30 +377,33 @@ domain::check::tls-cert() {
     cert=$(openssl x509 -in "$public_file" -pubkey -noout)
 
     if [[ "$key" != "$cert" ]]; then
-        log "Public key mismatch between certificate and private key" error
+        log error "Public key mismatch between certificate and private key"
         exit_code=1
     fi
 
-    log "Certificate public key: $(echo "$cert" | sed -n '2p')" info
+    log info "Certificate public key: $(echo "$cert" | sed -n '2p')"
 
     return "$exit_code"
 }
 
-# --- *::check-[public|identity|host|hash]::*
+# --- *::verify-[public|identity|host|hash]::*
 
-check-public() {
+verify-public() {
     (try diff "$(gen-public)" "$(get-public)") || die 1 "not same"
 }
 
-check-identity::age-key() {
+verify-identity::age-key() {
     get-identity | try diff "$(gen-public)" - || die 1 "not same"
 }
 
-check-host::age-key() {
-    tail -1 "$(get-secret)" | try ssh "$(key-admin)@$(fqdn)" age-key || die 1 "not same"
+verify-host::age-key() {
+    tail -1 "$(get-secret)" |
+        try ssh "$(key-admin)@$(fqdn)" age-key |
+        log info ||
+        die 1 "not same"
 }
 
-check-hash() {
+verify-hash() {
     local salt
     salt=$(
         type=$type-hashed
@@ -490,11 +436,11 @@ sideload() {
         tail -1 "$(get-secret)"
     } | try ssh "$(key-admin)@$(fqdn)" "$type" || die 1 "sideload failed"
 
-    log "rebuild '$entity' now or suffer the consequences" warning
+    log warning "rebuild '$entity' now or suffer the consequences"
 }
 
 host::sideload::age-key() {
-    (action=check-identity dispatch) ||
+    (action=verify-identity dispatch) ||
         die 1 "keys are not in sync, run '$0 -h $entity sync age-key' first"
 
     sideload
@@ -514,8 +460,8 @@ host::factory-reset() {
 
     chmod 600 "$age_key"
 
-    log "luks key prepared: $(cat "$luks_key")" info
-    log "age key prepared: $(cat "$age_key")" info
+    log info "luks key prepared: $(cat "$luks_key")"
+    log info "age key prepared: $(cat "$age_key")"
 
     nixos-anywhere \
         --flake ".#$entity" \
@@ -580,37 +526,37 @@ generate-public::tls-cert() {
         -nodes -out - -days 3650
 }
 
-# --- *::verify::*
+# --- *::validate::*
 
-verify() {
+validate() {
     gen-public >/dev/null
 }
 
-verify::luks-key() {
-    verify-passphrase
+validate::luks-key() {
+    validate-passphrase
 }
 
-verify::passwd() {
-    verify-passphrase
+validate::passwd() {
+    validate-passphrase
 }
 
-verify::mail() {
-    verify-passphrase
+validate::mail() {
+    validate-passphrase
 }
 
-verify::passwd-hashed() {
-    verify-hash
+validate::passwd-hashed() {
+    validate-hash
 }
 
-verify::mail-hashed() {
-    verify-hash
+validate::mail-hashed() {
+    validate-hash
 }
 
-verify-hash() {
+validate-hash() {
     [[ "$(<"$(get-secret)")" =~ ^\$6\$[^$]+\$[./0-9A-Za-z]+$ ]]
 }
 
-verify-passphrase() {
+validate-passphrase() {
     head -n1 "$(get-secret)" | grep -qE '^.{12,}$'
 }
 
@@ -694,30 +640,18 @@ update-creation-rules() {
 updatekeys() {
     update-creation-rules
 
-    local _mode stderr stdout counter=0
-
-    stderr=$(mktemp -u "$tmpdir/XXXXXX")
-    stdout=$(mktemp -u "$tmpdir/XXXXXX")
+    local _mode files
 
     for _mode in user host domain; do
         glob="$(entity="*" yq-sops ".secrets.$_mode" .sops.yaml)"
+
         eval "files=($glob)"
         [[ "${files[0]}" != "$glob" ]] || return 0
 
-        [[ -z "${files[*]}" ]] && {
-            log "no secrets in $_mode: skipping" info
-            continue
-        }
-
-        sops updatekeys -y "${files[@]}" >"$stdout" 2> >(grep 'synced with' >"$stderr")
-
-        if [[ -s $stdout ]]; then
-            ((counter += $(wc -l <"$stderr")))
-            log "$(cat "$stderr")" info
-            log "$(cat "$stdout")" important
-        fi
+        sops updatekeys -y "${files[@]}" > >(log important) 2> >(grep 'synced with' | log info)
     done
-    log "$counter files updated" success
+
+    log success "backend updated"
 }
 
 # --- derived variables
@@ -750,7 +684,7 @@ set-secret() {
     cat >"$(secret)"
     chmod 600 "$(secret)"
 
-    action=verify dispatch || die 1 "verification failed"
+    action=validate dispatch || die 1 "verification failed"
     flush-secret
 }
 
@@ -766,7 +700,7 @@ root::get-secret() {
 root::set-secret() {
     cat >"$(secret)"
     chmod 600 "$(secret)"
-    action=verify dispatch || die 1 "verification failed"
+    action=validate dispatch || die 1 "verification failed"
     cp -a "$(secret)" "$(backend-file)"
 }
 

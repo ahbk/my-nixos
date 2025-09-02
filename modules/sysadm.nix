@@ -30,7 +30,7 @@ in
       };
 
       sops.age = {
-        keyFiles = "/keys/host-${host.name}";
+        keyFile = lib.mkDefault "/keys/host-${host.name}";
         sshKeyPaths = [ ];
       };
 

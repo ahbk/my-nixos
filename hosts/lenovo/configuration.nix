@@ -62,6 +62,12 @@
 
   my-nixos = {
     sysadm.rescueMode = true;
+
+    keyservice = {
+      enable = true;
+      luksDevice = "/dev/sda3";
+    };
+
     users = with users; {
       inherit admin alex;
     };

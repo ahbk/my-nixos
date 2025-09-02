@@ -69,7 +69,7 @@ luks2=roGxnLozh/+wBGot
 
 setup() {
   testroot=$BATS_TEST_TMPDIR/testroot
-  script_name=./tools/manage-entities.sh
+  script_name=./tools/id-entities.sh
   export LOG_LEVEL=debug
 
   echo "=== BEGIN SETUP ===" >&2
@@ -188,13 +188,13 @@ check-output() {
   run "$script_name" -r 2 new age-key
   check-output 0 "completed"
 
-  run "$script_name" -r 1 check age-key
+  run "$script_name" -r 1 verify age-key
   check-output 0 "completed"
 
-  run "$script_name" -r 2 check age-key
+  run "$script_name" -r 2 verify age-key
   check-output 0 "completed"
 
-  run "$script_name" -r 3 check age-key
+  run "$script_name" -r 3 verify age-key
   check-output 1 "not same"
 }
 
@@ -202,25 +202,25 @@ check-output() {
   run "$script_name" -u testuser init age-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check age-key
+  run "$script_name" -u testuser verify age-key
   check-output 0 "completed"
 
   run "$script_name" -r 1 new age-key
   check-output 1 "can't rotate current"
 
-  ROOT_KEY=2 run "$script_name" -u testuser check age-key
+  ROOT_KEY=2 run "$script_name" -u testuser verify age-key
   check-output 1 "no key file"
 
   run "$script_name" -r 2 new age-key
   check-output 0 "completed"
 
-  ROOT_KEY=2 run "$script_name" -u testuser check age-key
+  ROOT_KEY=2 run "$script_name" -u testuser verify age-key
   check-output 0 "completed"
 
   ROOT_KEY=2 run "$script_name" -r 1 new age-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check age-key
+  run "$script_name" -u testuser verify age-key
   check-output 0 "completed"
 }
 
@@ -228,20 +228,20 @@ check-output() {
   SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check age-key
+  run "$script_name" -h testhost verify age-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost new-secret age-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check age-key
-  check-output 1 "check-identity::age-key: not same"
+  run "$script_name" -h testhost verify age-key
+  check-output 1 "verify-identity::age-key: not same"
 
   run "$script_name" -h testhost sync age-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check age-key
-  check-output 1 "check-host::age-key: not same"
+  run "$script_name" -h testhost verify age-key
+  check-output 1 "verify-host::age-key: not same"
 
 }
 
@@ -252,7 +252,7 @@ check-output() {
   run "$script_name" -h testhost sideload age-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check age-key
+  run "$script_name" -h testhost verify age-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost new-secret age-key
@@ -269,7 +269,7 @@ check-output() {
   SECRET_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check luks-key
+  run "$script_name" -h testhost verify luks-key
   check-output 1 "No key"
 }
 
@@ -280,19 +280,19 @@ check-output() {
   SECRET_FILE=<(echo "$luks1") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check luks-key
+  run "$script_name" -h testhost verify luks-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost sideload luks-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check luks-key
+  run "$script_name" -h testhost verify luks-key
   check-output 0 "completed"
 
   SECRET_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check luks-key
+  run "$script_name" -h testhost verify luks-key
   check-output 1 "No key"
 }
 
@@ -303,13 +303,13 @@ check-output() {
   run "$script_name" -h testhost new ssh-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check ssh-key
+  run "$script_name" -h testhost verify ssh-key
   check-output 1 "not same"
 
   run "$script_name" -h testhost sync ssh-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check ssh-key
+  run "$script_name" -h testhost verify ssh-key
   check-output 0 "completed"
 }
 
@@ -320,7 +320,7 @@ check-output() {
   run "$script_name" -h testhost new-secret ssh-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check ssh-key
+  run "$script_name" -h testhost verify ssh-key
   check-output 1 "not same"
 }
 
@@ -331,7 +331,7 @@ check-output() {
   run "$script_name" -h testhost new wg-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check wg-key
+  run "$script_name" -h testhost verify wg-key
   check-output 0 "completed"
 
   [[ -f $testroot/hosts/testhost/wg-key.pub ]]
@@ -347,7 +347,7 @@ check-output() {
   run "$script_name" -h testhost new-secret wg-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost check wg-key
+  run "$script_name" -h testhost verify wg-key
   check-output 1 "not same"
 }
 
@@ -358,7 +358,7 @@ check-output() {
   run "$script_name" -u testuser new age-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check age-key
+  run "$script_name" -u testuser verify age-key
   check-output 0 "completed"
 }
 
@@ -372,7 +372,7 @@ check-output() {
   run "$script_name" -u testuser new-secret age-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check age-key
+  run "$script_name" -u testuser verify age-key
   check-output 1 "not same"
 }
 
@@ -383,7 +383,7 @@ check-output() {
   run "$script_name" -u testuser new ssh-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check ssh-key
+  run "$script_name" -u testuser verify ssh-key
   check-output 0 "completed"
 
   [[ -f $testroot/users/testuser-ssh-key.pub ]]
@@ -399,7 +399,7 @@ check-output() {
   run "$script_name" -u testuser new-secret ssh-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check ssh-key
+  run "$script_name" -u testuser verify ssh-key
   check-output 1 "not same"
 }
 
@@ -410,7 +410,7 @@ check-output() {
   run "$script_name" -u testuser new-secret ssh-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check ssh-key
+  run "$script_name" -u testuser verify ssh-key
   check-output 1 "not same"
 }
 
@@ -421,7 +421,7 @@ check-output() {
   run "$script_name" -u testuser new passwd
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check passwd
+  run "$script_name" -u testuser verify passwd
   check-output 0 "completed"
 }
 
@@ -434,13 +434,13 @@ check-output() {
   run "$script_name" -u testuser new-secret passwd
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check passwd
+  run "$script_name" -u testuser verify passwd
   check-output 1 "not same"
 
   run "$script_name" -u testuser sync passwd
   check-output 0 "completed"
 
-  run "$script_name" -u testuser check passwd
+  run "$script_name" -u testuser verify passwd
   check-output 0 "completed"
 }
 
@@ -451,7 +451,7 @@ check-output() {
   run "$script_name" -d testdomain new tls-cert
   check-output 0 "completed"
 
-  run "$script_name" -d testdomain check tls-cert
+  run "$script_name" -d testdomain verify tls-cert
   check-output 0 "completed"
 
   [[ -f $testroot/domains/testdomain-tls-cert.pem ]]
@@ -467,6 +467,6 @@ check-output() {
   run "$script_name" -d testdomain new-secret tls-cert
   check-output 0 "completed"
 
-  run "$script_name" -d testdomain check tls-cert
+  run "$script_name" -d testdomain verify tls-cert
   check-output 1 "completed with errors"
 }

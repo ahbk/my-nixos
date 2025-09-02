@@ -28,8 +28,11 @@ declare -A LOG_LEVELS=(
 )
 
 log() {
-    local msg=$1
-    local level=$2
+    local level=$1
+    local msg=${2:-$(cat)}
+
+    [[ -n "$msg" ]] || return 0
+
     local caller=${FUNCNAME[1]}
     local depth=${#FUNCNAME[@]}
 
@@ -62,8 +65,8 @@ die() {
     local fn=${3-}
 
     case $exit_code in
-    0) log "$msg" info ;;
-    *) log "$msg (exit $exit_code)" error ;;
+    0) log info "$msg" ;;
+    *) log error "$msg (exit $exit_code)" ;;
     esac
 
     [[ -z "$fn" ]] || "$fn"
