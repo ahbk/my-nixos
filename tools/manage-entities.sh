@@ -104,7 +104,7 @@ ENVIRONMENT VARIABLES
     LOG_LEVEL=[debug|info|warning|error]
         Sets logging verbosity
 
-    PRIVATE_FILE=<path>
+    SECRET_FILE=<path>
         If set during a `new` or `sideload` action, the script will use the
         contents of the specified file as the private key instead of generating
         a new.
@@ -235,7 +235,7 @@ keyadmin-check() {
 }
 
 envvar-check() {
-    [[ -z ${PRIVATE_FILE:-} || -r $PRIVATE_FILE ]] || die 1 "'$PRIVATE_FILE' is not a file"
+    [[ -z ${SECRET_FILE:-} || -r $SECRET_FILE ]] || die 1 "'$SECRET_FILE' is not a file"
 }
 
 authorize-key() {
@@ -285,10 +285,10 @@ dispatch() {
 init() {
     mkdir -p "$(dirname "$(backend-file)")"
 
-    # Almost like new-private but it writes directly to secret instead of set-secret
+    # Almost like new-secret but it writes directly to secret instead of set-secret
     # because set-secret expects a backend that doesn't exist yet.
-    if [[ -n ${PRIVATE_FILE-} ]]; then
-        try cat "$PRIVATE_FILE" >"$(secret)"
+    if [[ -n ${SECRET_FILE-} ]]; then
+        try cat "$SECRET_FILE" >"$(secret)"
     else
         try age-keygen >"$(secret)"
     fi
@@ -305,7 +305,7 @@ init() {
 
 root::init::age-key() {
     [[ ! -f $(backend-file) ]] || die 1 "root key '$(root-key)' already exists"
-    new-private
+    new-secret
     upsert-identity
 }
 
@@ -321,31 +321,31 @@ init-backend() {
 # --- *::new::*
 
 new() {
-    new-private
+    new-secret
     action=sync dispatch
 }
 
 root::new::age-key() {
     [[ "$entity" != "$(root-key)" ]] || die 1 "can't rotate current root key"
-    new-private
+    new-secret
     upsert-identity
 }
 
 host::new::ssh-key() {
-    new-private
+    new-secret
     set-public
     log "public ssh keys will be overwritten by host's ssh keys on sync" warning
 }
 
 host::new::luks-key() {
-    new-private
+    new-secret
 }
 
-# --- *::new-private::*
+# --- *::new-secret::*
 
-new-private() {
-    if [[ -n ${PRIVATE_FILE:-} ]]; then
-        action=set-secret dispatch <"$PRIVATE_FILE"
+new-secret() {
+    if [[ -n ${SECRET_FILE:-} ]]; then
+        action=set-secret dispatch <"$SECRET_FILE"
     else
         action=create-private dispatch | action=set-secret dispatch
     fi

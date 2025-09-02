@@ -83,7 +83,7 @@ setup() {
   setup-testhost
 
   # init root 1 (bootstrap)
-  PRIVATE_FILE=<(echo "$root_1") "$script_name" -r 1 init age-key
+  SECRET_FILE=<(echo "$root_1") "$script_name" -r 1 init age-key
   export SOPS_AGE_KEY_FILE=keys/root-1
 
   echo "=== END SETUP ===" >&2
@@ -225,13 +225,13 @@ check-output() {
 }
 
 @test "host new age-key" {
-  PRIVATE_FILE=<(echo $age1) run "$script_name" -h testhost init
+  SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
   run "$script_name" -h testhost check age-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost new-private age-key
+  run "$script_name" -h testhost new-secret age-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost check age-key
@@ -246,7 +246,7 @@ check-output() {
 }
 
 @test "host sideload age-key" {
-  PRIVATE_FILE=<(echo $age1) run "$script_name" -h testhost init
+  SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
   run "$script_name" -h testhost sideload age-key
@@ -255,7 +255,7 @@ check-output() {
   run "$script_name" -h testhost check age-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost new-private age-key
+  run "$script_name" -h testhost new-secret age-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost sideload age-key
@@ -263,10 +263,10 @@ check-output() {
 }
 
 @test "host check luks-key" {
-  PRIVATE_FILE=<(echo $age1) run "$script_name" -h testhost init
+  SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  PRIVATE_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
+  SECRET_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost check luks-key
@@ -274,10 +274,10 @@ check-output() {
 }
 
 @test "host sideload luks-key" {
-  PRIVATE_FILE=<(echo $age1) run "$script_name" -h testhost init
+  SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  PRIVATE_FILE=<(echo "$luks1") run "$script_name" -h testhost new luks-key
+  SECRET_FILE=<(echo "$luks1") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost check luks-key
@@ -289,7 +289,7 @@ check-output() {
   run "$script_name" -h testhost check luks-key
   check-output 0 "completed"
 
-  PRIVATE_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
+  SECRET_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost check luks-key
@@ -317,7 +317,7 @@ check-output() {
   run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  run "$script_name" -h testhost new-private ssh-key
+  run "$script_name" -h testhost new-secret ssh-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost check ssh-key
@@ -344,7 +344,7 @@ check-output() {
   run "$script_name" -h testhost new wg-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost new-private wg-key
+  run "$script_name" -h testhost new-secret wg-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost check wg-key
@@ -369,7 +369,7 @@ check-output() {
   run "$script_name" -u testuser new age-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser new-private age-key
+  run "$script_name" -u testuser new-secret age-key
   check-output 0 "completed"
 
   run "$script_name" -u testuser check age-key
@@ -396,7 +396,7 @@ check-output() {
   run "$script_name" -u testuser new ssh-key
   check-output 0 "completed"
 
-  run "$script_name" -u testuser new-private ssh-key
+  run "$script_name" -u testuser new-secret ssh-key
   check-output 0 "completed"
 
   run "$script_name" -u testuser check ssh-key
@@ -407,7 +407,7 @@ check-output() {
   run "$script_name" -u testuser init
   check-output 0 "completed"
 
-  run "$script_name" -u testuser new-private ssh-key
+  run "$script_name" -u testuser new-secret ssh-key
   check-output 0 "completed"
 
   run "$script_name" -u testuser check ssh-key
@@ -431,7 +431,7 @@ check-output() {
 
   run "$script_name" -u testuser new passwd
 
-  run "$script_name" -u testuser new-private passwd
+  run "$script_name" -u testuser new-secret passwd
   check-output 0 "completed"
 
   run "$script_name" -u testuser check passwd
@@ -464,7 +464,7 @@ check-output() {
   run "$script_name" -d testdomain new tls-cert
   check-output 0 "completed"
 
-  run "$script_name" -d testdomain new-private tls-cert
+  run "$script_name" -d testdomain new-secret tls-cert
   check-output 0 "completed"
 
   run "$script_name" -d testdomain check tls-cert
