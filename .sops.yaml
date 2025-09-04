@@ -20,6 +20,8 @@ identities:
   user-alex: &user-alex age18hl27m8zv5lclv2r89ltv5n0mpk5sr8s23fec3ve9sj0qufh2uqq4ccstz
   user-ami: &user-ami age1avku5tyyvu9ndlqfcvd7r4nme84alce4f3shpqrxr93e8a747amskte558
   user-keyservice: &user-keyservice age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2
+  host-laptop: &host-laptop age17f2stt0f6yrunz0pfu3hf6rr5fcasgt7g2wyv3sq8a6a28j4jgwq2lywpy
+  user-tunnelservice: &user-tunnelservice age1z44ue69etcfw69ryc7mndtepgxt65ulwndrrlqjvc5nz29fzgs0sut3agn
 creation_rules:
   - path_regex: users/admin-enc.yaml
     key_groups:
@@ -29,6 +31,7 @@ creation_rules:
           - *host-lenovo
           - *host-stationary
           - *host-adele
+          - *host-laptop
   - path_regex: users/alex-enc.yaml
     key_groups:
       - age:
@@ -36,6 +39,7 @@ creation_rules:
           - *host-helsinki
           - *host-lenovo
           - *host-stationary
+          - *host-laptop
   - path_regex: users/ami-enc.yaml
     key_groups:
       - age:
@@ -103,3 +107,15 @@ creation_rules:
       - age:
           - *root-1
           - *user-keyservice
+  - auto: true
+    path_regex: hosts/laptop/secrets.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *host-laptop
+  - auto: true
+    path_regex: users/tunnelservice-enc.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *user-tunnelservice

@@ -84,6 +84,7 @@
       enable = true;
       luksDevice = "/dev/sda3";
     };
+    tunnelservice.enable = true;
 
     preserve.enable = true;
 

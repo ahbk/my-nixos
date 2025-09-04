@@ -93,3 +93,12 @@ fn-exists() {
     local fn=$1
     declare -F "$fn" >/dev/null
 }
+
+no-trailing-newline() {
+    local file
+    file=$(cat)
+    if [[ $(tail -c1 "$file" | hexdump -C) == *"0a"* ]]; then
+        die 1 "has trailing newline"
+    fi
+    cat "$file"
+}

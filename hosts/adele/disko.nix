@@ -37,7 +37,7 @@
               };
             };
             luks = {
-              size = "100%";
+              size = "-12G";
               content = {
                 type = "luks";
                 name = "crypted";
@@ -82,6 +82,22 @@
                 "defaults"
                 "noatime"
                 "nodiratime"
+              ];
+            };
+          };
+          keys = {
+            size = "60M";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/keys";
+              mountOptions = [
+                "defaults"
+                "noatime"
+                "nodiratime"
+                "noexec"
+                "nosuid"
+                "nodev"
               ];
             };
           };

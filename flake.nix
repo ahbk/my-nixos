@@ -59,7 +59,8 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       domain = "km";
-      buildHost = "stationary";
+      buildHost = "$1";
+      build-user = "admin";
 
       ids = import ./ids.nix;
       users = import ./users.nix;
@@ -100,7 +101,6 @@
           };
           modules = [
             ./modules/all.nix
-            { facter.reportPath = ./hosts/${cfg.name}/facter.json; }
             ./hosts/${cfg.name}/configuration.nix
             { sops.defaultSopsFile = ./hosts/${cfg.name}/secrets.yaml; }
           ];
@@ -108,35 +108,13 @@
       ) hosts;
 
       devShells.${system}.default = pkgs.mkShellNoCC {
-        packages = [
-          (pkgs.writeShellScriptBin "deploy" ''
-            #!/usr/bin/env bash
-            nixos-rebuild switch --ask-sudo-password --flake ./#$1 \
-            --target-host $1.${domain} --build-host ${buildHost}.${domain}
-          '')
-          (pkgs.writeShellScriptBin "deploy-test" ''
-            #!/usr/bin/env bash
-            nixos-rebuild test --ask-sudo-password --flake ./#$1 \
-            --target-host $1.${domain} --build-host ${buildHost}.${domain}
-          '')
-          (pkgs.writeShellScriptBin "switch" ''
-            #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --show-trace --verbose \
-            --build-host ${buildHost}.${domain};
-          '')
-          (pkgs.writeShellScriptBin "dirty-ssh" ''
-            #!/usr/bin/env bash
-            ssh -o StrictHostKeyChecking=no \
-            -o GlobalKnownHostsFile=/dev/null \
-            -o UserKnownHostsFile=/dev/null \
-            $1
-          '')
-        ];
+        shellHook = ''
+          export SOPS_AGE_KEY_FILE='keys/root-1'
+        '';
       };
 
       packages.${system} = {
         default = nixosConfigurations.laptop.config.system.build.nixos-rebuild;
-
         options-doc =
           let
             pkgs' = import ./packages/all.nix { pkgs = nixpkgs.legacyPackages.${system}; };

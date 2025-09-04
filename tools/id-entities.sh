@@ -5,7 +5,7 @@
 # that shellcheck believes are unreachable, so we disable this check globally.
 #
 # SC2030/31: The exported variables (see below) are affected by dispatch calls
-# with altered context (e.g. action=generate-public dispatch). This may be an
+# with altered context (e.g. action=derive-public dispatch). This may be an
 # anti-pattern, but it's not accidental, so we mute these warnings.
 #
 # SC2016: Yes, we know expressions wont expand in single quotes.
@@ -17,82 +17,6 @@ declare -x SOPS_AGE_KEY_FILE mode entity action type
 
 # import tmpdir, log, die, try and fn-exists
 . ./tools/lib.sh
-
-usage() {
-    cat <<'EOF'
-USAGE
-    id-entities.sh [--host|--user|--domain|--root] <entity> <action> [type]
-    id-entities.sh updatekeys
-    id-entities.sh --help
-EOF
-}
-
-usage-full() {
-    less <<'EOF'
-NAME
-    id-entities.sh - Manage (id)entities like hosts, users or domains.
-
-SYNOPSIS
-    id-entities.sh [--root|--host|--user|--domain] <entity> <action> [type]
-    id-entities.sh updatekeys
-    id-entities.sh --help
-
-DESCRIPTION
-    This script provides a unified interface for managing the state and
-    whereabouts of secrets and artifacts derived from secrets.
-    It automates creation, synchronization, and audition of keys within an
-    infrastructure.
-
-MODES
-   The first argument determines the operational mode, specifying the type of
-   entity to manage.
-
-   -r <root-id>     Manages root identities used to encrypt other entities.
-   -h <host>        Manages secrets for a specific host.
-   -u <user>        Manages secrets for a specific user.
-   -d <domain>      Manages secrets for a domain, such as TLS certificates.
-
-ACTIONS
-    The action specifies the operation to perform on the entity:
-
-    init             Create a new age identity and backend.
-    new              See new-secret + sync.
-    new-secret       Generate, encrypt and store a new secret.
-    sync             Regenerate artifacts from secret.
-    verify            Ensure consistency between the secret and artifacts.
-    show             Write secret to stdout.
-    show-public      Write public artifact to stdout.
-    sideload         Push imperative secrets to host (age identity and luks).
-    factory-reset    Wipe and re-install a host.
-
-KEY TYPES
-    The optional type argument specifies the kind of secret to manage.
-    If not provided, it defaults to age-key.
-
-    age-key   The primary key used for sops encryption.
-    ssh-key   An SSH key (ed25519).
-    wg-key    A WireGuard key.
-    luks-key  A key for LUKS disk encryption.
-    tls-cert  A TLS certificate for a domain.
-    passwd    A user password.
-    mail      A user's mail password.
-
-COMMANDS
-    updatekeys  Runs sops updatekeys across all managed secret files, re-encrypting
-                them with the latest set of public keys defined in .sops.yaml.
-
-ENVIRONMENT VARIABLES
-    ROOT_KEY=<identity>
-        Determines which root identity should be used for SOPS_AGE_KEY_FILE
-
-    LOG_LEVEL=[debug|info|warning|error|important|focus|off]
-        Sets logging verbosity
-
-    SECRET_FILE=<path>
-        If set during a `new`, `init` or `sideload` action, the contents of the
-        specified file will be used as secret in lieu of generating a new.
-EOF
-}
 
 main() {
     setup "$@" || die 1 "setup failed"
@@ -126,7 +50,7 @@ setup() {
         ;;
     updatekeys) ;;
     --help)
-        usage-full
+        less ./tools/id-entities-usage.txt
         exit 0
         ;;
     *)
@@ -136,11 +60,11 @@ setup() {
         ;;
     esac
 
-    [[ -f .sops.yaml ]] || try init-sops-yaml
+    [[ -f ".sops.yaml" ]] || try init-sops-yaml
 
     auth-check
 
-    [[ $mode == updatekeys ]] && {
+    [[ $mode == "updatekeys" ]] && {
         updatekeys
         exit
     }
@@ -221,7 +145,7 @@ dispatch() {
     die 127 "no function found for $mode::$action::$type"
 }
 
-# DISPATCHABLE FUNCTIONS START HERE
+# === DISPATCHABLE FUNCTIONS START HERE ===
 
 # --- *::init::*
 
@@ -233,7 +157,7 @@ init() {
     if [[ -n ${SECRET_FILE-} ]]; then
         try cat "$SECRET_FILE" >"$(secret)"
     else
-        try age-keygen >"$(secret)"
+        try create-secret::age-key >"$(secret)"
     fi
     chmod 600 "$(secret)"
 
@@ -243,7 +167,7 @@ init() {
     update-creation-rules
 
     init-backend
-    flush-secret
+    encrypt-secret
 }
 
 root::init::age-key() {
@@ -276,7 +200,7 @@ root::new::age-key() {
 
 host::new::ssh-key() {
     new-secret
-    set-public
+    set-public >/dev/null
     log warning "public ssh keys will be overwritten by host's ssh keys on sync"
 }
 
@@ -290,7 +214,7 @@ new-secret() {
     if [[ -n ${SECRET_FILE:-} ]]; then
         action=set-secret dispatch <"$SECRET_FILE"
     else
-        action=create-private dispatch | action=set-secret dispatch
+        action=create-secret dispatch | action=set-secret dispatch
     fi
 }
 
@@ -305,7 +229,7 @@ sync::age-key() {
 }
 
 host::sync::ssh-key() {
-    host::pull::ssh-key >"$(public-file)"
+    host::scan::ssh-key >"$(public-file)"
 }
 
 user::sync::passwd() {
@@ -341,7 +265,7 @@ host::verify::age-key() {
 }
 
 host::verify::ssh-key() {
-    host::pull::ssh-key | try diff - "$(get-public)" >&2 || die 1 "not same"
+    host::scan::ssh-key | try diff - "$(get-public)" >&2 || die 1 "not same"
 }
 
 host::verify::luks-key() {
@@ -396,6 +320,10 @@ verify-identity::age-key() {
     get-identity | try diff "$(gen-public)" - || die 1 "not same"
 }
 
+verify-host::wg-key() {
+    try ssh "$(key-admin)@$(fqdn)" wg-key
+}
+
 verify-host::age-key() {
     tail -1 "$(get-secret)" |
         try ssh "$(key-admin)@$(fqdn)" age-key |
@@ -414,9 +342,9 @@ verify-hash() {
         try diff - "$(type=$type-hashed get-secret)" || die 1 "not same"
 }
 
-# --- *::pull::*
+# --- *::scan::*
 
-host::pull::ssh-key() {
+host::scan::ssh-key() {
     try ssh-keyscan -q "$(fqdn)" | awk '{print $2, $3}' ||
         die 1 "scan failed"
 }
@@ -424,16 +352,9 @@ host::pull::ssh-key() {
 # --- *::sideload::*
 
 sideload() {
-    local current_key
-    current_key=$(mktemp "$tmpdir/XXXXXX")
-
-    cat "$(get-secret)" >"$current_key"
-
-    action=new dispatch
-
     {
-        tail -1 "$current_key"
         tail -1 "$(get-secret)"
+        tail -1 "$(action=new dispatch && get-secret)"
     } | try ssh "$(key-admin)@$(fqdn)" "$type" || die 1 "sideload failed"
 
     log warning "rebuild '$entity' now or suffer the consequences"
@@ -446,80 +367,54 @@ host::sideload::age-key() {
     sideload
 }
 
-# --- *::factory-reset::*
+# --- *::create-secret::*
 
-host::factory-reset() {
-    local extra_files="$tmpdir/extra-files"
-    local luks_key="$tmpdir/luks_key"
-    local age_key="$extra_files/keys/host-$entity"
-
-    install -d -m700 "$(dirname "$age_key")"
-
-    cp "$(type=luks-key get-secret)" "$luks_key"
-    cp "$(type=age-key get-secret)" "$age_key"
-
-    chmod 600 "$age_key"
-
-    log info "luks key prepared: $(cat "$luks_key")"
-    log info "age key prepared: $(cat "$age_key")"
-
-    nixos-anywhere \
-        --flake ".#$entity" \
-        --target-host "root@$(fqdn)" \
-        --ssh-option GlobalKnownHostsFile=/dev/null \
-        --disk-encryption-keys /luks-key "$luks_key" \
-        --generate-hardware-config nixos-facter hosts/"$entity"/facter.json \
-        --extra-files "$extra_files" \
-        --copy-host-keys
-}
-
-# --- *::create-private::*
-
-create-private::age-key() {
+create-secret::age-key() {
     try age-keygen | tail -1
 }
 
-create-private::ssh-key() {
+create-secret::ssh-key() {
     local tmpkey
     tmpkey=$(mktemp -u "$tmpdir/XXXXXX")
     try ssh-keygen -q -t "ed25519" -f "$tmpkey" -N "" -C "" <<<y 2>/dev/null
     cat "$tmpkey"
 }
 
-create-private::wg-key() {
+create-secret::wg-key() {
     try wg genkey
 }
 
-create-private::luks-key() {
+create-secret::luks-key() {
     try gen-passwd
 }
 
-create-private::tls-cert() {
+create-secret::tls-cert() {
     try openssl genpkey -algorithm ED25519
 }
 
-create-private::passwd() {
+create-secret::passwd() {
     try gen-passwd
 }
 
-create-private::mail() {
-    create-private::passwd
+create-secret::mail() {
+    try gen-passwd
 }
-# --- *::generate-public::*
 
-generate-public::age-key() {
+# --- *::derive-public::*
+
+derive-public::age-key() {
     try age-keygen -y <"$(action=get-secret dispatch)"
 }
 
-generate-public::ssh-key() {
-    try ssh-keygen -y -f "$(get-secret)"
+derive-public::ssh-key() {
+    try ssh-keygen -y -C "" -f "$(get-secret)"
 }
 
-generate-public::wg-key() {
+derive-public::wg-key() {
     try wg pubkey <"$(get-secret)"
 }
 
-generate-public::tls-cert() {
+derive-public::tls-cert() {
     try openssl req -new -x509 -key "$(get-secret)" \
         -subj "/CN=*.$entity" \
         -addext "subjectAltName=DNS:*.$entity,DNS:$entity" \
@@ -557,19 +452,17 @@ validate-hash() {
 }
 
 validate-passphrase() {
-    head -n1 "$(get-secret)" | grep -qE '^.{12,}$'
+    get-secret | no-trailing-newline | grep -qE '^.{22,}$'
 }
 
-# --- *::show::*
+# --- *::cat-[secret|public]::*
 
-show() {
-    echo "$(<"$(get-secret)")"
+cat-secret() {
+    try cat "$(get-secret)"
 }
 
-# --- *::show-public::*
-
-show-public() {
-    echo "$(<"$(get-public)")"
+cat-public() {
+    try cat "$(get-public)"
 }
 
 # --- sops integrations
@@ -607,6 +500,14 @@ yq-sops() {
     fi
 }
 
+decrypt-secret() {
+    try sops decrypt --extract "$(backend-path)" "$(backend-file)"
+}
+
+encrypt-secret() {
+    try sops set "$(backend-file)" "$(backend-path)" "$(jq -Rs <"$(secret)")"
+}
+
 get-identity() {
     yq-sops '.identities.$mode-$entity // error("identity $mode-$entity not found in .sops.yaml")'
 }
@@ -626,7 +527,7 @@ update-creation-rules() {
         $d.identities | keys | map(select(. != "root-*")) |
             map({
                 "auto": true,
-                "path_regex": split("-") as $a | $d.secrets[$a[0]] | sub("\\$entity"; $a[1]),
+                "path_regex": split("-") as $a | $d.secrets[$a[0]] | sub("\\$entity"; $a.[1:] | join("-")),
                 "key_groups": [{
                     "age": $roots + [.] | map(. as $_ | . alias = .)
                 }]
@@ -674,7 +575,7 @@ secret() {
 
 get-secret() {
     [[ -f $(secret) ]] || {
-        try sops decrypt --extract "$(backend-path)" "$(backend-file)" >"$(secret)"
+        decrypt-secret >"$(secret)"
         chmod 600 "$(secret)"
     }
     secret
@@ -685,11 +586,7 @@ set-secret() {
     chmod 600 "$(secret)"
 
     action=validate dispatch || die 1 "verification failed"
-    flush-secret
-}
-
-flush-secret() {
-    try sops set "$(backend-file)" "$(backend-path)" "$(jq -Rs <"$(secret)")"
+    encrypt-secret
 }
 
 root::get-secret() {
@@ -712,7 +609,7 @@ get-public() {
 }
 
 gen-public-key() {
-    action=generate-public dispatch
+    action=derive-public dispatch
 }
 
 gen-public() {
@@ -751,8 +648,12 @@ backend-path() {
 
 # --- misc helpers
 
+usage() {
+    sed -n '/^SYNOPSIS$/,/^$/p' ./tools/id-entities-usage.txt
+}
+
 gen-passwd() {
-    try openssl rand -base64 12
+    try openssl rand -base64 12 | tr -d '\n'
 }
 
 # --- main

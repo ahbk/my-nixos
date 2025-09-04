@@ -2,48 +2,6 @@
 set -e
 unset SOPS_AGE_KEY_FILE
 
-mock-ssh-keyscan() {
-  cat <<EOF
-#!/usr/bin/env bash
-echo "testhost.local $(ssh-keygen -y -f <(echo "$1"))"
-EOF
-}
-
-mock-ssh() {
-  cat <<EOF
-#!/usr/bin/env bash
-export LUKS_DEVICE=
-export KEY_FILE=$1
-./tools/keyservice.sh "\$2"
-EOF
-}
-
-mock-cryptsetup() {
-  cat <<'EOF'
-#!/usr/bin/env bash
-store=$BATS_TEST_TMPDIR/hostroot/luks-key
-key="$(<"${3#--key-file=}")"
-grep -Fxq  "$key" "$store" || {
-  echo "No key available with this passphrase."
-  exit 1
-}
-
-case $1 in
-  open)
-    exit 0
-    ;;
-  luksAddKey)
-    cat "${4#--new-keyfile=}" >>"$store"
-    ;;
-  luksRemoveKey)
-    grep -Fxv "$key" "$store" >"$store.tmp" && mv "$store.tmp" "$store" ;;
-  *)
-    exit 1
-    ;;
-esac
-EOF
-}
-
 root_1=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D
 age1=AGE-SECRET-KEY-1L0EJY3FLSYHDE46Y80F0KLUKUWP6V3J340UR7G2GWNFGXJQ0P6ZQ6X37TN
 age2=AGE-SECRET-KEY-1V782VQAQT6QJPARYTCD8CLES04Q83V068FRFDWG02HGLE96U93FSVACDKF
@@ -64,7 +22,7 @@ AAAEAXNvZ6ERXP6Ap2WicroGxnLozh/+wBGot6zcKm4dIPcDXjPrvlncZbLFQvnYzsddnw
 nti/12xUQxTjbjfegcFHAAAAC2FsZXhAbGVub3ZvAQI=
 -----END OPENSSH PRIVATE KEY-----"
 
-luks1=Atzc2gtZWQyNTUxO
+luks1=Atzc2gtZWQyNTUxO$'\n'
 luks2=roGxnLozh/+wBGot
 
 setup() {
@@ -93,18 +51,16 @@ setup-testhost() {
   mkdir -p "$testroot/bin"
   export PATH="$testroot/bin:$PATH"
 
-  mock-ssh-keyscan "$ssh1" >"$testroot/bin/ssh-keyscan"
+  for f in ./tools/mocks/*.sh; do
+    cp "$f" "$testroot/bin/$(basename "${f%.sh}")"
+    chmod +x "$testroot/bin/$(basename "${f%.sh}")"
+  done
 
   hostroot=$BATS_TEST_TMPDIR/hostroot
   mkdir -p "$hostroot/keys"
 
-  echo "$luks1" >"$hostroot/luks-key"
-  echo "$age1" >"$hostroot/keys/host-testhost"
-  mock-ssh "$hostroot/keys/host-testhost" >"$testroot/bin/ssh"
-
-  mock-cryptsetup >"$testroot/bin/cryptsetup"
-
-  chmod +x "$testroot/bin/"*
+  printf %s "$luks1" >"$hostroot/luks-key"
+  printf %s "$age1" >"$hostroot/keys/host-testhost"
 }
 
 teardown() {
@@ -262,6 +218,7 @@ check-output() {
   check-output 1 "keys are not in sync"
 }
 
+# bats test_tags=bats:focus
 @test "host check luks-key" {
   SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
@@ -271,6 +228,12 @@ check-output() {
 
   run "$script_name" -h testhost verify luks-key
   check-output 1 "No key"
+
+  SECRET_FILE=<(echo "$luks1") run "$script_name" -h testhost new luks-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost verify luks-key
+  check-output 1 "completed"
 }
 
 @test "host sideload luks-key" {

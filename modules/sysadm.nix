@@ -59,7 +59,9 @@ in
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETPlH6kPI0KOv0jeOey+iwf8p/hhlIXHd9gIFAt6zMG alex@ahbk.se"
         ];
       };
-      services.openssh.settings.PermitRootLogin = mkForce "yes";
+      services.openssh.settings = {
+        PermitRootLogin = mkForce "yes";
+      };
     })
   ];
 }

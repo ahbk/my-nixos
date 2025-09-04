@@ -22,4 +22,8 @@
   keyservice = {
     uid = 601;
   };
+  tunnelservice = {
+    uid = 602;
+    port = 2602;
+  };
 }

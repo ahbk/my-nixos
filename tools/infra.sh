@@ -10,19 +10,32 @@ unset SOPS_AGE_KEY_FILE
 total=$(yq eval '.identities | keys | length' .sops.yaml)
 current=0
 
+main() {
+    bulk-action verify
+}
+
+host() {
+    echo "wg-key"
+}
+
+host::helsinki() {
+    echo "$(host) age-key luks-key ssh-key"
+}
+
+host::lenovo() {
+    echo "$(host) age-key luks-key ssh-key"
+}
+
 declare -A manifest=(
     [host]="wg-key"
     [host_helsinki]="age-key luks-key ssh-key wg-key"
     [host_lenovo]="age-key ssh-key wg-key"
+    [host_adele]="ssh-key wg-key luks-key"
     [user]="age-key ssh-key passwd mail"
     [user_keyservice]="age-key ssh-key"
     [domain]="age-key tls-cert"
     [root]="age-key"
 )
-
-main() {
-    bulk-action verify
-}
 
 bulk-action() {
     local types action=$1

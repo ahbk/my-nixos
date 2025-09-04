@@ -3,6 +3,7 @@ set -euo pipefail
 
 main() {
     case $1 in
+    wg-key) ;;
     luks-key | age-key)
         IFS= read -rs k1 || k1=""
         IFS= read -rs k2 || k2=""
@@ -14,10 +15,14 @@ main() {
 
 luks-key() {
     local dev=$LUKS_DEVICE
-    cryptsetup open "$dev" --key-file=<(echo "$k1") --test-passphrase || exit 1
+    cryptsetup open "$dev" --key-file=<(printf %s "$k1") --test-passphrase || exit 1
     [[ -n $k2 ]] || exit 0
-    cryptsetup luksAddKey "$dev" --key-file=<(echo "$k1") --new-keyfile=<(echo "$k2") &&
-        cryptsetup luksRemoveKey "$dev" --key-file=<(echo "$k1")
+    cryptsetup luksAddKey "$dev" --key-file=<(printf %s "$k1") --new-keyfile=<(printf %s "$k2") &&
+        cryptsetup luksRemoveKey "$dev" --key-file=<(printf %s "$k1")
+}
+
+wg-key() {
+    ping -c1 -I "$DEVICE" "$HOST"
 }
 
 age-key() {

@@ -1,0 +1,105 @@
+NAME
+    id-entities.sh - Manage (id)entities like hosts, users or domains.
+
+SYNOPSIS
+    id-entities.sh [--root|--host|--user|--domain] <entity> <action> [type]
+    id-entities.sh updatekeys
+    id-entities.sh --help
+
+DESCRIPTION
+    This script manages the state and whereabouts of secrets and derived artifacts.
+    It's a boilerplate for automating creation, synchronization, and verification
+    of keys within an infrastructure.
+
+    This script treats infrastructure identities (for hosts, users, etc.) as manageable
+    entities. Each entity has a set of secrets (like passwords or private keys) which
+    are stored in a central, encrypted SOPS backend. From these secrets, public
+    artifacts (like SSH public keys or TLS certificates) can be derived and synchronized
+    with live systems.
+
+MODES
+   The first argument specifies the type of entity and is followed by the name
+   of the entity (e.g. -r 1, -h some-host, -u admin).
+
+   --root <entity>   Root identities are used to encrypt other entities
+   --host <entity>   Hosts often want connection to verify, heads up
+   --user <entity>   Users' password manager basically
+   --domain <entity> Things that span over several hosts
+
+ACTIONS
+    The action specifies the operation to perform on the entity:
+
+    init             Create a new age identity and encrypted backend.
+    new              Create/renew all. Equivalent to new-secret + sync.
+    new-secret       Generate, encrypt and store a new secret.
+    sync             Regenerate artifacts from source of truth.
+    verify           All that apply of verify-[host|hash|public|identity].
+    cat-secret       Write secret to stdout.
+    cat-public       Write public artifact to stdout.
+    sideload         Push imperative secrets to host (age-key and luks-key).
+    
+    (devnote: this just a guest until it finds a proper home):
+    factory-reset    Wipe and renew a host.
+
+KEY TYPES
+    Type of procedure to run on the secret, defaults to 'age-key'.
+
+    Type:             (devnote)
+    age-key           public key is entity's identity in .sops.yaml, also hosts' decryption key
+    ssh-key           host's host key is source of truth on this one, not backend
+    wg-key            no host verification (ping is the host verification)
+    luks-key          Key for LUKS disk encryption can be sideloaded and verified via keyservice 
+    tls-cert          A TLS certificate for domains that span hosts
+    passwd            A user password with passwd-hashed as artifact
+    mail              Passwords for nixos-simple-mailserver behave exactly like passwd
+
+COMMANDS
+    updatekeys        Run sops updatekeys across all managed secret files.
+
+ENVIRONMENT VARIABLES
+    ROOT_KEY=<entity> (default 1)
+        Determines which root entity should be used for SOPS_AGE_KEY_FILE
+
+    LOG_LEVEL=[debug|info|warning|error|important|focus|off]
+        Sets logging verbosity
+
+    SECRET_FILE=<path>
+        If set during a 'new', 'new-private', 'init' or 'sideload' action, the contents of the
+        file will be used as secret instead of generating a new one.
+
+EXAMPLES
+    Initialize the repository for the first time with root key #1:
+        $ SECRET_FILE=<(age-keygen) ./id-entities.sh -r 1 init
+
+    Create a new host identity for 'webserver-01'
+        $ ./id-entities.sh -h webserver-01 init
+
+    Sideload age-key to host (see modules/keyservice.nix to setup keyservice)
+        $ ./id-entities.sh -h webserver-01 sideload
+
+    Check if it's there
+        $ ./id-entities.sh -h webserver-01 verify
+
+    Scan host and retreive the public key
+        $ ./id-entities.sh -h webserver-01 sync ssh-key
+
+    Check if it worked
+        $ ./id-entities.sh -h webserver-01 verify ssh-key
+
+    Create a new password for user 'jane':
+        $ ./id-entities.sh -u jane new passwd
+
+    Write the sha-512 hash to stdout:
+        $ ./id-entities.sh -u jane cat-secret passwd-hashed
+
+    Renew passwd only, without modifying the hash
+        $ ./id-entities.sh -u jane new-private passwd
+
+    See how they don't match
+        $ ./id-entities.sh -u jane verify passwd
+
+    Sync again
+        $ ./id-entities.sh -u jane sync passwd
+
+    See how they match
+        $ ./id-entities.sh -u jane verify passwd

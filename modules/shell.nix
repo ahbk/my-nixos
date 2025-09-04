@@ -46,14 +46,13 @@ in
 
     home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.shell.enable = true; }) eachHMUser;
 
-    # This takes to long time to be worth it
+    # This takes too long time to be worth it
     # enable only when needed or update manually
     #documentation.man.generateCaches = true;
 
     services.nixos-cli = {
       enable = true;
     };
-    mailserver.fqdn = "mail.kompismoln.se";
 
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${host.system}.default

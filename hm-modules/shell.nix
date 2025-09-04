@@ -68,6 +68,7 @@ in
           ll = "eza";
           cd = "z";
           grep = "grep --color=auto";
+          dirty-ssh = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null";
           needs-reboot =
             let
               booted = "<(readlink /run/booted-system/{initrd,kernel,kernel-modules})";
@@ -116,6 +117,9 @@ in
 
       ssh = {
         enable = true;
+        extraConfig = ''
+          StrictHostKeyChecking accept-new
+        '';
       };
 
       tmux = {

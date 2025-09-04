@@ -41,6 +41,7 @@
     ./svelte.nix
     ./sysadm.nix
     ./system.nix
+    ./tunnelservice.nix
     ./users.nix
     ./vd.nix
     ./wireguard.nix
