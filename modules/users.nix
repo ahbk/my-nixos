@@ -108,10 +108,14 @@ in
 
     services.openssh = {
       enable = true;
-      settings = {
-        PasswordAuthentication = false;
-        KbdInteractiveAuthentication = false;
-      };
+      extraConfig = lib.concatStrings (
+        lib.mapAttrsToList (user: cfg: ''
+          Match User ${user}
+            PasswordAuthentication no
+            ChallengeResponseAuthentication no
+            KbdInteractiveAuthentication no
+        '') eachUser
+      );
     };
 
     services.fail2ban.jails = {

@@ -212,9 +212,9 @@ host::new::luks-key() {
 
 new-secret() {
     if [[ -n ${SECRET_FILE:-} ]]; then
-        action=set-secret dispatch <"$SECRET_FILE"
+        action=set-secret dispatch <"$SECRET_FILE" || die 1 "could not set secret"
     else
-        action=create-secret dispatch | action=set-secret dispatch
+        action=create-secret dispatch | action=set-secret dispatch || die 1 "could not set secret"
     fi
 }
 
@@ -452,7 +452,7 @@ validate-hash() {
 }
 
 validate-passphrase() {
-    get-secret | no-trailing-newline | grep -qE '^.{22,}$'
+    get-secret | no-trailing-newline | grep -qE '^.{12,}$'
 }
 
 # --- *::cat-[secret|public]::*

@@ -107,8 +107,8 @@
               type = "swap";
             };
           };
-          persistent = {
-            size = "60%VG";
+          store = {
+            size = "-10GB";
             content = {
               type = "btrfs";
               subvolumes = {
@@ -138,19 +138,6 @@
                   ];
                 };
               };
-            };
-          };
-          share = {
-            size = "100%FREE";
-            content = {
-              type = "filesystem";
-              format = "xfs";
-              mountpoint = "/srv/share";
-              mountOptions = [
-                "defaults"
-                "noatime"
-                "nodiratime"
-              ];
             };
           };
         };

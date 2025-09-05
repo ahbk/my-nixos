@@ -62,9 +62,6 @@ in
 
     services.openssh = {
       enable = true;
-      settings = {
-        PasswordAuthentication = false;
-      };
 
       extraConfig = ''
         Match User keyservice

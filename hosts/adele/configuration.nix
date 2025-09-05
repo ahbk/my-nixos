@@ -26,41 +26,50 @@
     mode = "644";
     owner = "ami";
   };
+
   networking = {
     useDHCP = lib.mkDefault true;
     networkmanager = {
       enable = true;
     };
   };
-  services.printing.enable = true;
-  services.printing.drivers = [ pkgs.gutenprint ];
 
-  services.xserver.enable = true;
-  services.xserver.displayManager.lightdm = {
+  services.printing = {
     enable = true;
+    drivers = [ pkgs.gutenprint ];
   };
-  services.xserver.desktopManager.cinnamon.enable = true;
-  programs.firefox.enable = true;
+
+  services.xserver = {
+    enable = true;
+    desktopManager.cinnamon.enable = true;
+    displayManager.lightdm = {
+      enable = true;
+    };
+  };
 
   home-manager.users.ami =
     { pkgs, ... }:
     {
-      home.stateVersion = "25.11";
-      home.packages = with pkgs; [
-        libreoffice
-        hunspell
-        hunspellDicts.sv_SE
-        hunspellDicts.en_US
-      ];
+      programs.firefox = {
+        enable = true;
+      };
+
+      home = {
+        stateVersion = "25.11";
+        packages = with pkgs; [
+          signal-desktop
+          libreoffice
+          hunspell
+          hunspellDicts.sv_SE
+          hunspellDicts.en_US
+        ];
+      };
     };
 
-  sops.age = {
-    keyFile = "/srv/storage/host/keys.txt";
-    sshKeyPaths = [ ];
-  };
-
   my-nixos = {
+
     sysadm.rescueMode = true;
+
     preserve = {
       enable = true;
       directories = [

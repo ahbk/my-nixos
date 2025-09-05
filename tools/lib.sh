@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-tmpdir=$(mktemp -d)
 export tmpdir
-trap 'rm -rf "$tmpdir"' EXIT
+
 PN='\033[0;35m'
 PB='\033[1;35m'
 
@@ -26,6 +25,14 @@ declare -A LOG_LEVELS=(
     [error]=4
     [off]=99
 )
+
+function cleanup {
+    if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
+        rm -fR "$tmpdir"
+    fi
+}
+trap cleanup EXIT
+tmpdir=$(mktemp -d)
 
 log() {
     local level=$1

@@ -46,6 +46,12 @@ creation_rules:
           - *root-1
           - *user-ami
           - *host-adele
+  - path_regex: users/tunnelservice-enc.yaml
+    key_groups:
+      - age:
+          - *root-1
+          - *user-tunnelservice
+          - *host-helsinki
   - path_regex: domains/.*-enc.yaml
     key_groups:
       - age:

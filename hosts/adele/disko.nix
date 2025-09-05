@@ -37,10 +37,10 @@
               };
             };
             luks = {
-              size = "-12G";
+              size = "100%";
               content = {
                 type = "luks";
-                name = "crypted";
+                name = "cryptroot";
                 settings = {
                   keyFile = "/luks-key";
                   allowDiscards = true;
@@ -86,7 +86,7 @@
             };
           };
           keys = {
-            size = "60M";
+            size = "1G";
             content = {
               type = "filesystem";
               format = "ext4";
@@ -102,12 +102,12 @@
             };
           };
           swap = {
-            size = "8G";
+            size = "12G";
             content = {
               type = "swap";
             };
           };
-          persistent = {
+          state = {
             size = "100%";
             content = {
               type = "btrfs";
