@@ -1,56 +1,25 @@
 #!/usr/bin/env bash
+# infra.sh
+# shellcheck disable=SC2317,SC2030,SC2031,SC2016
+# SC2016: Yes, we know expressions wont expand in single quotes.
 
 set -uo pipefail
-unset SOPS_AGE_KEY_FILE
 
-# import tmpdir, log, die, try and fn-exists
-. ./tools/lib.sh
+declare -x session class entity action key
 
-# Count total operations
-total=$(yq eval '.identities | keys | length' .sops.yaml)
-current=0
+declare -x here
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$here/lib.sh"
 
 main() {
-    bulk-action verify
+    for action in $(op=$1 yq-sops '.ops.$op.actions[]'); do
+        for-all-identities "$action"
+    done
 }
 
-host() {
-    echo "wg-key"
-}
-
-host::helsinki() {
-    echo "$(host) age-key luks-key ssh-key"
-}
-
-host::lenovo() {
-    echo "$(host) age-key luks-key ssh-key"
-}
-
-declare -A manifest=(
-    [host]="wg-key"
-    [host_helsinki]="age-key luks-key ssh-key wg-key"
-    [host_lenovo]="age-key ssh-key wg-key"
-    [host_adele]="ssh-key wg-key luks-key"
-    [user]="age-key ssh-key passwd mail"
-    [user_keyservice]="age-key ssh-key"
-    [domain]="age-key tls-cert"
-    [root]="age-key"
-)
-
-bulk-action() {
-    local types action=$1
-
-    yq eval '.identities | keys | .[]' .sops.yaml | while IFS='-' read -r mode entity; do
-
-        ((current++))
-
-        log info "[$current/$total] Processing $mode-$entity"
-
-        types=${manifest[${mode}_${entity}]:-${manifest[$mode]:-}}
-
-        for type in $types; do
-            LOG_LEVEL=warning ./tools/id-entities.sh --"$mode" "$entity" "$action" "$type"
-        done
+for-all-identities() {
+    yq eval '.identities | keys | .[]' .sops.yaml | while IFS='-' read -r class entity; do
+        LOG_LEVEL=warning ./tools/id-entities.sh --"$class" "$entity" "$action"
     done
 }
 

@@ -1,14 +1,41 @@
-dns-suffix: .km
-key-admin: keyservice
-secrets:
-  root: keys/root-$entity
-  host: hosts/$entity/secrets.yaml
-  user: users/$entity-enc.yaml
-  domain: domains/$entity-enc.yaml
-public-file:
-  host: hosts/$entity/$type.$pubext
-  user: users/$entity-$type.$pubext
-  domain: domains/$entity-$type.$pubext
+fqdn: $entity.km
+backend: enc/$class-$entity.yaml
+backend:root: enc/$class-$entity
+public:ssh-key: public-keys/$class-$entity-$key.pub
+public:wg-key: public-keys/$class-$entity-$key.pub
+public:tls-cert: public-keys/$class-$entity-$key.pem
+ops:
+  verify-identity:
+    actions:
+      - verify-identity
+  align:
+    actions:
+      - align
+grants:
+  domain-km:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+  user-admin:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+  user-keyservice:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+  user-tunnelservice:
+    - host-helsinki
+  user-ami:
+    - host-adele
+  user-alex:
+    - host-lenovo
 identities:
   root-1: &root-1 age1cavc8kaykuqxk9xk6ca78fea73ym32ugxvhq9ek0xgg0aar23qpqg5psm3
   host-adele: &host-adele age19qc5cv0sutfd5r2ygpl2vwy2cf6che0zhkpz2vthjmt7qljrk47qgn46vy
@@ -22,106 +49,101 @@ identities:
   user-keyservice: &user-keyservice age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2
   host-laptop: &host-laptop age17f2stt0f6yrunz0pfu3hf6rr5fcasgt7g2wyv3sq8a6a28j4jgwq2lywpy
   user-tunnelservice: &user-tunnelservice age1z44ue69etcfw69ryc7mndtepgxt65ulwndrrlqjvc5nz29fzgs0sut3agn
+  domain-km: &domain-km age1y5k2wqd0au34lecrt53xpwdtm0rwkvpkulgmwqrhz2p8a9zn8gxqvgts9g
+  host-friday: &host-friday age15g32dcyjsr579ylcfpxnlemje3ythy30yl5q94j6kh7nlz2guynqxk8mw2
+  host-glesys: &host-glesys age1tas34sz7hcqc5exu2l39dcxcfr8cuqgcgfmwcsd39t75mvprlprqznuhlr
+  host-phone: &host-phone age1stgu2kujac8h0fucntv6r6fwua8rfu0sz8mq9ld5fmxxq2q2ua3s04ah39
 creation_rules:
-  - path_regex: users/admin-enc.yaml
-    key_groups:
-      - age:
-          - *root-1
-          - *host-helsinki
-          - *host-lenovo
-          - *host-stationary
-          - *host-adele
-          - *host-laptop
-  - path_regex: users/alex-enc.yaml
-    key_groups:
-      - age:
-          - *root-1
-          - *host-helsinki
-          - *host-lenovo
-          - *host-stationary
-          - *host-laptop
-  - path_regex: users/ami-enc.yaml
-    key_groups:
-      - age:
-          - *root-1
-          - *user-ami
-          - *host-adele
-  - path_regex: users/tunnelservice-enc.yaml
-    key_groups:
-      - age:
-          - *root-1
-          - *user-tunnelservice
-          - *host-helsinki
-  - path_regex: domains/.*-enc.yaml
-    key_groups:
-      - age:
-          - *root-1
-          - *host-helsinki
-          - *host-lenovo
-          - *host-stationary
-  - auto: true
-    path_regex: hosts/adele/secrets.yaml
+  - path_regex: enc/host-adele
     key_groups:
       - age:
           - *root-1
           - *host-adele
-  - auto: true
-    path_regex: hosts/helsinki/secrets.yaml
+  - path_regex: enc/host-helsinki
     key_groups:
       - age:
           - *root-1
           - *host-helsinki
-  - auto: true
-    path_regex: hosts/iso/secrets.yaml
+  - path_regex: enc/host-iso
     key_groups:
       - age:
           - *root-1
           - *host-iso
-  - auto: true
-    path_regex: hosts/lenovo/secrets.yaml
+  - path_regex: enc/host-lenovo
     key_groups:
       - age:
           - *root-1
           - *host-lenovo
-  - auto: true
-    path_regex: hosts/stationary/secrets.yaml
+  - path_regex: enc/host-stationary
     key_groups:
       - age:
           - *root-1
           - *host-stationary
-  - auto: true
-    path_regex: users/admin-enc.yaml
+  - path_regex: enc/user-admin
     key_groups:
       - age:
           - *root-1
           - *user-admin
-  - auto: true
-    path_regex: users/alex-enc.yaml
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+  - path_regex: enc/user-alex
     key_groups:
       - age:
           - *root-1
           - *user-alex
-  - auto: true
-    path_regex: users/ami-enc.yaml
+          - *host-lenovo
+  - path_regex: enc/user-ami
     key_groups:
       - age:
           - *root-1
           - *user-ami
-  - auto: true
-    path_regex: users/keyservice-enc.yaml
+          - *host-adele
+  - path_regex: enc/user-keyservice
     key_groups:
       - age:
           - *root-1
           - *user-keyservice
-  - auto: true
-    path_regex: hosts/laptop/secrets.yaml
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+  - path_regex: enc/host-laptop
     key_groups:
       - age:
           - *root-1
           - *host-laptop
-  - auto: true
-    path_regex: users/tunnelservice-enc.yaml
+  - path_regex: enc/user-tunnelservice
     key_groups:
       - age:
           - *root-1
           - *user-tunnelservice
+          - *host-helsinki
+  - path_regex: enc/domain-km
+    key_groups:
+      - age:
+          - *root-1
+          - *domain-km
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+  - path_regex: enc/host-friday
+    key_groups:
+      - age:
+          - *root-1
+          - *host-friday
+  - path_regex: enc/host-glesys
+    key_groups:
+      - age:
+          - *root-1
+          - *host-glesys
+  - path_regex: enc/host-phone
+    key_groups:
+      - age:
+          - *root-1
+          - *host-phone

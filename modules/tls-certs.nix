@@ -23,14 +23,14 @@ in
 
   config = mkIf (tls-certs == [ ]) {
     security.pki.certificates = builtins.map (
-      name: (builtins.readFile ../domains/${name}-tls-cert.pem)
+      name: (builtins.readFile ../public-keys/domain-${name}-tls-cert.pem)
     ) tls-certs;
 
     sops.secrets = builtins.listToAttrs (
       builtins.map (name: {
         name = "cert-${name}";
         value = {
-          sopsFile = ../domains/users.yaml;
+          sopsFile = ../enc/domain-km.yaml;
         };
       }) tls-certs
     );

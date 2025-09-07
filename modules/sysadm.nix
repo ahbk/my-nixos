@@ -40,7 +40,7 @@ in
           "${host}.km"
           cfg.address
         ];
-        publicKeyFile = ../hosts/${host}/ssh-key.pub;
+        publicKeyFile = ../public-keys/host-${host}-ssh-key.pub;
       }) hosts;
 
       services.openssh.hostKeys = [

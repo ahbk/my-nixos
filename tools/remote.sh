@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2029
-# Yes, we know unescaped variables expand clientside
+# Yes, we know unescaped variables expand client side
 
 set -euo pipefail
 shopt -s globstar
@@ -44,11 +44,10 @@ image() {
 }
 
 pull() {
-    eval "$(ssh-agent -s)" >/dev/null
-    ./tools/id-entities.sh -u "$user" cat-secret ssh-key | ssh-add -
+    with "$user"
     rsync -av --info=NAME,SKIP --partial --progress "$specifier":"$src" "$dest"
     chmod -R u+w "$dest"
-    ssh-agent -k
+    unwith
 }
 
 push() {
@@ -56,24 +55,21 @@ push() {
 }
 
 rebuild() {
-    local askpass=""
-    eval "$(ssh-agent -s)" >/dev/null
-    ./tools/id-entities.sh -u "$user" cat-secret ssh-key | ssh-add -
+    with "$user"
+    local askpass
     [[ "$user" != "root" && "$user" != "buildservice" ]] && askpass="--ask-sudo-password"
     nixos-rebuild switch $askpass --flake "./#$host" --target-host "$user@$address"
-    ssh-agent -k
+    unwith
 }
 
 login() {
-    eval "$(ssh-agent -s)" >/dev/null
-    ./tools/id-entities.sh -u "$user" cat-secret ssh-key | ssh-add -
+    with "$user"
     ssh "$user@$address"
-    ssh-agent -k
+    unwith
 }
 
 reset() {
-    eval "$(ssh-agent -s)" >/dev/null
-    ./tools/id-entities.sh -u admin cat-secret ssh-key | ssh-add -
+    with "admin"
 
     local extra_files="$tmpdir/extra-files"
     local luks_key="$tmpdir/luks_key"
@@ -101,7 +97,7 @@ reset() {
         --kexec result/tarball/nixos-image-kexec-25.11.20250731.94def63-x86_64-linux.tar.xz \
         --copy-host-keys
 
-    ssh-agent -k
+    unwith
 }
 
 dirty-ssh() {
@@ -115,6 +111,7 @@ switch() {
 }
 
 tunnel() {
+    with "tunnelservice"
     local ssh_opts=(
         -N
         -T
@@ -129,10 +126,8 @@ tunnel() {
         -o "TCPKeepAlive=yes"
     )
 
-    eval "$(ssh-agent -s)" >/dev/null
-    ./tools/id-entities.sh -u tunnelservice cat-secret ssh-key | ssh-add -
     ssh "${ssh_opts[@]}" "tunnelservice@$host"
-    ssh-agent -k
+    unwith
 }
 
 main "$@"

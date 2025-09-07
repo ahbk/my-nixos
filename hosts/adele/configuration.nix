@@ -57,6 +57,7 @@
       home = {
         stateVersion = "25.11";
         packages = with pkgs; [
+          shotwell
           signal-desktop
           libreoffice
           hunspell

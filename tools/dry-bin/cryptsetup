@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+store=$BATS_TEST_TMPDIR/hostroot/luks-key
+key_file=$BATS_TEST_TMPDIR/hostroot/luks-key.tmp
+new_key_file=$BATS_TEST_TMPDIR/hostroot/new-luks-key.tmp
+
+cat "${3#--key-file=}" >"$key_file"
+
+test-key() {
+  if ! cmp -s "$key_file" "$store"; then
+    echo "No key available with this passphrase."
+    exit 1
+  fi
+}
+
+case $1 in
+open)
+  test-key
+  ;;
+luksAddKey)
+  test-key
+  cat "${4#--new-keyfile=}" >"$new_key_file"
+  cat "$new_key_file" >"$store"
+  ;;
+luksRemoveKey)
+  exit 0
+  ;;
+*)
+  exit 1
+  ;;
+esac

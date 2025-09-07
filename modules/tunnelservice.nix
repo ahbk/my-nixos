@@ -21,7 +21,7 @@ in
   config = mkIf (cfg.enable) {
     sops.secrets."tunnelservice/passwd-hashed" = {
       neededForUsers = true;
-      sopsFile = ../users/tunnelservice-enc.yaml;
+      sopsFile = ../enc/user-tunnelservice.yaml;
     };
 
     users.users.tunnelservice = {
@@ -29,7 +29,7 @@ in
       shell = pkgs.shadow;
       hashedPasswordFile = config.sops.secrets."tunnelservice/passwd-hashed".path;
       openssh.authorizedKeys.keyFiles = [
-        ../users/tunnelservice-ssh-key.pub
+        ../public-keys/user-tunnelservice-ssh-key.pub
       ];
       uid = ids.tunnelservice.uid;
       group = "tunnelservice";

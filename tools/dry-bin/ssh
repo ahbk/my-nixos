@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+export LUKS_DEVICE="/dev/null"
+export KEY_FILE=$BATS_TEST_TMPDIR/hostroot/age-key
+shift
+./tools/keyservice.sh "$@"

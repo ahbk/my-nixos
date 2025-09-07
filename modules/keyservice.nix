@@ -50,7 +50,7 @@ in
       shell = pkgs.bash;
 
       openssh.authorizedKeys.keyFiles = [
-        ../users/keyservice-ssh-key.pub
+        ../public-keys/user-keyservice-ssh-key.pub
       ];
       uid = ids.keyservice.uid;
       group = "keyservice";

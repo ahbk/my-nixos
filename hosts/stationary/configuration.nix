@@ -1,28 +1,10 @@
 {
-  config,
   ids,
-  lib,
-  modulesPath,
   users,
   ...
 }:
 {
-  # facter.reportPath = ./facter.json;
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
-
-  boot.initrd.availableKernelModules = [
-    "uhci_hcd"
-    "ehci_pci"
-    "ata_piix"
-    "xhci_pci"
-    "usb_storage"
-    "usbhid"
-    "floppy"
-    "sd_mod"
-  ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
-  boot.extraModulePackages = [ ];
+  facter.reportPath = ./facter.json;
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/7790a226-31aa-44e3-abc5-8e96df673c74";
@@ -41,8 +23,6 @@
 
   swapDevices = [ { device = "/dev/disk/by-uuid/2a419392-c7cc-4c9b-9d38-da36f7c29666"; } ];
 
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
   boot.loader.grub = {
     enable = true;
     device = "/dev/sda";
@@ -58,26 +38,6 @@
         DISABLE_SETUP = true;
       };
     };
-  };
-
-  services.kresd = {
-    enable = true;
-    listenPlain = [ "10.0.0.1:53" ];
-    extraConfig = ''
-      modules = { 'hints > iterate' }
-      hints['invoiceplane.km'] = '10.0.0.1'
-      hints['dev.km'] = '10.0.0.1'
-      hints['backup.km'] = '10.0.0.1'
-      hints['nextcloud.km'] = '10.0.0.1'
-      hints['collabora.km'] = '10.0.0.1'
-      hints['stationary.km'] = '10.0.0.1'
-      hints['laptop.km'] = '10.0.0.2'
-      hints['glesys.km'] = '10.0.0.3'
-      hints['phone.km'] = '10.0.0.4'
-      hints['helsinki.km'] = '10.0.0.5'
-      hints['friday.km'] = '10.0.0.6'
-      hints['lenovo.km'] = '10.0.0.7'
-    '';
   };
 
   networking = {
@@ -138,6 +98,12 @@
       enable = true;
       postgresql = true;
       mysql = true;
+    };
+
+    sysadm.rescueMode = true;
+    keyservice = {
+      luksDevice = "/dev/null";
+      enable = true;
     };
 
     tls-certs = [ "km" ];

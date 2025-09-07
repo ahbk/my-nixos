@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 set -e
-unset SOPS_AGE_KEY_FILE
 
 root_1=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D
 age1=AGE-SECRET-KEY-1L0EJY3FLSYHDE46Y80F0KLUKUWP6V3J340UR7G2GWNFGXJQ0P6ZQ6X37TN
@@ -22,45 +21,39 @@ AAAEAXNvZ6ERXP6Ap2WicroGxnLozh/+wBGot6zcKm4dIPcDXjPrvlncZbLFQvnYzsddnw
 nti/12xUQxTjbjfegcFHAAAAC2FsZXhAbGVub3ZvAQI=
 -----END OPENSSH PRIVATE KEY-----"
 
-luks1=Atzc2gtZWQyNTUxO$'\n'
-luks2=roGxnLozh/+wBGot
+luks1="luks1-Atzc2gtZWQyNTUxO"
+luks2="luks2-roGxnLozh/+wBGot"
 
 setup() {
   testroot=$BATS_TEST_TMPDIR/testroot
   script_name=./tools/id-entities.sh
   export LOG_LEVEL=debug
+  export SOPS_AGE_KEY_FILE="enc/root-1"
 
   echo "=== BEGIN SETUP ===" >&2
 
   # environment
-  mkdir -p "$testroot/keys"
+  mkdir -p "$testroot/enc"
+  mkdir -p "$testroot/public"
   cp -a "./tools" "$testroot"
   cd "$testroot"
 
-  # mocks
+  export PATH="$testroot/tools/dry-bin:$PATH"
   setup-testhost
 
   # init root 1 (bootstrap)
   SECRET_FILE=<(echo "$root_1") "$script_name" -r 1 init age-key
-  export SOPS_AGE_KEY_FILE=keys/root-1
 
   echo "=== END SETUP ===" >&2
 }
 
 setup-testhost() {
-  mkdir -p "$testroot/bin"
-  export PATH="$testroot/bin:$PATH"
-
-  for f in ./tools/mocks/*.sh; do
-    cp "$f" "$testroot/bin/$(basename "${f%.sh}")"
-    chmod +x "$testroot/bin/$(basename "${f%.sh}")"
-  done
 
   hostroot=$BATS_TEST_TMPDIR/hostroot
   mkdir -p "$hostroot/keys"
 
-  printf %s "$luks1" >"$hostroot/luks-key"
-  printf %s "$age1" >"$hostroot/keys/host-testhost"
+  echo "$age1" >"$hostroot/age-key"
+  echo -n "$luks1" >"$hostroot/luks-key"
 }
 
 teardown() {
@@ -92,13 +85,9 @@ check-output() {
 }
 
 @test "setup works" {
-  key_file=$(yq ".secrets.root" .sops.yaml | entity=1 envsubst)
-  [[ "$key_file" == "keys/root-1" ]]
-
-  public_key=$(age-keygen -y <"$key_file")
-  [[ $public_key == $(echo "$root_1" | age-keygen -y) ]]
-
+  public_key=$(age-keygen -y <"enc/root-1")
   root_identity=$(yq ".identities.root-1" .sops.yaml)
+
   [[ $public_key == "$root_identity" ]]
 }
 
@@ -108,18 +97,18 @@ check-output() {
 }
 
 @test "init host works" {
-  local tmpkey testhost_backend="hosts/testhost/secrets.yaml"
+  local tmpkey testhost_backend="enc/host-testhost.yaml"
 
   tmpkey=$(mktemp "$testroot/XXXXXX")
 
   run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  run sops decrypt --extract "['init']" $testhost_backend
+  SOPS_AGE_KEY_FILE="enc/root-1" run sops decrypt --extract "['init']" $testhost_backend
   check-output 0 "true"
 
   # test: host secrets can be decrypted with host key
-  sops decrypt --extract "['age-key']" $testhost_backend >"$tmpkey"
+  SOPS_AGE_KEY_FILE="enc/root-1" sops decrypt --extract "['age-key']" $testhost_backend >"$tmpkey"
   SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['init']" $testhost_backend
   check-output 0 "true"
 
@@ -133,11 +122,11 @@ check-output() {
   run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  age-keygen >keys/root-1
+  age-keygen >enc/root-1
 
   # test: can't do stuff with random age key
   run "$script_name" -h testhost new age-key
-  check-output 1 "incorrect root key"
+  check-output 1 "not root"
 }
 
 @test "new root" {
@@ -164,16 +153,25 @@ check-output() {
   run "$script_name" -r 1 new age-key
   check-output 1 "can't rotate current"
 
-  ROOT_KEY=2 run "$script_name" -u testuser verify age-key
-  check-output 1 "no key file"
+  SOPS_AGE_KEY_FILE=enc/root-2
+  run "$script_name" -u testuser verify age-key
+  check-output 1 "not root"
 
+  SOPS_AGE_KEY_FILE=enc/root-1
   run "$script_name" -r 2 new age-key
   check-output 0 "completed"
 
-  ROOT_KEY=2 run "$script_name" -u testuser verify age-key
+  run $script_name -u testuser updatekeys
   check-output 0 "completed"
 
-  ROOT_KEY=2 run "$script_name" -r 1 new age-key
+  SOPS_AGE_KEY_FILE=enc/root-2
+  run "$script_name" -u testuser verify age-key
+  check-output 0 "completed"
+
+  run "$script_name" -r 1 new age-key
+  check-output 0 "completed"
+
+  run $script_name -u testuser updatekeys
   check-output 0 "completed"
 
   run "$script_name" -u testuser verify age-key
@@ -191,21 +189,20 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify age-key
-  check-output 1 "verify-identity::age-key: not same"
+  check-output 1 "verify-identity::: not same"
 
-  run "$script_name" -h testhost sync age-key
+  run "$script_name" -h testhost align age-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify age-key
-  check-output 1 "verify-host::age-key: not same"
-
+  check-output 1 "verify-host::: not same"
 }
 
 @test "host sideload age-key" {
   SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  run "$script_name" -h testhost sideload age-key
+  SECRET_FILE=<(echo $age2) run "$script_name" -h testhost sideload age-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify age-key
@@ -215,51 +212,47 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost sideload age-key
-  check-output 1 "keys are not in sync"
+  check-output 1 "keys are not aligned"
 }
 
-# bats test_tags=bats:focus
 @test "host check luks-key" {
   SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  SECRET_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
-  check-output 0 "completed"
-
-  run "$script_name" -h testhost verify luks-key
-  check-output 1 "No key"
-
   SECRET_FILE=<(echo "$luks1") run "$script_name" -h testhost new luks-key
+  check-output 1 "has trailing newline"
+
+  SECRET_FILE=<(echo -n "$luks1") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify luks-key
-  check-output 1 "completed"
+  check-output 0 "completed"
+
+  SECRET_FILE=<(echo -n "$luks2") run "$script_name" -h testhost new luks-key
+  check-output 0 "completed"
+
+  run "$script_name" -h testhost verify luks-key
+  check-output 1 "not same"
 }
 
 @test "host sideload luks-key" {
   SECRET_FILE=<(echo $age1) run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  SECRET_FILE=<(echo "$luks1") run "$script_name" -h testhost new luks-key
+  SECRET_FILE=<(echo -n "$luks1") run "$script_name" -h testhost new luks-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify luks-key
   check-output 0 "completed"
 
-  run "$script_name" -h testhost sideload luks-key
+  SECRET_FILE=<(echo -n $luks2) run "$script_name" -h testhost sideload luks-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify luks-key
   check-output 0 "completed"
-
-  SECRET_FILE=<(echo "$luks2") run "$script_name" -h testhost new luks-key
-  check-output 0 "completed"
-
-  run "$script_name" -h testhost verify luks-key
-  check-output 1 "No key"
 }
 
-@test "host sync ssh-key" {
+@test "host align ssh-key" {
   run "$script_name" -h testhost init
   check-output 0 "completed"
 
@@ -269,7 +262,7 @@ check-output() {
   run "$script_name" -h testhost verify ssh-key
   check-output 1 "not same"
 
-  run "$script_name" -h testhost sync ssh-key
+  run "$script_name" -h testhost align ssh-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify ssh-key
@@ -297,7 +290,7 @@ check-output() {
   run "$script_name" -h testhost verify wg-key
   check-output 0 "completed"
 
-  [[ -f $testroot/hosts/testhost/wg-key.pub ]]
+  [[ -f $testroot/public/host-testhost-wg-key.pub ]]
 }
 
 @test "host new wg-key (mismatch)" {
@@ -349,7 +342,7 @@ check-output() {
   run "$script_name" -u testuser verify ssh-key
   check-output 0 "completed"
 
-  [[ -f $testroot/users/testuser-ssh-key.pub ]]
+  [[ -f $testroot/public/user-testuser-ssh-key.pub ]]
 }
 
 @test "user new ssh-key (mismatch)" {
@@ -390,7 +383,7 @@ check-output() {
 
 @test "user new passwd (mismatch)" {
   run "$script_name" -u testuser init
-  check-output 0 "age-key completed"
+  check-output 0 "completed"
 
   run "$script_name" -u testuser new passwd
 
@@ -400,7 +393,7 @@ check-output() {
   run "$script_name" -u testuser verify passwd
   check-output 1 "not same"
 
-  run "$script_name" -u testuser sync passwd
+  run "$script_name" -u testuser align passwd
   check-output 0 "completed"
 
   run "$script_name" -u testuser verify passwd
@@ -417,7 +410,7 @@ check-output() {
   run "$script_name" -d testdomain verify tls-cert
   check-output 0 "completed"
 
-  [[ -f $testroot/domains/testdomain-tls-cert.pem ]]
+  [[ -f $testroot/public/domain-testdomain-tls-cert.pem ]]
 }
 
 @test "domain new tls-cert (mismatch)" {

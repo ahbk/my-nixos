@@ -102,14 +102,14 @@
           modules = [
             ./modules/all.nix
             ./hosts/${cfg.name}/configuration.nix
-            { sops.defaultSopsFile = ./hosts/${cfg.name}/secrets.yaml; }
+            { sops.defaultSopsFile = ./enc/host-${cfg.name}.yaml; }
           ];
         }
       ) hosts;
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         shellHook = ''
-          export SOPS_AGE_KEY_FILE='keys/root-1'
+          export SOPS_AGE_KEY_FILE='enc/root-1'
         '';
       };
 

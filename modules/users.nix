@@ -86,7 +86,7 @@ in
       user: cfg:
       (nameValuePair "${user}/passwd-hashed") {
         neededForUsers = true;
-        sopsFile = ../users/${user}-enc.yaml;
+        sopsFile = ../enc/user-${user}.yaml;
       }
     ) eachUser;
 

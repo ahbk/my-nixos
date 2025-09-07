@@ -4,7 +4,7 @@
     uid = 1000;
     name = "Administrator";
     groups = [ "wheel" ];
-    keys = [ ./users/admin-ssh-key.pub ];
+    keys = [ ./public-keys/user-admin-ssh-key.pub ];
     email = "admin@kompismoln.se";
   };
 
@@ -16,7 +16,7 @@
       "wheel"
       "nginx"
     ];
-    keys = [ ./users/alex-ssh-key.pub ];
+    keys = [ ./public-keys/user-alex-ssh-key.pub ];
     email = "alex@kompismoln.se";
     aliases = [
       "dmarc-reports@ahbk.se"

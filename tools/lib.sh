@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# lib.sh
 
 export tmpdir
 
@@ -26,23 +27,33 @@ declare -A LOG_LEVELS=(
     [off]=99
 )
 
-function cleanup {
+quiet() { "$@" >/dev/null 2>&1; }
+
+cleanup() {
     if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
         rm -fR "$tmpdir"
     fi
 }
 trap cleanup EXIT
+
 tmpdir=$(mktemp -d)
+declare cache="$tmpdir/cache"
+touch "$cache"
+
+tlog() {
+    local level=$1
+    tee >(log "$level" "$(cat)")
+}
 
 log() {
-    local level=$1
-    local msg=${2:-$(cat)}
+    local level=$1 msg=$2
 
     [[ -n "$msg" ]] || return 0
 
     local caller=${FUNCNAME[1]}
     local depth=${#FUNCNAME[@]}
 
+    [[ $caller != tlog ]] || caller=${FUNCNAME[2]}
     [[ $caller != die ]] || caller=${FUNCNAME[2]}
     [[ $caller != try ]] || caller=${FUNCNAME[3]}
 
@@ -98,14 +109,41 @@ try() {
 
 fn-exists() {
     local fn=$1
-    declare -F "$fn" >/dev/null
+    declare -F "$fn" >/dev/null && echo "$fn"
 }
 
-no-trailing-newline() {
+fn-match() {
+    local pat=$1
+    declare -F | awk '{print $3}' | grep -E "$pat" >/dev/null
+}
+
+trailing-newline() {
     local file
-    file=$(cat)
+    file=$1
     if [[ $(tail -c1 "$file" | hexdump -C) == *"0a"* ]]; then
-        die 1 "has trailing newline"
+        return 0
     fi
-    cat "$file"
+    return 1
+}
+
+find-first() {
+    local chain=$1 cmd=$2 index
+
+    read -r index <<<"$chain"
+
+    if grep -Fxq "$index" "$cache"; then
+        log info "cache hit: $index"
+        grep -A1 -Fx "$index" "$cache" | tail -n1
+        return 0
+    fi
+
+    for item in $chain; do
+        result=$("$cmd" "$item" 2>/dev/null) || continue
+
+        printf '%s\n%s\n' "$index" "$result" >>"$cache"
+        log debug "$result"
+        echo "$result"
+        return 0
+    done
+    die 1 $'no valid items in the chain:\n'"$chain"
 }
