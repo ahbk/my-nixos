@@ -12,14 +12,26 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$here/lib.sh"
 
 main() {
-    for action in $(op=$1 yq-sops '.ops.$op.actions[]'); do
-        for-all-identities "$action"
-    done
+    for-all-identities "$1"
 }
 
 for-all-identities() {
+    local ak aks
+
     yq eval '.identities | keys | .[]' .sops.yaml | while IFS='-' read -r class entity; do
-        LOG_LEVEL=warning ./tools/id-entities.sh --"$class" "$entity" "$action"
+
+        aks=$(LOG_LEVEL=off op=$1 yq-sops-e '.ops.$op
+        | with_entries(select(
+            .key == "$class-$entity" or
+            .key == "$class" or
+            .key == "all"
+            )
+        ) | [.all[], .$class[], .$class-$entity[] ][]') || continue
+
+        for ak in $aks; do
+            IFS=':' read -r action key <<<"$ak"
+            LOG_LEVEL=warning ./tools/id-entities.sh --"$class" "$entity" "$action" "$key"
+        done
     done
 }
 

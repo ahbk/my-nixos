@@ -21,6 +21,9 @@
     nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixos-generators.url = "github:nix-community/nixos-generators";
+    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
+
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -58,9 +61,6 @@
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      domain = "km";
-      buildHost = "$1";
-      build-user = "admin";
 
       ids = import ./ids.nix;
       users = import ./users.nix;
@@ -100,10 +100,9 @@
             host = cfg;
           };
           modules = [
-            ./modules/all.nix
             ./hosts/${cfg.name}/configuration.nix
-            { sops.defaultSopsFile = ./enc/host-${cfg.name}.yaml; }
-          ];
+          ]
+          ++ (import ./modules/index.nix).${cfg.class};
         }
       ) hosts;
 

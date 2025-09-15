@@ -79,25 +79,25 @@ log() {
 
 die() {
     local exit_code=${1-$?}
-    local msg=${2-}
+    local msg=${2:-"died."}
     local fn=${3-}
+
+    [[ -z "$fn" ]] || "$fn"
 
     case $exit_code in
     0) log info "$msg" ;;
     *) log error "$msg (exit $exit_code)" ;;
     esac
 
-    [[ -z "$fn" ]] || "$fn"
-
     exit "$exit_code"
 }
 
 try() {
+    log debug "try: $*"
     local std=$tmpdir/std.$$.$BASHPID
-    local exit_code
+    local exit_code=0
 
-    "$@" >"$std.out" 2>"$std.err"
-    exit_code=$?
+    "$@" >"$std.out" 2>"$std.err" || exit_code=$?
 
     if [[ $exit_code -eq 0 ]]; then
         cat "$std.out"
@@ -132,7 +132,7 @@ find-first() {
     read -r index <<<"$chain"
 
     if grep -Fxq "$index" "$cache"; then
-        log info "cache hit: $index"
+        log debug "cache hit: $index"
         grep -A1 -Fx "$index" "$cache" | tail -n1
         return 0
     fi
@@ -146,4 +146,12 @@ find-first() {
         return 0
     done
     die 1 $'no valid items in the chain:\n'"$chain"
+}
+
+yq-sops-i() {
+    yq -i "$(echo "$1" | envsubst)" .sops.yaml
+}
+
+yq-sops-e() {
+    yq -e "$(echo "$1" | envsubst)" .sops.yaml | envsubst
 }

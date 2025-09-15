@@ -5,7 +5,10 @@
   ...
 }:
 {
-  facter.reportPath = ./facter.json;
+  imports = [
+    ../../modules/facter.nix
+  ];
+
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/fcd9e077-268d-4561-bc4c-fc97b01511d7";
     fsType = "ext4";
@@ -62,6 +65,9 @@
 
   my-nixos = {
     sysadm.rescueMode = true;
+    facter.enable = true;
+    sops.enable = true;
+    ssh.enable = true;
 
     keyservice = {
       enable = true;

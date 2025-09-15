@@ -1,4 +1,8 @@
+{ inputs, ... }:
 {
+  imports = [
+    inputs.disko.nixosModules.disko
+  ];
   disko.devices = {
     nodev = {
       "/tmp" = {
@@ -107,7 +111,7 @@
               type = "swap";
             };
           };
-          persistent = {
+          state = {
             size = "60%VG";
             content = {
               type = "btrfs";

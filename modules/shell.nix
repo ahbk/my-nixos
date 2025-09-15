@@ -31,6 +31,10 @@ let
   };
 in
 {
+  imports = [
+    inputs.nixos-cli.nixosModules.nixos-cli
+  ];
+
   options.my-nixos.shell =
     with types;
     mkOption {
@@ -38,6 +42,7 @@ in
       type = attrsOf (submodule userOpts);
       default = { };
     };
+
   config = mkIf (eachUser != { }) {
 
     my-nixos.backup.km.paths = flatten (
@@ -57,6 +62,7 @@ in
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${host.system}.default
       inputs.nixos-anywhere.packages.${host.system}.default
+      inputs.nixos-generators.packages.${host.system}.default
       envsubst
       jq
       yq-go

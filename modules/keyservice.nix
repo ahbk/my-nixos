@@ -61,8 +61,6 @@ in
     };
 
     services.openssh = {
-      enable = true;
-
       extraConfig = ''
         Match User keyservice
           ForceCommand sudo ${keyservicePkg}/bin/keyservice \$SSH_ORIGINAL_COMMAND

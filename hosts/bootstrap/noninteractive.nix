@@ -1,0 +1,93 @@
+# This module optimizes for non-interactive deployments by remove some store paths
+# which are primarily useful for interactive installations.
+
+{
+  lib,
+  pkgs,
+  modulesPath,
+  options,
+  ...
+}:
+{
+  disabledModules = [
+    # This module adds values to multiple lists (systemPackages, supportedFilesystems)
+    # which are impossible/unpractical to remove, so we disable the entire module.
+    "profiles/base.nix"
+  ];
+
+  imports = [
+    ./python-minimal.nix
+    "${modulesPath}/profiles/perlless.nix"
+    { system.forbiddenDependenciesRegexes = lib.mkForce [ ]; }
+  ];
+
+  config = {
+    # fixes blank screen on boot for some cards
+    boot.kernelParams = [ "nouveau.modeset=0" ];
+    # nixos-option is mainly useful for interactive installations
+    system.tools.nixos-option.enable = false;
+
+    # among others, this prevents carrying a stdenv with gcc in the image
+    system.extraDependencies = lib.mkForce [ ];
+
+    # prevents shipping nixpkgs, unnecessary if system is evaluated externally
+    nix.registry = lib.mkForce { };
+
+    # would pull in nano
+    programs.nano.enable = false;
+
+    # prevents strace
+    environment.defaultPackages = lib.mkForce [
+      pkgs.parted
+      pkgs.gptfdisk
+      pkgs.e2fsprogs
+    ];
+
+    # included in systemd anyway
+    systemd.sysusers.enable = true;
+    services.userborn.enable = false;
+
+    # normal users are not allowed with sys-users
+    # see https://github.com/NixOS/nixpkgs/pull/328926
+    users.users.nixos = {
+      isSystemUser = true;
+      isNormalUser = lib.mkForce false;
+      shell = "/run/current-system/sw/bin/bash";
+      group = "nixos";
+    };
+    users.groups.nixos = { };
+
+    # we have still run0 from systemd and most of the time we just use root
+    security.sudo.enable = false;
+    security.polkit.enable = lib.mkForce false;
+
+    documentation.man.enable = false;
+
+    # no dependency on x11
+    services.dbus.implementation = "broker";
+
+    # introduces x11 dependencies
+    security.pam.services.su.forwardXAuth = lib.mkForce false;
+
+    # Don't install the /lib/ld-linux.so.2 stub. This saves one instance of nixpkgs.
+    environment.ldso32 = null;
+
+    # we prefer root as this is also what we use in nixos-anywhere
+    services.getty.autologinUser = lib.mkForce "root";
+
+    # we are missing this from base.nix
+    boot.supportedFilesystems = [
+      "ext4"
+      "btrfs"
+      "xfs"
+    ];
+
+    boot.kernelModules = [
+      # https://github.com/nix-community/nixos-anywhere/issues/249
+      "dm-raid"
+    ];
+  }
+  // lib.optionalAttrs (options.hardware ? firmwareCompression) {
+    hardware.firmwareCompression = "xz";
+  };
+}

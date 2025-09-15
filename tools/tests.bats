@@ -28,12 +28,13 @@ setup() {
   testroot=$BATS_TEST_TMPDIR/testroot
   script_name=./tools/id-entities.sh
   export LOG_LEVEL=debug
-  export SOPS_AGE_KEY_FILE="enc/root-1"
+  export SOPS_AGE_KEY_FILE="keys/root-1"
 
   echo "=== BEGIN SETUP ===" >&2
 
   # environment
   mkdir -p "$testroot/enc"
+  mkdir -p "$testroot/keys"
   mkdir -p "$testroot/public"
   cp -a "./tools" "$testroot"
   cd "$testroot"
@@ -44,15 +45,19 @@ setup() {
   # init root 1 (bootstrap)
   SECRET_FILE=<(echo "$root_1") "$script_name" -r 1 init age-key
 
+  $script_name -u keyservice init
+  $script_name -u keyservice new ssh-key
+
   echo "=== END SETUP ===" >&2
 }
 
 setup-testhost() {
-
   hostroot=$BATS_TEST_TMPDIR/hostroot
   mkdir -p "$hostroot/keys"
 
   echo "$age1" >"$hostroot/age-key"
+  echo "$ssh1" >"$hostroot/ssh-key"
+  chmod 600 "$hostroot/ssh-key"
   echo -n "$luks1" >"$hostroot/luks-key"
 }
 
@@ -85,7 +90,7 @@ check-output() {
 }
 
 @test "setup works" {
-  public_key=$(age-keygen -y <"enc/root-1")
+  public_key=$(age-keygen -y <"keys/root-1")
   root_identity=$(yq ".identities.root-1" .sops.yaml)
 
   [[ $public_key == "$root_identity" ]]
@@ -104,11 +109,11 @@ check-output() {
   run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  SOPS_AGE_KEY_FILE="enc/root-1" run sops decrypt --extract "['init']" $testhost_backend
+  SOPS_AGE_KEY_FILE="keys/root-1" run sops decrypt --extract "['init']" $testhost_backend
   check-output 0 "true"
 
   # test: host secrets can be decrypted with host key
-  SOPS_AGE_KEY_FILE="enc/root-1" sops decrypt --extract "['age-key']" $testhost_backend >"$tmpkey"
+  SOPS_AGE_KEY_FILE="keys/root-1" sops decrypt --extract "['age-key']" $testhost_backend >"$tmpkey"
   SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['init']" $testhost_backend
   check-output 0 "true"
 
@@ -122,11 +127,11 @@ check-output() {
   run "$script_name" -h testhost init
   check-output 0 "completed"
 
-  age-keygen >enc/root-1
+  age-keygen >keys/root-1
 
   # test: can't do stuff with random age key
   run "$script_name" -h testhost new age-key
-  check-output 1 "not root"
+  check-output 1 "no identity found"
 }
 
 @test "new root" {
@@ -140,7 +145,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -r 3 verify age-key
-  check-output 1 "not same"
+  check-output 1 "root-3 not found"
 }
 
 @test "rotate root" {
@@ -153,18 +158,18 @@ check-output() {
   run "$script_name" -r 1 new age-key
   check-output 1 "can't rotate current"
 
-  SOPS_AGE_KEY_FILE=enc/root-2
+  SOPS_AGE_KEY_FILE=keys/root-2
   run "$script_name" -u testuser verify age-key
-  check-output 1 "not root"
+  check-output 1 "no identity found in 'keys/root-2'"
 
-  SOPS_AGE_KEY_FILE=enc/root-1
+  SOPS_AGE_KEY_FILE=keys/root-1
   run "$script_name" -r 2 new age-key
   check-output 0 "completed"
 
   run $script_name -u testuser updatekeys
   check-output 0 "completed"
 
-  SOPS_AGE_KEY_FILE=enc/root-2
+  SOPS_AGE_KEY_FILE=keys/root-2
   run "$script_name" -u testuser verify age-key
   check-output 0 "completed"
 
@@ -189,13 +194,13 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify age-key
-  check-output 1 "verify-identity::: not same"
+  check-output 1 " > age"
 
   run "$script_name" -h testhost align age-key
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify age-key
-  check-output 1 "verify-host::: not same"
+  check-output 1 "keyservice: died."
 }
 
 @test "host sideload age-key" {
@@ -212,7 +217,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost sideload age-key
-  check-output 1 "keys are not aligned"
+  check-output 1 " > age1hxkj8za4tstrxzlrhn7xpthlrxwnyzquz8er7l48v8zgparape7qyu0aa7"
 }
 
 @test "host check luks-key" {
@@ -232,7 +237,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify luks-key
-  check-output 1 "not same"
+  check-output 1 "keyservice: No key available with this passphrase."
 }
 
 @test "host sideload luks-key" {
@@ -260,7 +265,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify ssh-key
-  check-output 1 "not same"
+  check-output 1 " > ssh-ed25519 AAAA"
 
   run "$script_name" -h testhost align ssh-key
   check-output 0 "completed"
@@ -277,7 +282,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify ssh-key
-  check-output 1 "not same"
+  check-output 2 " No such file or directory"
 }
 
 @test "host new wg-key" {
@@ -304,7 +309,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -h testhost verify wg-key
-  check-output 1 "not same"
+  check-output 1 ">"
 }
 
 @test "user new age-key" {
@@ -329,7 +334,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -u testuser verify age-key
-  check-output 1 "not same"
+  check-output 1 ">"
 }
 
 @test "user new ssh-key" {
@@ -356,7 +361,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -u testuser verify ssh-key
-  check-output 1 "not same"
+  check-output 1 " > ssh-ed25519 AAAA"
 }
 
 @test "user new ssh-key (no public)" {
@@ -367,7 +372,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -u testuser verify ssh-key
-  check-output 1 "not same"
+  check-output 2 " No such file or directory"
 }
 
 @test "user new passwd" {
@@ -391,7 +396,7 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -u testuser verify passwd
-  check-output 1 "not same"
+  check-output 1 ">"
 
   run "$script_name" -u testuser align passwd
   check-output 0 "completed"
@@ -424,5 +429,5 @@ check-output() {
   check-output 0 "completed"
 
   run "$script_name" -d testdomain verify tls-cert
-  check-output 1 "completed with errors"
+  check-output 1 "> MCow"
 }

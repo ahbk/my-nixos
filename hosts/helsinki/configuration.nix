@@ -8,8 +8,9 @@
 {
   imports = [
     ./disko.nix
+    ../../modules/facter.nix
+    ../../modules/preserve.nix
   ];
-  facter.reportPath = ./facter.json;
 
   sops.secrets.luks-key = { };
   boot = {
@@ -80,11 +81,14 @@
 
   my-nixos = {
     sysadm.rescueMode = true;
+    facter.enable = true;
     keyservice = {
       enable = true;
       luksDevice = "/dev/sda3";
     };
     tunnelservice.enable = true;
+    sops.enable = true;
+    ssh.enable = true;
 
     preserve.enable = true;
 

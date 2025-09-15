@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   options,
   pkgs,
@@ -20,6 +21,10 @@ let
   preserveAtOptions = options.preservation.preserveAt.type.nestedTypes.elemType.getSubOptions [ ];
 in
 {
+  imports = [
+    inputs.preservation.nixosModules.preservation
+  ];
+
   options.my-nixos.preserve = {
     inherit (preserveAtOptions) files directories;
     enable = mkEnableOption ''ephemeral root on this host'';
@@ -48,6 +53,12 @@ in
         ]
         ++ cfg.files;
       };
+    };
+
+    security.sudo = {
+      extraConfig = ''
+        Defaults lecture = never
+      '';
     };
 
     fileSystems."/keys".neededForBoot = true;

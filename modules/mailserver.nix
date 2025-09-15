@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   lib',
   ...
@@ -23,6 +24,9 @@ let
   mailboxDomains = filterAttrs (domain: cfg: cfg.mailbox) cfg.domains;
 in
 {
+  imports = [
+    inputs.nixos-mailserver.nixosModules.default
+  ];
 
   options.my-nixos.mailserver = with types; {
     enable = mkEnableOption "mailserver on this host";
@@ -74,7 +78,7 @@ in
 
       sops.secrets = lib'.mergeAttrs (user: _: {
         "${user}/mail-hashed" = {
-          sopsFile = ../users/${user}-enc.yaml;
+          sopsFile = ../enc/user-${user}.yaml;
           owner = user;
           group = user;
           restartUnits = [

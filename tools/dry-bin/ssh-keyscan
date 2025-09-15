@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-echo "testhost.local $(ssh-keygen -y -f <(echo "$1"))"
+export KEY_FILE=$BATS_TEST_TMPDIR/hostroot/ssh-key
+echo "testhost.local $(ssh-keygen -y -f "$KEY_FILE")"

@@ -3,6 +3,7 @@
   host,
   inputs,
   lib,
+  users,
   ...
 }:
 
@@ -24,6 +25,10 @@ let
   };
 in
 {
+  imports = [
+    inputs.home-manager.nixosModules.home-manager
+  ];
+
   options.my-nixos.hm =
     with types;
     mkOption {
@@ -43,6 +48,11 @@ in
       users = mapAttrs (user: cfg: {
         home.stateVersion = host.stateVersion;
         home.username = user;
+        my-nixos-hm.user = {
+          enable = config.my-nixos.hm.${user}.enable;
+          name = user;
+          uid = users.${user}.uid;
+        };
       }) eachUser;
     };
   };

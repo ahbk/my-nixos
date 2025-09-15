@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# keyservice.sh
+
 set -euo pipefail
 
 main() {

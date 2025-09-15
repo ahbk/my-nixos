@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # id-entities.sh
 
-# shellcheck disable=SC2317,SC2030,SC2031,SC2016
+# shellcheck disable=SC2317,SC2030,SC2031,SC2016,SC2015,SC2029
 #
 # SC2317: This script has a dispatcher that makes dynamic calls to functions
 # that shellcheck believes are unreachable, so we disable this check globally.
@@ -10,12 +10,13 @@
 # with altered context (e.g. var=new-value command). This may be an
 # anti-pattern, but it's not accidental, so we mute these warnings.
 #
+# SC2015: Got it, A && B || C is not if/then/else
 # SC2016: Yes, we know expressions wont expand in single quotes.
+# SC2029: Noted, double qoutes in ssh commands expand client side
 
-set -uo pipefail
-shopt -s globstar
+set -euo pipefail
 
-declare -x session class entity action key
+declare -x doas class entity action key
 
 declare -A allowed_keys=(
     ["root"]="age-key"
@@ -28,25 +29,13 @@ declare -x here
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # import tmpdir, log, die, try, run, find-first and fn-exists
-# also sops-integrations
+# shellcheck source=./tools/lib.sh
 . "$here/lib.sh"
 
 main() {
-    setup "$@" || die 1 "setup failed"
-    local cmd exit_code
-
-    cmd=$(find-first "$(callchain)" fn-exists)
-    $cmd
-    exit_code=$?
-
+    setup "$@" && run
     sync
-
-    case $exit_code in
-    0) log success "$action:$class:$key for '$entity' completed successfully" ;;
-    *) log error "$action:$class:$key for '$entity' completed with errors ($exit_code)" ;;
-    esac
-
-    exit "$exit_code"
+    log success "$action $key for $class-$entity completed."
 }
 
 setup() {
@@ -82,11 +71,9 @@ setup() {
         ;;
     esac
 
-    [[ -f ".sops.yaml" ]] || try create-sops-yaml
+    [[ -f ".sops.yaml" ]] || create-sops-yaml
     validate-args
-
-    verify-session
-    verify-keyservice
+    verify-doas
 }
 
 validate-args() {
@@ -106,23 +93,14 @@ validate-args() {
         die 1 "'$SECRET_FILE' is not a file"
 }
 
-verify-session() {
+verify-doas() {
+    # first root need not be verified, as it has nothing to be verified against
     [[ "$action-$class-$entity" != "init-root-1" ]] || return 0
 
-    local _class
-    IFS='-' read -r _class session < <(age-keygen -y <"$SOPS_AGE_KEY_FILE" | find-identity)
+    IFS='-' read -r doas < <(age-keygen -y <"$SOPS_AGE_KEY_FILE" | find-identity) ||
+        die 1 "no identity found in '$SOPS_AGE_KEY_FILE'"
 
-    [[ "$_class" == "root" ]] || die 1 "not root"
-}
-
-verify-keyservice() {
-    [[ "$class" == "host" && "$action" =~ (verify|align) ]] || return 0
-    (
-        class=user
-        entity=$(keyservice)
-        key=ssh-key
-        run verify
-    ) || log warning "could not verify ssh-key for $(keyservice)"
+    log important "$doas"
 }
 
 # --- init:*:*
@@ -133,13 +111,12 @@ init::() {
     # Almost like new-secret but it writes directly to secret instead of set-secret
     # because set-secret expects a backend that doesn't exist yet.
     if [[ -n ${SECRET_FILE-} ]]; then
-        try cat "$SECRET_FILE" >"$(secret)"
+        cat "$SECRET_FILE" >"$(secret)"
     else
-        try create-secret::age-key >"$(secret)"
+        create-secret::age-key >"$(secret)"
     fi
     chmod 600 "$(secret)"
-
-    run validate || die 1 "validation failed"
+    run validate || die 1 "$(cat "$(secret)")"
 
     upsert-identity
     rebuild-creation-rules
@@ -149,7 +126,7 @@ init::() {
 }
 
 init:root:age-key() {
-    [[ ! -f $(backend-file) ]] || die 1 "root key '$entity' already exists"
+    [[ ! -f $(backend-file) ]] || die 1 "will not overwrite existing .sops.yaml"
     run new-secret
     upsert-identity
 }
@@ -162,14 +139,14 @@ new::() {
 }
 
 new:root:age-key() {
-    [[ "$entity" != "$session" ]] || die 1 "can't rotate current root key"
+    [[ "$class-$entity" != "$doas" ]] || die 1 "can't rotate current"
     run new-secret
     upsert-identity
 }
 
 new:host:ssh-key() {
     run new-secret
-    set-public >/dev/null
+    quiet set-public
     log warning "public ssh keys will be overwritten by host scans on align"
 }
 
@@ -181,11 +158,9 @@ new:host:luks-key() {
 
 new-secret::() {
     if [[ -n ${SECRET_FILE:-} ]]; then
-        set-secret <"$SECRET_FILE" ||
-            die 1 "could not copy secret"
+        set-secret <"$SECRET_FILE"
     else
-        run create-secret | set-secret ||
-            die 1 "could not generate secret"
+        run create-secret | set-secret
     fi
 }
 
@@ -196,11 +171,11 @@ align::age-key() {
 }
 
 align::wg-key() {
-    set-public >/dev/null
+    quiet set-public
 }
 
 align::tls-cert() {
-    set-public >/dev/null
+    quiet set-public
 }
 
 align:host:ssh-key() {
@@ -208,7 +183,7 @@ align:host:ssh-key() {
 }
 
 align:user:ssh-key() {
-    set-public >/dev/null
+    quiet set-public
 }
 
 align:user:passwd() {
@@ -225,7 +200,7 @@ align-hash::() {
     (
         key=$key-hashed
         echo "$hash" | set-secret
-    ) || die 1 "could not align '$key-hashed'"
+    )
 }
 
 # --- verify:*:*
@@ -244,8 +219,7 @@ verify:host:age-key() {
 }
 
 verify:host:ssh-key() {
-    scan:host:ssh-key | try diff - "$(get-public)" >&2 ||
-        die 1 "not same"
+    scan:host:ssh-key | try diff - "$(get-public)"
 }
 
 verify:host:luks-key() {
@@ -265,18 +239,20 @@ verify:user:mail() {
 }
 
 verify:domain:tls-cert() {
-    local exit_code=0
+    local exit_code=0 pub sec
+    pub=$(get-public)
+    sec=$(get-secret)
 
-    openssl x509 -in "$(get-public)" -checkend 2592000 | tlog info ||
+    openssl x509 -in "$pub" -checkend 2592000 ||
         exit_code=1
 
-    openssl x509 -in "$(get-public)" -noout -ext subjectAltName |
+    openssl x509 -in "$pub" -noout -ext subjectAltName |
         grep -q "DNS:$entity" ||
         exit_code=1
 
-    diff -q \
-        <(openssl pkey -in "$(get-secret)" -pubout) \
-        <(openssl x509 -in "$(get-public)" -pubkey -noout) ||
+    diff \
+        <(openssl pkey -in "$sec" -pubout) \
+        <(openssl x509 -in "$pub" -pubkey -noout) ||
         exit_code=1
 
     return "$exit_code"
@@ -285,19 +261,17 @@ verify:domain:tls-cert() {
 # --- verify-[public|identity|host|hash]:*:*
 
 verify-identity::() {
-    [[ "$key" == "age-key" ]] ||
-        die 1 "only age-key can verify identity"
-
-    get-identity | try diff "$(tmp-public)" - || die 1 "not same"
+    [[ "$key" == "age-key" ]] || return 1
+    id=$(get-identity) || return 1
+    echo "$id" | try diff "$(tmp-public)" -
 }
 
 verify-public::() {
-    (try diff "$(tmp-public)" "$(get-public)") || die 1 "not same"
+    try diff "$(tmp-public)" "$(get-public)"
 }
 
 verify-host::() {
-    run base64-secret | try ssh "$(keyservice)@$(fqdn)" "$key" | tlog info ||
-        die 1 "not same"
+    run base64-secret | keyservice "$key"
 }
 
 verify-hash::() {
@@ -308,65 +282,64 @@ verify-hash::() {
     )
 
     mkpasswd -sm sha-512 -S "$salt" <"$(get-secret)" |
-        try diff - "$(key=$key-hashed get-secret)" || die 1 "not same"
+        try diff - "$(key=$key-hashed get-secret)"
 }
 
 # --- scan:*:*
 
 scan:host:ssh-key() {
-    try ssh-keyscan -q "$(fqdn)" | awk '{print $2, $3}' ||
-        die 1 "scan failed"
+    ssh-keyscan -q "$(fqdn)" | awk '{print $2, $3}'
 }
 
 # --- create-secret:*:*
 
 create-secret::age-key() {
-    try age-keygen | tail -1
+    age-keygen 2> >(quiet tlog info) | tail -1
 }
 
 create-secret::ssh-key() {
     local tmpkey
     tmpkey=$(mktemp -u "$tmpdir/XXXXXX")
-    try ssh-keygen -q -t "ed25519" -f "$tmpkey" -N "" -C "" <<<y 2>/dev/null
+    quiet ssh-keygen -q -t "ed25519" -f "$tmpkey" -N "" -C "" <<<y
     cat "$tmpkey"
 }
 
 create-secret::wg-key() {
-    try wg genkey
+    wg genkey
 }
 
 create-secret::luks-key() {
-    try gen-passwd
+    gen-passwd
 }
 
 create-secret::tls-cert() {
-    try openssl genpkey -algorithm ED25519
+    openssl genpkey -algorithm ED25519
 }
 
 create-secret::passwd() {
-    try gen-passwd
+    gen-passwd
 }
 
 create-secret::mail() {
-    try gen-passwd
+    gen-passwd
 }
 
 # --- derive-public:*:*
 
 derive-public::age-key() {
-    try age-keygen -y <"$(get-secret)"
+    age-keygen -y <"$(get-secret)"
 }
 
 derive-public::ssh-key() {
-    try ssh-keygen -y -C "" -f "$(get-secret)"
+    ssh-keygen -y -C "" -f "$(get-secret)"
 }
 
 derive-public::wg-key() {
-    try wg pubkey <"$(get-secret)"
+    wg pubkey <"$(get-secret)"
 }
 
 derive-public::tls-cert() {
-    try openssl req -new -x509 -key "$(get-secret)" \
+    openssl req -new -x509 -key "$(get-secret)" \
         -subj "/CN=*.$entity" \
         -addext "subjectAltName=DNS:*.$entity,DNS:$entity" \
         -nodes -out - -days 3650
@@ -375,8 +348,7 @@ derive-public::tls-cert() {
 # --- validate:*:*
 
 validate::() {
-    trailing-newline "$(get-secret)" || die 1 "needs trailing newline"
-    tmp-public >/dev/null
+    trailing-newline "$(get-secret)" && quiet tmp-public
 }
 
 validate::luks-key() {
@@ -405,30 +377,30 @@ validate-hash::() {
 
 validate-passphrase::() {
     ! trailing-newline "$(get-secret)" || die 1 "has trailing newline"
-    get-secret | grep -qE '^.{12,}$'
+    [[ $(wc -c <"$(get-secret)") -ge 12 ]] || die 1 "shorter than 12 chars"
 }
 
 # --- cat-[secret|public]:*:*
 
 cat-secret::() {
-    try cat "$(get-secret)"
+    cat "$(get-secret)"
 }
 
 cat-public::() {
-    try cat "$(get-public)"
+    cat "$(get-public)"
 }
 
 # --- base64-secret:*:*
 
 base64-secret::() {
-    try base64 -w0 "$(get-secret)"
+    base64 -w0 "$(get-secret)"
     echo
 }
 
 # --- [encrypt|decrypt]-secret:*:*
 
 encrypt-secret::() {
-    try sops set "$(backend-file)" "$(backend-path)" "$(jq -Rs <"$(secret)")"
+    sops set "$(backend-file)" "$(backend-path)" "$(jq -Rs <"$(secret)")"
 }
 
 encrypt-secret:root:() {
@@ -436,7 +408,7 @@ encrypt-secret:root:() {
 }
 
 decrypt-secret::() {
-    try sops decrypt --extract "$(backend-path)" "$(backend-file)"
+    sops decrypt --extract "$(backend-path)" "$(backend-file)"
 }
 
 decrypt-secret:root:() {
@@ -447,49 +419,37 @@ decrypt-secret:root:() {
 
 updatekeys::() {
     rebuild-creation-rules
-    [[ $class == "root" ]] && return 0
+    [[ $class != "root" ]] || return 0
     sops updatekeys -y "$(backend-file)" \
         > >(tlog important >/dev/null) \
-        2> >(grep "synced with" | tlog info)
+        2> >(grep "synced with" | tlog info >/dev/null)
 }
 
 # --- sideload:*:*
 
 sideload::() {
-    [[ "$class" == "host" ]] ||
-        die 1 "only hosts can sideload"
-
-    [[ $key =~ (age-key|luks-key) ]] ||
-        die 1 "only age-key and ssh-key can be sideloaded"
+    [[ "$class" == "host" ]]
+    [[ $key =~ (age-key|luks-key) ]]
 
     {
         run base64-secret
         run new && run base64-secret
-    } |
-        try ssh "$(keyservice)@$(fqdn)" "$key" |
-        tlog info ||
-        die 1 "sideload failed"
-
-    log important "rebuild '$entity' now or suffer the consequences"
+    } | keyservice "$key"
 }
 
 sideload:host:age-key() {
-    (run verify-identity) ||
-        die 1 "keys are not aligned, run '$0 -h $entity align age-key' first"
-
+    run verify-identity
     sideload::
 }
 
 # --- sops integrations
 
 create-sops-yaml() {
-    [[ -f .sops.yaml ]] &&
-        die 1 "will not overwrite existing .sops.yaml"
-
+    [[ -f .sops.yaml ]]
     cat >.sops.yaml <<'EOF'
 fqdn: $entity.local
 backend: enc/$class-$entity.yaml
-backend:root: enc/$class-$entity
+backend:root: keys/$class-$entity
 public:ssh-key: public/$class-$entity-$key.pub
 public:wg-key: public/$class-$entity-$key.pub
 public:tls-cert: public/$class-$entity-$key.pem
@@ -500,61 +460,55 @@ create-backend() {
     # shellcheck disable=SC2094
     # SC believes we're reading from $(backend-file) here, but --filename-override
     # simply tells sops what creation rule to use, so this is ok.
-    echo "init: true" | try sops encrypt \
+    echo "init: true" | sops encrypt \
         --filename-override "$(backend-file)" \
-        /dev/stdin >"$(backend-file)" || die 1 "could not create $(backend-file)"
+        /dev/stdin >"$(backend-file)"
 }
 
 read-setting() {
-    yq-sops ".[\"$1\"]"
+    yq-sops-e ".[\"$1\"]"
 }
 
 search-setting() {
     find-first "$1" read-setting
 }
 
-yq-sops() {
-    [[ -f .sops.yaml ]] || die 1 ".sops.yaml doesn't exist"
-    local query
-
-    query=$(echo "$1" | envsubst)
-    if [[ ${2-} == "-i" ]]; then
-        try yq -i "$query" .sops.yaml
-    else
-        try yq -e "$query" .sops.yaml | envsubst ||
-            die 1 "'$query' failed"
-    fi
-}
-
 autocomplete-identity() {
-    q=$1 LOG_LEVEL=off yq-sops '(
+    local matches
+    matches=$(
+        q=$1 yq-sops-e '(
         .identities
             | keys
-            | map(select(. | contains("$q")))[0] // error("no match")
-    )'
+            | map(select(. | contains("$q")))[]
+            // error("no match for $q")
+        )'
+    ) || return
+    (($(echo "$matches" | wc -l) == 1))
+    echo "$matches"
 }
 
 find-identity() {
-    age_key=$(cat) yq-sops '(
+    age_key=$(cat) yq-sops-e '(
         .identities
             | to_entries
             | .[]
             | select(.value == "$age_key")
             | .key
-        )' || die 1 "no identity found for '$class-$entity'"
+        )'
 }
 
 get-identity() {
-    yq-sops '.identities.$class-$entity // error("not found")' ||
-        die 1 "no identity found for '$class-$entity'"
+    id="$class-$entity" try yq-sops-e '.identities.$id // error("$id not found")'
 }
 
 upsert-identity() {
-    age_key=$(run derive-public) yq-sops '(
-        .identities.$class-$entity = "$age_key" |
-        .identities.$class-$entity anchor = "$class-$entity"
-        )' -i
-    updatekeys::
+    age_key=$(run derive-public) \
+    id="$class-$entity" \
+        yq-sops-i '(
+            .identities.$id = "$age_key" |
+            .identities.$id anchor = "$id"
+        )'
+    updatekeys:: || true
 }
 
 rebuild-creation-rules() {
@@ -576,7 +530,7 @@ rebuild-creation-rules() {
         })
     ) as $generated_rules | .creation_rules = $generated_rules'
 
-    try yq -i "$query" .sops.yaml
+    yq -i "$query" .sops.yaml
 }
 
 # --- derived variables
@@ -604,10 +558,6 @@ public-file() {
     read-setting "public:$key"
 }
 
-keyservice() {
-    echo "${KEYSERVICE:-"keyservice"}"
-}
-
 callchain() {
     cat <<EOF
 $action:$class:$key
@@ -631,14 +581,14 @@ set-secret() {
     cat >"$(secret)"
     chmod 600 "$(secret)"
 
-    run validate || die 1 "validation failed"
+    run validate
     run encrypt-secret
 }
 
 get-public() {
     local public_file
     public_file=$(public-file)
-    [[ -f $public_file ]] || die 1 "public file '$public_file' doesn't exist"
+    [[ -f $public_file ]]
     echo "$public_file"
 }
 
@@ -662,14 +612,26 @@ usage() {
 }
 
 gen-passwd() {
-    try openssl rand -base64 12 | tr -d '\n'
+    openssl rand -base64 12 | tr -d '\n'
 }
 
-# Shorthand for running other actions with inherited context
 run() {
-    local action=$1 cmd
-    cmd="$(find-first "$(callchain)" fn-exists)"
-    $cmd
+    local action=${1:-$action} cmd
+    cmd="$(find-first "$(callchain)" fn-exists)" || die
+    $cmd | tlog debug
+}
+
+keyservice() {
+    eval "$(ssh-agent -s)" >/dev/null
+    trap 'ssh-agent -k >/dev/null 2>&1' EXIT
+    (
+        class=user
+        entity=keyservice
+        key=ssh-key
+        run cat-secret
+    ) | ssh-add - 2>/dev/null
+
+    try ssh "keyservice@$(fqdn)" "$@"
 }
 
 # --- main

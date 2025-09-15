@@ -67,21 +67,6 @@ in
     };
 
   config = mkIf (cfg != { }) {
-    home-manager.users =
-      mapAttrs
-        (user: cfg: {
-          my-nixos-hm.user = {
-            enable = true;
-            name = user;
-            uid = cfg.uid;
-          };
-        })
-        (
-          filterAttrs (
-            user: cfg: hasAttr user config.my-nixos.hm && config.my-nixos.hm.${user}.enable
-          ) eachUser
-        );
-
     sops.secrets = mapAttrs' (
       user: cfg:
       (nameValuePair "${user}/passwd-hashed") {

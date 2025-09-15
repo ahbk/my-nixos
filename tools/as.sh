@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# as.sh
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$root/lib.sh"

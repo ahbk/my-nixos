@@ -10,8 +10,9 @@ let
     types
     ;
 
-  debug = options.preservation.preserveAt.type.nestedTypes;
+  #debug = options.preservation.preserveAt.type.nestedTypes;
   cfg = config.my-nixos.debug;
+  debug = options.nix.settings.type.nestedTypes.freeformType.getSubModules;
 in
 {
   options.my-nixos.debug = {
@@ -23,6 +24,10 @@ in
   };
   config = lib.mkIf cfg.enable {
     assertions = [
+      {
+        assertion = true;
+        message = "Debug: ${debug}";
+      }
       {
         assertion = false;
         message = "Debug: subOptions has keys: ${builtins.concatStringsSep ", " (builtins.attrNames debug)}";

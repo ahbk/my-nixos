@@ -5,12 +5,30 @@ public:ssh-key: public-keys/$class-$entity-$key.pub
 public:wg-key: public-keys/$class-$entity-$key.pub
 public:tls-cert: public-keys/$class-$entity-$key.pem
 ops:
-  verify-identity:
-    actions:
-      - verify-identity
   align:
-    actions:
-      - align
+    host:
+      - align:wg-key
+    host-helsinki:
+      - align:ssh-key
+    host-lenovo:
+      - align:ssh-key
+  verify:
+    all:
+      - verify-identity:age-key
+    user-alex:
+      - verify:passwd
+      - verify:mail
+    user-admin:
+      - verify:passwd
+      - verify:mail
+    user-ami:
+      - verify:passwd
+      - verify:mail
+    host:
+      - verify:wg-key
+    host-helsinki:
+      - verify:ssh-key
+      - verify:age-key
 grants:
   domain-km:
     - host-adele
@@ -40,7 +58,7 @@ identities:
   root-1: &root-1 age1cavc8kaykuqxk9xk6ca78fea73ym32ugxvhq9ek0xgg0aar23qpqg5psm3
   host-adele: &host-adele age19qc5cv0sutfd5r2ygpl2vwy2cf6che0zhkpz2vthjmt7qljrk47qgn46vy
   host-helsinki: &host-helsinki age1pt8lptn7pz0uh09n6c7ys5455qp28c27xzg8mwp65f3wrmymmq8syqf6xa
-  host-iso: &host-iso age1dr88a544hn400m9euguppp92w56l59t5xtysr29lnu8wljtftqusd38sdt
+  host-bootstrap: &host-bootstrap age1dr88a544hn400m9euguppp92w56l59t5xtysr29lnu8wljtftqusd38sdt
   host-lenovo: &host-lenovo age14exhy3ck8m795zsm2mcck03d65w6xhryectwgxtj8w78re8lcuasrztl6y
   host-stationary: &host-stationary age15pv6x0rjv5x92daey2c0yg3lk926h8zprtku32uzp0a3fqskqa0q2wq8z6
   user-admin: &user-admin age190l6kpf9l5dlmcgh6wjvn24cr7qazgrykjr653j2k6kuxma4w5mqf94qym
@@ -53,6 +71,8 @@ identities:
   host-friday: &host-friday age15g32dcyjsr579ylcfpxnlemje3ythy30yl5q94j6kh7nlz2guynqxk8mw2
   host-glesys: &host-glesys age1tas34sz7hcqc5exu2l39dcxcfr8cuqgcgfmwcsd39t75mvprlprqznuhlr
   host-phone: &host-phone age1stgu2kujac8h0fucntv6r6fwua8rfu0sz8mq9ld5fmxxq2q2ua3s04ah39
+  user-nixbuilder: &user-nixbuilder age1n0fhevjp69cwpfpzv5q29jduzhgq6egc59fqfyr40ajfesxhsfqq5x2kcj
+  user-nixswitcher: &user-nixswitcher age1e5y0hdv08h7yawmla3vtenska9p49nswjhqckap87glm8j99y9fq4kqj2c
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -64,11 +84,11 @@ creation_rules:
       - age:
           - *root-1
           - *host-helsinki
-  - path_regex: enc/host-iso
+  - path_regex: enc/host-bootstrap
     key_groups:
       - age:
           - *root-1
-          - *host-iso
+          - *host-bootstrap
   - path_regex: enc/host-lenovo
     key_groups:
       - age:
@@ -147,3 +167,13 @@ creation_rules:
       - age:
           - *root-1
           - *host-phone
+  - path_regex: enc/user-nixbuilder
+    key_groups:
+      - age:
+          - *root-1
+          - *user-nixbuilder
+  - path_regex: enc/user-nixswitcher
+    key_groups:
+      - age:
+          - *root-1
+          - *user-nixswitcher

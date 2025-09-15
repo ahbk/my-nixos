@@ -26,4 +26,12 @@
     uid = 602;
     port = 2602;
   };
+  nixbuilder = {
+    uid = 603;
+    port = 2603;
+  };
+  nixswitcher = {
+    uid = 604;
+    port = 2604;
+  };
 }
