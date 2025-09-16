@@ -21,10 +21,13 @@ decode() {
 
 luks-key() {
     local dev=$LUKS_DEVICE
-    cryptsetup open "$dev" --key-file=<(decode "$k1") --test-passphrase || exit 1
+    decode "$k1" | cryptsetup open "$dev" --key-file=- --test-passphrase || exit 1
     [[ -n $k2 ]] || exit 0
-    cryptsetup luksAddKey "$dev" --key-file=<(decode "$k1") --new-keyfile=<(decode "$k2") &&
-        cryptsetup luksRemoveKey "$dev" --key-file=<(decode "$k1")
+    if [[ "$k1" == "$k2" ]]; then
+        decode "$k1" | cryptsetup luksRemoveKey "$dev" --key-file=-
+    else
+        decode "$k2" | cryptsetup luksAddKey "$dev" --key-file=<(decode "$k1") --new-keyfile=-
+    fi
 }
 
 wg-key() {

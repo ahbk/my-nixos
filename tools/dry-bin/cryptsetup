@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-store=$BATS_TEST_TMPDIR/hostroot/luks-key
-key_file=$BATS_TEST_TMPDIR/hostroot/luks-key.tmp
-new_key_file=$BATS_TEST_TMPDIR/hostroot/new-luks-key.tmp
-
-cat "${3#--key-file=}" >"$key_file"
+store=$BATS_TEST_TMPDIR/testhost/luks-key
+tmp_store=$BATS_TEST_TMPDIR/testhost/luks-key.tmp
+key=$(cat "${3#--key-file=}")
 
 test-key() {
-  if ! cmp -s "$key_file" "$store"; then
+  if ! grep -Fxq "$key" "$store"; then
     echo "No key available with this passphrase."
     exit 1
   fi
@@ -14,14 +12,15 @@ test-key() {
 
 case $1 in
 open)
-  test-key
+  test-key "$@"
   ;;
 luksAddKey)
   test-key
-  cat "${4#--new-keyfile=}" >"$new_key_file"
-  cat "$new_key_file" >"$store"
+  cat "${4#--new-keyfile=}" >>"$store"
+  echo >>"$store"
   ;;
 luksRemoveKey)
+  grep -vxF "$key" "$store" >"$tmp_store" && mv "$tmp_store" "$store"
   exit 0
   ;;
 *)

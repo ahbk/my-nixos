@@ -3,9 +3,6 @@
 
 export tmpdir
 
-PN='\033[0;35m'
-PB='\033[1;35m'
-
 RN='\033[0;31m'
 RB='\033[1;31m'
 GN='\033[0;32m'
@@ -14,16 +11,21 @@ YN='\033[0;33m'
 YB='\033[1;33m'
 BN='\033[0;34m'
 BB='\033[1;34m'
+PN='\033[0;35m'
+PB='\033[1;35m'
+TN='\033[0;36m'
+TB='\033[1;36m'
 NC='\033[0m'
 
 declare -A LOG_LEVELS=(
     [debug]=0
-    [focus]=99
     [info]=1
     [warning]=3
     [important]=3
     [success]=4
-    [error]=4
+    [error]=5
+    [focus]=98
+    [test]=98
     [off]=99
 )
 
@@ -42,11 +44,11 @@ touch "$cache"
 
 tlog() {
     local level=$1
-    tee >(log "$level" "$(cat)")
+    tee >(log "$level")
 }
 
 log() {
-    local level=$1 msg=$2
+    local level=$1 msg=${2:-$(cat)}
 
     [[ -n "$msg" ]] || return 0
 
@@ -70,6 +72,7 @@ log() {
     warning) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
     important) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
     error) msg="[$depth]: $RB${caller}$RN: $msg$NC" ;;
+    test) msg="[test]: $TB${caller}$TN: $msg$NC" ;;
     esac
 
     if [[ ${LOG_LEVELS[$level]} -ge ${LOG_LEVELS[${LOG_LEVEL:-info}]:-99} ]]; then
@@ -146,6 +149,11 @@ find-first() {
         return 0
     done
     die 1 $'no valid items in the chain:\n'"$chain"
+}
+
+assert() {
+    local msg=${3:-"assertion failed: '$1' != '$2'"}
+    [[ "$1" == "$2" ]] || die 1 "$msg"
 }
 
 yq-sops-i() {

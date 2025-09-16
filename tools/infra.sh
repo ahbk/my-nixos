@@ -30,7 +30,7 @@ for-all-identities() {
 
         for ak in $aks; do
             IFS=':' read -r action key <<<"$ak"
-            LOG_LEVEL=warning ./tools/id-entities.sh --"$class" "$entity" "$action" "$key"
+            LOG_LEVEL=success ./tools/id-entities.sh --"$class" "$entity" "$action" "$key"
         done
     done
 }

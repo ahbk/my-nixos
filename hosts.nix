@@ -72,9 +72,9 @@
   };
 
   bootstrap = {
-    name = "iso";
-    class = "base";
-    hostname = "iso";
+    name = "bootstrap";
+    class = "null";
+    hostname = "bootstrap.km";
     system = "x86_64-linux";
     stateVersion = "25.11";
     address = "10.0.0.254";

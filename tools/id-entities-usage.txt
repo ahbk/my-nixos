@@ -56,16 +56,13 @@ ENVIRONMENT VARIABLES
     LOG_LEVEL=[debug|info|warning|error|important|focus|off]
         Sets logging verbosity
 
-    SECRET_FILE=<path>
+    SEED_SECRET=<path>
         If set during a 'new', 'new-secret', 'init' or 'sideload' action, the contents of the
         file will be used as secret instead of generating a new one.
 
-    PATH=<path>
-        Modify path to ./tools/dry-bin/ to make dry run.
-
 EXAMPLES
     Initialize the repository for the first time with root key #1:
-        $ SECRET_FILE=<(age-keygen) ./id-entities.sh -r 1 init
+        $ SEED_SECRET=<(age-keygen) ./id-entities.sh -r 1 init
 
     Create a new host identity for 'webserver-01'
         $ ./id-entities.sh -h webserver-01 init

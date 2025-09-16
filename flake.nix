@@ -108,7 +108,7 @@
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         shellHook = ''
-          export SOPS_AGE_KEY_FILE='enc/root-1'
+          export SOPS_AGE_KEY_FILE='keys/root-1'
         '';
       };
 
