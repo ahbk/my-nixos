@@ -9,7 +9,7 @@ declare -x session class entity action key
 
 declare -x here
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "$here/lib.sh"
+. "$here/sops-yaml.sh"
 
 main() {
     for-all-identities "$1"

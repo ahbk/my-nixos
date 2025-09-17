@@ -6,7 +6,7 @@ rec {
   base = [
     ./system.nix
     ./nix.nix
-    ./keyservice.nix
+    ./locksmith.nix
   ];
 
   peer = [

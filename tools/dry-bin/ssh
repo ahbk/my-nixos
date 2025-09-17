@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-export LUKS_DEVICE="/dev/null"
-export KEY_FILE=$BATS_TEST_TMPDIR/testhost/age-key
+connection_string=$1
+fqdn="${connection_string#*@}"
 shift
-./tools/keyservice.sh "$@"
+
+export LUKS_DEVICE="/dev/null"
+export KEY_FILE=$BATS_TEST_TMPDIR/$fqdn/age-key
+
+./tools/locksmith.sh "$@"

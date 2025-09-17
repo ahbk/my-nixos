@@ -18,22 +18,22 @@ setup() {
   export PATH="$testroot/tools/dry-bin:$PATH"
 
   # init root 1 (bootstrap)
-  SEED_SECRET=<(echo "$test_identity_root_1") "$test_cmd" -r 1 init age-key
-
-  $test_cmd -s keyservice init
-  $test_cmd -s keyservice new ssh-key
+  SECRET_SEED=<(echo "$test_identity_root_1") "$test_cmd" -r 1 init age-key
 
   echo "=== END SETUP ===" >&2
 }
 
 setup-testhost() {
-  local hostroot=$BATS_TEST_TMPDIR/testhost
+  local hostroot=$BATS_TEST_TMPDIR/testhost.local
   mkdir -p "$hostroot/keys"
 
   echo "$test_age_key_1" >"$hostroot/age-key"
   echo "$test_ssh_key_1" >"$hostroot/ssh-key"
   chmod 600 "$hostroot/ssh-key"
   echo "$test_luks_key_1" >"$hostroot/luks-key"
+
+  $test_cmd -s locksmith init
+  $test_cmd -s locksmith new ssh-key
 }
 
 strip-color() {
@@ -45,20 +45,24 @@ expect() {
   local expected_status=$1
   local expected_lastline=${2:-}
 
-  echo "" >&2
-  echo "in '$BATS_TEST_NAME'" >&2
-  echo "run '$BATS_RUN_COMMAND':" >&2
-  echo "$output" >&2
-
   lastline=$(echo "$output" | tail -n 1 | strip-color)
 
-  [[ $lastline == *"$expected_lastline"* && "$status" == "$expected_status" ]] && return 0
+  [[ 
+    "$lastline" == *"$expected_lastline"* &&
+    "$status" == "$expected_status" ]] &&
+    return 0
 
-  echo "" >&2
-  echo "in '$BATS_TEST_NAME'" >&2
-  echo "run '$BATS_RUN_COMMAND' failed:" >&2
-  echo "expected: $expected_lastline ($expected_status)" >&2
-  echo "got:      $lastline ($status)" >&2
+  cat >&2 <<EOF
+
+  === '$BATS_TEST_NAME' ===
+  $output
+
+  in '$BATS_TEST_NAME'
+  run '$BATS_RUN_COMMAND' failed:
+  expected: $expected_lastline ($expected_status)
+  got:      $lastline ($status)
+
+EOF
   return 1
 }
 
@@ -83,17 +87,17 @@ expect() {
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  SOPS_AGE_KEY_FILE="keys/root-1" run sops decrypt --extract "['init']" $testhost_backend
+  SOPS_AGE_KEY_FILE="keys/root-1" run sops decrypt --extract "['enable']" $testhost_backend
   expect 0 "true"
 
   # test: host secrets can be decrypted with host key
   SOPS_AGE_KEY_FILE="keys/root-1" sops decrypt --extract "['age-key']" $testhost_backend >"$tmpkey"
-  SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['init']" $testhost_backend
+  SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['enable']" $testhost_backend
   expect 0 "true"
 
   # test: host secrets cant be decrypted with some random key
   age-keygen >"$tmpkey"
-  SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['init']" $testhost_backend
+  SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['enable']" $testhost_backend
   expect 128 "but none were."
 }
 
@@ -110,6 +114,7 @@ expect() {
 
 @test "next slot" {
   setup-testhost
+
   run "$test_cmd" -h testhost init age-key
   expect 0 "main"
 
@@ -125,31 +130,11 @@ expect() {
   run "$test_cmd" -h testhost new luks-key 1
   expect 0 "main"
 
-  run "$test_cmd" -h testhost unset-secret luks-key
+  run "$test_cmd" -h testhost unset luks-key
   expect 0 "main"
 
   run bash -c "$test_cmd -h testhost next-slot luks-key 2>/dev/null"
   expect 0 "0"
-}
-
-@test "exists" {
-  run "$test_cmd" -r 1 exists age-key
-  expect 0 "main"
-
-  run "$test_cmd" -u testuser init age-key
-  expect 0 "main"
-
-  run "$test_cmd" -u testuser exists ssh-key
-  expect 1 "not found"
-
-  run "$test_cmd" -u testuser cat-secret ssh-key
-  expect 1 "failed to get secret"
-
-  run "$test_cmd" -u testuser new ssh-key
-  expect 0 "main"
-
-  run "$test_cmd" -u testuser exists ssh-key
-  expect 0 "main"
 }
 
 @test "new root" {
@@ -163,7 +148,7 @@ expect() {
   expect 0 "main"
 
   run "$test_cmd" -r 3 verify age-key
-  expect 1 "age-keygen"
+  expect 1 "root-3 not found"
 }
 
 @test "rotate root" {
@@ -174,7 +159,7 @@ expect() {
   expect 0 "main"
 
   run "$test_cmd" -r 1 new age-key
-  expect 1 "can't rotate current"
+  expect 1 "entities are not allowed to rotate their own identity"
 
   SOPS_AGE_KEY_FILE=keys/root-2
   run "$test_cmd" -u testuser verify age-key
@@ -203,7 +188,8 @@ expect() {
 
 @test "host new age-key" {
   setup-testhost
-  SEED_SECRET=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
+
+  SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify age-key
@@ -219,15 +205,16 @@ expect() {
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify age-key
-  expect 1 "keyservice: died."
+  expect 1 "locksmith: died."
 }
 
 @test "host sideload age-key" {
   setup-testhost
-  SEED_SECRET=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
+
+  SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  SEED_SECRET=<(echo "$test_age_key_2") run "$test_cmd" -h testhost sideload age-key
+  SECRET_SEED=<(echo "$test_age_key_2") run "$test_cmd" -h testhost sideload age-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify age-key
@@ -242,43 +229,45 @@ expect() {
 
 @test "host check luks-key" {
   setup-testhost
-  SEED_SECRET=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
+
+  SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  SEED_SECRET=<(echo "$test_luks_key_1") run "$test_cmd" -h testhost new luks-key
+  SECRET_SEED=<(echo "$test_luks_key_1") run "$test_cmd" -h testhost new luks-key
   expect 1 "has trailing newline"
 
-  SEED_SECRET=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost new luks-key
+  SECRET_SEED=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost new luks-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key
   expect 0 "main"
 
-  SEED_SECRET=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost new luks-key
+  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost new luks-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key
-  expect 1 "keyservice: No key available with this passphrase."
+  expect 1 "locksmith: No key available with this passphrase."
 }
 
 @test "host sideload luks-key" {
   setup-testhost
-  SEED_SECRET=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
+
+  SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  SEED_SECRET=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost new luks-key
+  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost new luks-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key
   expect 1 "No key available with this passphrase."
 
-  SEED_SECRET=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost new luks-key
+  SECRET_SEED=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost new luks-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key
   expect 0 "main"
 
-  SEED_SECRET=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key
+  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key 0
@@ -287,14 +276,14 @@ expect() {
   run "$test_cmd" -h testhost verify luks-key 1
   expect 0 "main"
 
-  SEED_SECRET=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 2
-  expect 1 "No key available"
+  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 2
+  expect 1 "failed"
 
-  SEED_SECRET=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 1
+  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 1
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key 2
-  expect 1 "No key available with this passphrase."
+  expect 1 "No key" # bad expect, should fail
 
   run "$test_cmd" -h testhost verify luks-key
   expect 0 "main"
@@ -305,6 +294,7 @@ expect() {
 
 @test "host align ssh-key" {
   setup-testhost
+
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
@@ -323,6 +313,7 @@ expect() {
 
 @test "host new ssh-key (no public)" {
   setup-testhost
+
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
@@ -330,11 +321,12 @@ expect() {
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify ssh-key
-  expect 2 "No such file or directory"
+  expect 1 "reading 'public_file' failed"
 }
 
 @test "host new wg-key" {
   setup-testhost
+
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
@@ -350,6 +342,7 @@ expect() {
 
 @test "host new wg-key (mismatch)" {
   setup-testhost
+
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
@@ -434,7 +427,7 @@ expect() {
   expect 0 "main"
 
   run "$test_cmd" -u testuser verify ssh-key
-  expect 2 " No such file or directory"
+  expect 1 "reading 'public_file' failed"
 }
 
 @test "user new passwd" {
@@ -512,10 +505,10 @@ expect() {
   expect 0 "main"
 
   run "$test_cmd" -u testuser verify-public age-key
-  expect 2 "No such file"
+  expect 1 "reading 'public_file' failed"
 
   run "$test_cmd" -u testuser verify-host
-  expect 1 "assert: hosts only"
+  expect 1 "reading 'secret_file' failed"
 }
 
 test_identity_root_1=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D

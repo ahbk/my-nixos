@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-store=$BATS_TEST_TMPDIR/testhost/luks-key
-tmp_store=$BATS_TEST_TMPDIR/testhost/luks-key.tmp
+store=$BATS_TEST_TMPDIR/testhost.local/luks-key
+tmp_store=$BATS_TEST_TMPDIR/testhost.local/luks-key.tmp
 key=$(cat "${3#--key-file=}")
 
 test-key() {

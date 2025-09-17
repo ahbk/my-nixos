@@ -12,19 +12,19 @@ let
     mkIf
     types
     ;
-  cfg = config.my-nixos.keyservice;
+  cfg = config.my-nixos.locksmith;
 
-  keyservicePkg =
-    pkgs.runCommand "keyservice"
+  locksmithPkg =
+    pkgs.runCommand "locksmith"
       {
         buildInputs = [ pkgs.makeWrapper ];
       }
       ''
         mkdir -p $out/bin
-        cp ${../tools/keyservice.sh} $out/bin/keyservice-unwrapped
-        chmod +x $out/bin/keyservice-unwrapped
+        cp ${../tools/locksmith.sh} $out/bin/locksmith-unwrapped
+        chmod +x $out/bin/locksmith-unwrapped
 
-        makeWrapper $out/bin/keyservice-unwrapped $out/bin/keyservice \
+        makeWrapper $out/bin/locksmith-unwrapped $out/bin/locksmith \
           --prefix PATH : ${
             lib.makeBinPath [
               pkgs.cryptsetup
@@ -36,43 +36,43 @@ let
       '';
 in
 {
-  options.my-nixos.keyservice = {
-    enable = mkEnableOption "user keyservice";
+  options.my-nixos.locksmith = {
+    enable = mkEnableOption "user locksmith";
     luksDevice = mkOption {
       type = types.str;
     };
   };
 
   config = mkIf (cfg.enable) {
-    environment.systemPackages = [ keyservicePkg ];
-    users.users.keyservice = {
+    environment.systemPackages = [ locksmithPkg ];
+    users.users.locksmith = {
       isSystemUser = true;
       shell = pkgs.bash;
 
       openssh.authorizedKeys.keyFiles = [
-        ../public-keys/user-keyservice-ssh-key.pub
+        ../public-keys/service-locksmith-ssh-key.pub
       ];
-      uid = ids.keyservice.uid;
-      group = "keyservice";
+      uid = ids.locksmith.uid;
+      group = "locksmith";
     };
 
-    users.groups.keyservice = {
-      gid = ids.keyservice.uid;
+    users.groups.locksmith = {
+      gid = ids.locksmith.uid;
     };
 
     services.openssh = {
       extraConfig = ''
-        Match User keyservice
-          ForceCommand sudo ${keyservicePkg}/bin/keyservice \$SSH_ORIGINAL_COMMAND
+        Match User locksmith
+          ForceCommand sudo ${locksmithPkg}/bin/locksmith \$SSH_ORIGINAL_COMMAND
       '';
     };
 
     security.sudo.extraRules = [
       {
-        users = [ "keyservice" ];
+        users = [ "locksmith" ];
         commands = [
           {
-            command = "${keyservicePkg}/bin/keyservice *";
+            command = "${locksmithPkg}/bin/locksmith *";
             options = [ "NOPASSWD" ];
           }
         ];

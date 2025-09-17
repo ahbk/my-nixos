@@ -41,7 +41,7 @@ grants:
     - host-helsinki
     - host-laptop
     - host-stationary
-  service-keyservice:
+  service-locksmith:
     - host-adele
     - host-lenovo
     - host-helsinki
@@ -64,7 +64,7 @@ identities:
   user-admin: &user-admin age190l6kpf9l5dlmcgh6wjvn24cr7qazgrykjr653j2k6kuxma4w5mqf94qym
   user-alex: &user-alex age18hl27m8zv5lclv2r89ltv5n0mpk5sr8s23fec3ve9sj0qufh2uqq4ccstz
   user-ami: &user-ami age1avku5tyyvu9ndlqfcvd7r4nme84alce4f3shpqrxr93e8a747amskte558
-  service-keyservice: &service-keyservice age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2
+  service-locksmith: &service-locksmith age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2
   host-laptop: &host-laptop age17f2stt0f6yrunz0pfu3hf6rr5fcasgt7g2wyv3sq8a6a28j4jgwq2lywpy
   service-tunnelservice: &service-tunnelservice age1z44ue69etcfw69ryc7mndtepgxt65ulwndrrlqjvc5nz29fzgs0sut3agn
   domain-km: &domain-km age1y5k2wqd0au34lecrt53xpwdtm0rwkvpkulgmwqrhz2p8a9zn8gxqvgts9g
@@ -122,11 +122,11 @@ creation_rules:
           - *root-1
           - *user-ami
           - *host-adele
-  - path_regex: enc/service-keyservice
+  - path_regex: enc/service-locksmith
     key_groups:
       - age:
           - *root-1
-          - *service-keyservice
+          - *service-locksmith
           - *host-adele
           - *host-lenovo
           - *host-helsinki

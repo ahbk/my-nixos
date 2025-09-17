@@ -1,46 +1,46 @@
 #!/usr/bin/env bash
-# lib.sh
+# run-with.bash
 
-export tmpdir
-
-RN='\033[0;31m'
-RB='\033[1;31m'
-GN='\033[0;32m'
-GB='\033[1;32m'
-YN='\033[0;33m'
-YB='\033[1;33m'
-BN='\033[0;34m'
-BB='\033[1;34m'
-PN='\033[0;35m'
-PB='\033[1;35m'
-TN='\033[0;36m'
-TB='\033[1;36m'
-NC='\033[0m'
-
-declare -A LOG_LEVELS=(
-    [debug]=0
-    [info]=1
-    [warning]=3
-    [important]=3
-    [success]=4
-    [error]=5
-    [focus]=98
-    [test]=98
-    [off]=99
-)
-
-quiet() { "$@" >/dev/null 2>&1; }
-
-cleanup() {
-    if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
-        rm -fR "$tmpdir"
-    fi
+run() {
+    local action cmd
+    for action; do
+        with callchain
+        cmd="$(find-first "$callchain" fn-exists)" || die
+        $cmd
+    done
 }
-trap cleanup EXIT
 
-tmpdir=$(mktemp -d)
-declare cache="$tmpdir/cache"
-touch "$cache"
+with() {
+    local cmd var out
+    for cmd; do
+        var=${cmd//-/_}
+        var=${var//:/_}
+        if ! out="$("$cmd")"; then
+            die 1 "reading '$cmd' failed"
+        fi
+        printf -v "$var" '%s' "$out"
+    done
+}
+
+run-with() {
+    local action cmd
+    for action; do
+        with callchain
+        for item in $callchain; do
+            fn-exists "$item" >/dev/null || continue
+            with "$item"
+        done
+    done
+}
+
+quiet() {
+    "$@" >/dev/null 2>&1
+}
+
+proxy() {
+    with "$1"
+    echo "${!1}"
+}
 
 tlog() {
     local level=$1
@@ -57,6 +57,7 @@ log() {
 
     [[ $caller != tlog ]] || caller=${FUNCNAME[2]}
     [[ $caller != die ]] || caller=${FUNCNAME[2]}
+    [[ $caller != with ]] || caller=${FUNCNAME[3]}
     [[ $caller != try ]] || caller=${FUNCNAME[3]}
 
     [[ "$msg" == *$'\n'* ]] && {
@@ -151,15 +152,46 @@ find-first() {
     die 1 $'no valid items in the chain:\n'"$chain"
 }
 
-assert() {
-    local msg=${3:-"assertion failed: '$1' != '$2'"}
-    [[ "$1" == "$2" ]] || die 1 "$msg"
+cleanup() {
+    if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
+        rm -fR "$tmpdir"
+    fi
 }
 
-yq-sops-i() {
-    yq -i "$(echo "$1" | envsubst)" .sops.yaml
-}
+declare -x tmpdir
+tmpdir=$(mktemp -d)
 
-yq-sops-e() {
-    yq -e "$(echo "$1" | envsubst)" .sops.yaml | envsubst
-}
+# shellcheck disable=SC2034
+declare -g callchain action
+declare -x pipe=$tmpdir/pipe
+declare -g cache="$tmpdir/cache"
+
+RN='\033[0;31m'
+RB='\033[1;31m'
+GN='\033[0;32m'
+GB='\033[1;32m'
+YN='\033[0;33m'
+YB='\033[1;33m'
+BN='\033[0;34m'
+BB='\033[1;34m'
+PN='\033[0;35m'
+PB='\033[1;35m'
+TN='\033[0;36m'
+TB='\033[1;36m'
+NC='\033[0m'
+
+declare -A LOG_LEVELS=(
+    [debug]=0
+    [info]=1
+    [warning]=3
+    [important]=3
+    [success]=4
+    [error]=5
+    [focus]=98
+    [test]=98
+    [off]=99
+)
+
+touch "$cache"
+mkfifo "$pipe"
+trap cleanup EXIT

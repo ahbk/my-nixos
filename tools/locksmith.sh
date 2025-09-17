@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# keyservice.sh
+# locksmith.sh
 
 set -euo pipefail
 
