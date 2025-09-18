@@ -2,10 +2,11 @@
 # run-with.bash
 
 run() {
-    local action cmd
-    for action; do
+    local context cmd
+    for context; do
+        printf -v "$command_context_identifier" '%s' "$context"
         with callchain
-        cmd="$(find-first "$callchain" fn-exists)" || die
+        cmd="$(find-first "$callchain" fn-exists)"
         $cmd
     done
 }
@@ -16,15 +17,16 @@ with() {
         var=${cmd//-/_}
         var=${var//:/_}
         if ! out="$("$cmd")"; then
-            die 1 "reading '$cmd' failed"
+            exit 1
         fi
         printf -v "$var" '%s' "$out"
     done
 }
 
 run-with() {
-    local action cmd
-    for action; do
+    local context cmd
+    for context; do
+        printf -v "$command_context_identifier" '%s' "$context"
         with callchain
         for item in $callchain; do
             fn-exists "$item" >/dev/null || continue
@@ -162,7 +164,7 @@ declare -x tmpdir
 tmpdir=$(mktemp -d)
 
 # shellcheck disable=SC2034
-declare -g callchain action
+declare -g callchain command_context_identifier="command"
 declare -x pipe=$tmpdir/pipe
 declare -g cache="$tmpdir/cache"
 

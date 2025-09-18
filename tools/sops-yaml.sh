@@ -16,13 +16,14 @@ EOF
 }
 
 create-sops-backend() {
-    local backend_file=$1
+    local backend_path=$1
+    mkdir -p "$(dirname "$backend_path")"
     # shellcheck disable=SC2094
     # SC believes we're reading from $(backend_file) here, but --filename-override
     # simply tells sops what creation rule to use, so this is ok.
     echo "enable: true" | try sops encrypt \
-        --filename-override "$backend_file" \
-        /dev/stdin >"$backend_file"
+        --filename-override "$backend_path" \
+        /dev/stdin >"$backend_path"
 }
 
 read-setting() {
@@ -36,14 +37,15 @@ search-setting() {
 autocomplete-identity() {
     local matches
     matches=$(
-        q=$1 yq-sops-e '(
+        q=$1 try yq-sops-e '(
         .identities
             | keys
             | map(select(. | contains("$q")))[]
-            // error("no match for $q")
+            // error("`$q` did not match any identities")
         )'
-    ) || return
-    (($(echo "$matches" | wc -l) == 1)) || die 1 "ambiguous query"
+    )
+    (($(echo "$matches" | wc -l) == 1)) ||
+        die 1 "$matches"$'\n'"^ ambiguous query, which did you mean?"
     echo "$matches"
 }
 

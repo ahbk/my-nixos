@@ -1,9 +1,9 @@
 NAME
     id-entities.sh - Manage (id)entities like hosts, users or domains.
 
-SYNOPSIS
-    id-entities.sh [--root|--host|--user|--domain] <entity> <action> [key]
-    id-entities.sh <entity-pattern> <action> [key]
+USAGE
+    id-entities.sh [--root|--host|--user|--domain|--service] <entity> <action> [key] [slot]
+    id-entities.sh <identity-query> <action> [key] [slot]
     id-entities.sh --help
 
 DESCRIPTION

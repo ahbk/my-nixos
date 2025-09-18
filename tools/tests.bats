@@ -277,18 +277,18 @@ EOF
   expect 0 "main"
 
   SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 2
-  expect 1 "failed"
+  expect 1 "component ['luks-key--2'] not found"
 
-  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 1
+  SECRET_SEED=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost sideload luks-key 0
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key 2
-  expect 1 "No key" # bad expect, should fail
-
-  run "$test_cmd" -h testhost verify luks-key
-  expect 0 "main"
+  expect 1 "component ['luks-key--2'] not found"
 
   run "$test_cmd" -h testhost verify luks-key 1
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify luks-key
   expect 1 "No key available with this passphrase."
 }
 
@@ -321,7 +321,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify ssh-key
-  expect 1 "reading 'public_file' failed"
+  expect 1 "no public file at public/host-testhost-ssh-key.pub"
 }
 
 @test "host new wg-key" {
@@ -427,7 +427,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -u testuser verify ssh-key
-  expect 1 "reading 'public_file' failed"
+  expect 1 "no public file at public/user-testuser-ssh-key.pub"
 }
 
 @test "user new passwd" {
@@ -495,8 +495,8 @@ EOF
   run "$test_cmd" -d testdomain init
   expect 1 "already exists"
 
-  run "$test_cmd" -d otherdomain new
-  expect 1 "correctly?"
+  run "$test_cmd" -d tetsdomain new
+  expect 1 "did you spell 'tetsdomain' correctly?"
 
   run "$test_cmd" -r 1 new ssh-key
   expect 1 "not allowed"
@@ -505,10 +505,25 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -u testuser verify-public age-key
-  expect 1 "reading 'public_file' failed"
+  expect 1 "age-key not found"
 
   run "$test_cmd" -u testuser verify-host
-  expect 1 "reading 'secret_file' failed"
+  expect 1 "only hosts can have fqdn"
+
+  run "$test_cmd" -s testuser init
+  expect 0 "main"
+
+  run "$test_cmd" testuser cat-secret
+  expect 1 "ambiguous query"
+
+  run "$test_cmd" -u testuser cat-secret passwd
+  expect 1 "component ['passwd'] not found"
+
+  run "$test_cmd" -h testhost init
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify-sha512
+  expect 1 "component ['age-key-sha512'] not found"
 }
 
 test_identity_root_1=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D

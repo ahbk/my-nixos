@@ -37,7 +37,8 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 main() {
     setup "$@" && run "$action"
     sync
-    log success "$action $key for $(id) completed."
+    with id
+    log success "$action $key for $id completed."
 }
 
 setup() {
@@ -55,12 +56,15 @@ setup() {
             shift
             set -- "$entity" "$@"
             set -- "$class" "$@"
+        else
+            exit 1
         fi
         ;;
     esac
 
     case ${class:-} in
     root | host | user | domain | service)
+        command_context_identifier="action"
         entity=${2:?"entity name required"}
         action=${3:?"action is required"}
         key=${4-"age-key"}
@@ -70,9 +74,6 @@ setup() {
     help)
         less "$here/id-entities-usage.txt"
         exit 0
-        ;;
-    *)
-        die 1 "'$1' is not a valid command." usage
         ;;
     esac
 
@@ -96,12 +97,13 @@ check-backend() {
         die 1 "can't init '$entity', '$backend_path' already exists."
 
     [[ $class == "root" || $action == "init" || -f "$backend_path" ]] ||
-        die 1 "'$backend_path' doesn't exist, did you spell $class correctly?"
+        die 1 "'$backend_path' doesn't exist, did you spell '$entity' correctly?"
 }
 
 check-doas() {
     # first root need not be checked, as it has nothing to be checked against
-    [[ "$action-$(id)" != "init-root-1" ]] || return 0
+    with id
+    [[ "$action-$id" != "init-root-1" ]] || return 0
 
     doas=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | find-identity) ||
         die 1 "no identity found in '$SOPS_AGE_KEY_FILE'"
@@ -123,7 +125,6 @@ init::() {
     fi
 
     upsert-identity
-    mkdir -p "$(dirname "$backend_path")"
     create-sops-backend "$backend_path"
     run new
 }
@@ -150,12 +151,6 @@ new:host:ssh-key() {
 
 new:host:luks-key() { run new-secret; }
 
-new-secret::age-key() {
-    [[ "$(id)" != "${doas:-}" ]] ||
-        die 1 "entities are not allowed to rotate their own identity"
-    new-secret::
-}
-
 new-secret::() {
     with secret_seed
 
@@ -166,50 +161,34 @@ new-secret::() {
     fi
 }
 
+new-secret::age-key() {
+    with id
+    [[ "$id" != "${doas:-}" ]] ||
+        die 1 "entities are not allowed to rotate their own identity"
+    new-secret::
+}
+
 # --- create-secret:*:*
 
-create-secret::age-key() {
-    age-keygen 2> >(log info) | tail -1
-}
-
-create-secret::ssh-key() {
-    local s
-    s=$(mktemp "$tmpdir/XXXXXX") && rm "$s"
-    try ssh-keygen -t "ed25519" -f "$s" -N "" -C "$(id)" > >(log info)
-    cat "$s"
-}
-
+create-secret::age-key() { try age-keygen 2> >(log info) | tail -1; }
 create-secret::wg-key() { try wg genkey; }
 create-secret::luks-key() { try passphrase 12; }
 create-secret::tls-cert() { try openssl genpkey -algorithm ED25519; }
 create-secret::passwd() { try passphrase 8; }
 create-secret::mail() { try passphrase 8; }
 
-# --- derive-public:*:*
-
-derive-public::age-key() { run cat-secret | try age-keygen -y; }
-derive-public::wg-key() { run cat-secret | try wg pubkey; }
-
-derive-public::ssh-key() {
-    with secret_file
-    try ssh-keygen -y -C "" -f "$secret_file"
-}
-
-derive-public::tls-cert() {
-    run cat-secret | try openssl req -new -x509 -key /dev/stdin \
-        -subj "/CN=*.$entity" \
-        -addext "subjectAltName=DNS:*.$entity,DNS:$entity" \
-        -nodes -out - -days 3650
+create-secret::ssh-key() {
+    local s
+    with id
+    s=$(mktemp "$tmpdir/XXXXXX") && rm "$s"
+    try ssh-keygen -t "ed25519" -f "$s" -N "" -C "$id" > >(log info)
+    cat "$s"
 }
 
 # --- validate:*:*
 # --- validate-[sha512|passphrase]:*:*
 
-validate::() {
-    with secret_file
-    trailing-newline "$secret_file" && derived_public_file >/dev/null
-}
-
+validate::() { derive_public >/dev/null; }
 validate::luks-key() { run validate-passphrase; }
 validate::passwd() { run validate-passphrase; }
 validate::mail() { run validate-passphrase; }
@@ -236,17 +215,12 @@ validate-passphrase::() {
 # --- verify-[public|identity|host|sha512]:*:*
 
 verify::age-key() { run verify-identity; }
+verify::ssh-key() { run verify-public; }
 verify::wg-key() { run verify-public; }
+verify:host:age-key() { run verify-identity verify-host; }
 verify:host:luks-key() { run verify-host; }
-verify:service:ssh-key() { run verify-public; }
-verify:user:ssh-key() { run verify-public; }
 verify:user:passwd() { run verify-sha512; }
 verify:user:mail() { run verify-sha512; }
-
-verify:host:age-key() {
-    run verify-identity
-    run verify-host
-}
 
 verify:host:ssh-key() {
     with public_file
@@ -266,18 +240,18 @@ verify:domain:tls-cert() {
 }
 
 verify-identity::() {
-    with derived_public_file
-    get-identity | try diff "$derived_public_file" -
+    with derive_public
+    get-identity | try diff "$derive_public" -
 }
 
 verify-public::() {
-    with derived_public_file public_file
-    try diff "$derived_public_file" "$public_file"
+    with derive_public public_file
+    try diff "$derive_public" "$public_file"
 }
 
 verify-host::() {
     with base64_secret
-    locksmith "$key" "$base64_secret"
+    echo "$base64_secret" | locksmith "$key"
 }
 
 verify-sha512::() {
@@ -291,8 +265,7 @@ verify-sha512::() {
 align::age-key() { upsert-identity; }
 align::wg-key() { run align-public; }
 align::tls-cert() { run align-public; }
-align:service:ssh-key() { run align-public; }
-align:user:ssh-key() { run align-public; }
+align::ssh-key() { run align-public; }
 align:user:passwd() { run align-sha512; }
 align:user:mail() { run align-sha512; }
 
@@ -308,6 +281,23 @@ align-public::() {
 
 align-sha512::() {
     run sha512-secret | key=$key-sha512 run encrypt
+}
+
+# --- derive-public:*:*
+
+derive-public::age-key() { run cat-secret | try age-keygen -y; }
+derive-public::wg-key() { run cat-secret | try wg pubkey; }
+
+derive-public::ssh-key() {
+    with secret_file
+    try ssh-keygen -y -C "" -f "$secret_file"
+}
+
+derive-public::tls-cert() {
+    run cat-secret | try openssl req -new -x509 -key /dev/stdin \
+        -subj "/CN=*.$entity" \
+        -addext "subjectAltName=DNS:*.$entity,DNS:$entity" \
+        -nodes -out - -days 3650
 }
 
 # --- [encrypt|decrypt|unset]:*:*
@@ -329,8 +319,8 @@ encrypt:root:() {
 }
 
 decrypt::() {
-    with backend_path backend_component
-    try sops decrypt --extract "$backend_component" "$backend_path"
+    with backend_file backend_component
+    try sops decrypt --extract "$backend_component" "$backend_file"
 }
 
 decrypt:root:() {
@@ -365,21 +355,18 @@ scan:host:ssh-key() {
 # --- sideload:*:*
 
 sideload:host:luks-key() {
-    with secret_seed
-    local new_base64_secret
+    with secret_file secret_seed
 
-    if secret_file | cmp -s - "$secret_seed"; then
+    if cmp -s "$secret_file" "$secret_seed"; then
         run base64-secret new base64-secret | locksmith "$key"
         return
     fi
 
-    with base64_secret next_slot
-    new_base64_secret=$(
-        slot=$next_slot
-        run new base64-secret
-    )
-
-    printf '%s\n%s\n' "$base64_secret" "$new_base64_secret" | locksmith "$key"
+    with next_slot
+    {
+        run base64-secret
+        slot=$next_slot run new base64-secret
+    } | locksmith "$key"
 }
 
 sideload:host:age-key() {
@@ -390,8 +377,7 @@ sideload:host:age-key() {
 # --- cat-[secret|public]:*:*
 
 cat-secret::() {
-    with secret_file
-    cat "$secret_file"
+    with secret_file && cat "$secret_file"
 }
 
 cat-public::() {
@@ -431,8 +417,9 @@ secret_path() {
 
 secret_file() {
     with secret_path
-    [[ -s $secret_path ]] || run decrypt >"$secret_path"
-    echo "$secret_path"
+    [[ -s $secret_path ]] ||
+        run decrypt >"$secret_path" &&
+        echo "$secret_path"
 }
 
 public_path() {
@@ -441,11 +428,12 @@ public_path() {
 
 public_file() {
     with public_path
-    try test -f "$public_path"
-    echo "$public_path"
+    test -s "$public_path" &&
+        echo "$public_path" ||
+        die 1 "no public file at $public_path"
 }
 
-derived_public_file() {
+derive_public() {
     local f="$tmpdir/$class.$entity.$key.public"
     [[ -f $f ]] || run derive-public >"$f"
     echo "$f"
@@ -466,6 +454,26 @@ backend_path() {
     search-setting "backend:$class backend"
 }
 
+backend_enabled() {
+    with backend_path
+    local enabled rc
+    enabled=$(try sops decrypt --extract "['enable']" "$backend_path")
+    rc=$?
+    case $rc in
+    0) echo "$enabled" ;;
+    100) die 1 "backend file missing for '$entity'" ;;
+    esac
+}
+
+backend_file() {
+    with backend_path backend_enabled
+    if [[ "$backend_enabled" == "true" ]]; then
+        echo "$backend_path"
+    else
+        die 1 "backend for '$entity' disabled"
+    fi
+}
+
 exact_key() {
     local exact_key=$key
     [[ "$slot" == "0" ]] || exact_key+="--$slot"
@@ -480,6 +488,7 @@ backend_component() {
 }
 
 fqdn() {
+    [[ $class == "host" ]] || die 1 "only hosts can have fqdn"
     read-setting "fqdn"
 }
 
@@ -513,13 +522,16 @@ sha512_secret() {
 
 # declarations of all lazy variables to satisfy shellcheck
 declare -g \
+    id \
     backend_path \
+    backend_file \
+    backend_enabled \
     backend_component \
     secret_path \
     secret_file \
     public_path \
     public_file \
-    derived_public_file \
+    derive_public \
     secret_seed \
     fqdn \
     base64_secret \
@@ -531,12 +543,23 @@ declare -g \
 # --- misc helpers
 
 usage() {
-    sed -n '/^SYNOPSIS$/,/^$/p' "$here/id-entities-usage.txt"
+    sed -n '/^USAGE$/,/^$/p' "$here/id-entities-usage.txt"
 }
 
 locksmith() {
     with fqdn
-    local payload=${2:-$(cat)}
+
+    if [ -t 0 ]; then
+        die 1 "no payload"
+    fi
+
+    local lines payload
+
+    payload=$(cat)
+    [[ -n $payload ]] || die 1 "empty payload"
+
+    lines=$(echo "$payload" | wc -l)
+    (("$lines" == 1 || "$lines" == 2)) || die 1 "payload must be 1-2 lines (was $lines)"
 
     log debug "payload:"$'\n'"$payload"
 
