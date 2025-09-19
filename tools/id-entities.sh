@@ -6,9 +6,18 @@
 # SC2317: This script has a dispatcher that makes dynamic calls to functions
 # that shellcheck believes are unreachable, so we disable this check globally.
 #
-# SC2030/31: The exported variables (see below) are affected by indirect calls
-# with altered context (e.g. var=new-value command). This may be an
-# anti-pattern, but it's not accidental, so we mute these warnings.
+# SC2030/31: The following exported variables are reassigned in subshells:
+#            (subshells inherit all of them except 'slot')
+#
+#     doas     the identity currently running this script
+#     entity   name of the target for all operations
+#     prefix   action/namespace to be performed
+#     class    the type of entity. can be host, user, service etc.
+#     key      type of key. can be age-key, ssh-key, passwd etc.
+#     slot     used for key juggling, does not interfere by default (0)
+#
+# This is not accidental, so we mute these warnings.
+# Will resort to discipline to uphold the de facto readonly status of these.
 #
 # SC2015: Got it, A && B || C is not if/then/else
 # SC2029: Noted, double qoutes in ssh commands expand client side
@@ -17,7 +26,7 @@
 
 set -euo pipefail
 
-declare -x doas class entity action key
+declare -x doas entity prefix class key
 declare -g slot
 
 declare -A allowed_keys=(
@@ -28,17 +37,27 @@ declare -A allowed_keys=(
     ["domain"]="age-key tls-cert"
 )
 
-declare -x here
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+declare -r here
 
+# import run, with, log/try/die etc.
 . "$here/run-with.bash"
+
+# import upsert-identity, read-setting etc.
 . "$here/sops-yaml.sh"
 
 main() {
-    setup "$@" && run "$action"
-    sync
+    # setup prefix, class, key etc.
+    setup "$@" || die 1 "setup failed"
+
+    # run most specific command matching ^$prefix
+    # (keep scrolling down for a gradual introduction of 'run' et al.)
+    run "$prefix"
+
+    # 'with id' runs id() and brings the result into scope $id,
+    # like a lazy variable.
     with id
-    log success "$action $key for $id completed."
+    sync && log success "$prefix $key for $id completed."
 }
 
 setup() {
@@ -50,60 +69,63 @@ setup() {
     -u | --user) class="user" ;;
     -d | --domain) class="domain" ;;
     -s | --service) class="service" ;;
-    -H | --help) class="help" ;;
+    -H | --help)
+        less "$here/id-entities-usage.txt"
+        exit 0
+        ;;
     *)
         if IFS='-' read -r class entity < <(autocomplete-identity "$1"); then
             shift
             set -- "$entity" "$@"
             set -- "$class" "$@"
         else
-            exit 1
+            die 1 "could not infer a valid context" usage
         fi
         ;;
     esac
 
-    case ${class:-} in
-    root | host | user | domain | service)
-        command_context_identifier="action"
-        entity=${2:?"entity name required"}
-        action=${3:?"action is required"}
-        key=${4-"age-key"}
-        slot=${5:-0}
-        check-input
-        ;;
-    help)
-        less "$here/id-entities-usage.txt"
-        exit 0
-        ;;
-    esac
+    entity=${2:?"entity name required"}
+    prefix=${3:?"prefix is required"}
+    key=${4-"age-key"}
+    slot=${5:-0}
 
-    [[ -f ".sops.yaml" ]] || create-sops-yaml
+    check-input
+    check-sops-yaml
     check-backend
     check-doas
 }
 
 check-input() {
-    fn-match "$action:" ||
-        die 1 "'$action' is not a valid action"
+    fn-match "$prefix" ||
+        die 1 "no link matches prefix '$prefix'"
 
     [[ " ${allowed_keys[$class]} " == *" $key "* ]] ||
         die 1 "$key not allowed for $class, allowed keys: ${allowed_keys[$class]}"
 }
 
+check-sops-yaml() {
+    with id
+    [[ "$prefix-$id" == "init-root-1" && ! -f ".sops.yaml" ]] && {
+        log important "bootstrap conditions, creating .sops.yaml."
+        create-sops-yaml
+    }
+
+    [[ -f ".sops.yaml" ]] || die 1 "needs .sops.yaml in working directory"
+}
+
 check-backend() {
     with backend_path
-
-    [[ $action == "init" && -f "$backend_path" ]] &&
+    [[ $prefix == "init" && -f "$backend_path" ]] &&
         die 1 "can't init '$entity', '$backend_path' already exists."
 
-    [[ $class == "root" || $action == "init" || -f "$backend_path" ]] ||
+    [[ $prefix == "init" || -f "$backend_path" ]] ||
         die 1 "'$backend_path' doesn't exist, did you spell '$entity' correctly?"
 }
 
 check-doas() {
-    # first root need not be checked, as it has nothing to be checked against
+    # bootstrap root-1 need not be checked, as it has nothing to be checked against
     with id
-    [[ "$action-$id" != "init-root-1" ]] || return 0
+    [[ "$prefix-$id" != "init-root-1" ]] || return 0
 
     doas=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | find-identity) ||
         die 1 "no identity found in '$SOPS_AGE_KEY_FILE'"
@@ -111,11 +133,35 @@ check-doas() {
     log important "$doas"
 }
 
-# === section 1: dispatchables
+# === section 1: links
+#
+# links are commands that are named so that they can be inferred by the context,
+# they have the following structure:
+#
+# prefix:[class]:[key] (e.g. derive-artifact:host:ssh-key)
+#
+# 'run' runs a list (callchain) of all reasonable arrangements (4) ordered from
+# most specific to most general. Like this:
+#
+# verify:host:ssh-key
+# verify:host
+# verify:ssh-key
+# verify:
+#
+# there are ~70 links and they are listed below grouped by prefix and sorted
+# roughly by typical workflow order
 
 # --- init:*:*
 
-init::() {
+# note the trailing colon! it causes the callchain to terminate here instead
+# of invoking next link
+init:root:() {
+    run new
+}
+
+# non-root entities require a little dance to insert themselves in .sops.yaml
+# before backend is created (the age-key is encrypted by the age-key)
+init:() {
     with secret_seed secret_path backend_path
 
     if [[ -s "$secret_seed" ]]; then
@@ -124,36 +170,43 @@ init::() {
         run create-secret >"$secret_path"
     fi
 
-    upsert-identity
+    with id
+    run derive-artifact | upsert-identity "$id"
     create-sops-backend "$backend_path"
     run new
 }
 
-init:root:age-key() {
-    run new-secret
-    upsert-identity
+# --- new:*:*
+
+new:() {
+    run new-secret align
 }
 
-# --- new:*:*
+# hosts' ssh-keys are normally aligned against ssh-keyscan, but we don't want to rely
+# on live environment when setting up new hosts, hence this override.
+new:host:ssh-key:() {
+    run new-secret
+    derive-artifact:ssh-key: | run set-artifact
+
+    with artifact_file
+    log warning "next 'align' will replace public ssh key at '$artifact_file'"
+}
+
+# here's just a guard to prevent identities from rotating themselves out of
+# access, note the absence of a trailing colon, the callchain will invoke
+# next link (which is new: in this case) as usual if the guard passes.
+new:age-key() {
+    with id
+    [[ "$id" != "${doas:-}" ]] ||
+        die 1 "entities are not allowed to rotate their own identity"
+}
+
 # --- new-secret:*:*
 
-new::() { run new-secret align; }
-
-new:root:age-key() {
-    run new-secret
-    upsert-identity
-}
-
-new:host:ssh-key() {
-    run new-secret align-public
-    log warning "public ssh keys will be overwritten by host scans on align"
-}
-
-new:host:luks-key() { run new-secret; }
-
-new-secret::() {
+new-secret:() {
+    # If SECRET_SEED is set to the path to a file, the path will be available
+    # in $secret_seed
     with secret_seed
-
     if [[ -s "$secret_seed" ]]; then
         run encrypt <"$secret_seed"
     else
@@ -161,23 +214,57 @@ new-secret::() {
     fi
 }
 
-new-secret::age-key() {
-    with id
-    [[ "$id" != "${doas:-}" ]] ||
-        die 1 "entities are not allowed to rotate their own identity"
-    new-secret::
+# --- align:*:*
+
+align:() {
+    run derive-artifact | run set-artifact
+}
+
+# these two links below provide a mechanism for aligning ssh-keys against
+# stored secrets instead of ssh-keyscan, example:
+#
+# align from host scan (run funcion below and terminate):
+# id-entities.sh -h [host] align ssh-key
+#
+# align from stored secret (follow the default flow for non-host ssh-keys)
+# id-entities.sh -h [host] align:ssh-key ssh-key
+align:ssh-key:() {
+    derive-artifact:ssh-key: | run set-artifact
+}
+
+align:host:ssh-key:() {
+    align:
 }
 
 # --- create-secret:*:*
 
-create-secret::age-key() { try age-keygen 2> >(log info) | tail -1; }
-create-secret::wg-key() { try wg genkey; }
-create-secret::luks-key() { try passphrase 12; }
-create-secret::tls-cert() { try openssl genpkey -algorithm ED25519; }
-create-secret::passwd() { try passphrase 8; }
-create-secret::mail() { try passphrase 8; }
+create-secret:age-key() {
+    try age-keygen 2> >(log info) | tail -1
+}
 
-create-secret::ssh-key() {
+create-secret:wg-key() {
+    try wg genkey
+}
+
+create-secret:luks-key() {
+    try passphrase 12
+}
+
+create-secret:tls-cert() {
+    try openssl genpkey -algorithm ED25519
+}
+
+create-secret:passwd() {
+    try passphrase 8
+}
+
+# nixos-mailserver has unix-like user management, so mail will piggyback
+# on passwd for all ops
+create-secret:mail() {
+    create-secret:passwd
+}
+
+create-secret:ssh-key() {
     local s
     with id
     s=$(mktemp "$tmpdir/XXXXXX") && rm "$s"
@@ -186,21 +273,45 @@ create-secret::ssh-key() {
 }
 
 # --- validate:*:*
-# --- validate-[sha512|passphrase]:*:*
 
-validate::() { derive_public >/dev/null; }
-validate::luks-key() { run validate-passphrase; }
-validate::passwd() { run validate-passphrase; }
-validate::mail() { run validate-passphrase; }
-validate::passwd-sha512() { run validate-sha512; }
-validate::mail-sha512() { run validate-sha512; }
-
-validate-sha512::() {
-    run-with cat-secret
-    [[ "$cat_secret__" =~ ^\$6\$[^$]+\$[./0-9A-Za-z]+$ ]]
+validate:() {
+    # secrets without artifacts may supply null operations here
+    run derive-artifact >/dev/null
 }
 
-validate-passphrase::() {
+validate:luks-key() {
+    validate-passphrase
+}
+
+validate:passwd() {
+    validate-passphrase
+}
+
+validate:mail() {
+    validate:passwd
+}
+
+# this key 'passwd-sha512' is actually artifact for 'passwd', so it is banned
+# from deriving artifacts and we terminate the callchain with a trailing colon
+validate:passwd-sha512:() {
+    validate-sha512
+}
+
+validate:mail-sha512:() {
+    validate:passwd-sha512
+}
+
+validate-sha512() {
+    # 'run-with cat-secret' does what it sounds like: brings the secret into
+    # scope under variable cat_secret_
+    #
+    # highly unusual and ill-adviced in general, but ssh-512's are already
+    # hashed and encrypted so we might as well take bash and run with it.
+    run-with cat-secret
+    [[ "$cat_secret_" =~ ^\$6\$[^$]+\$[./0-9A-Za-z]+$ ]]
+}
+
+validate-passphrase() {
     with secret_file
     local min_length=6
 
@@ -212,97 +323,154 @@ validate-passphrase::() {
 }
 
 # --- verify:*:*
-# --- verify-[public|identity|host|sha512]:*:*
 
-verify::age-key() { run verify-identity; }
-verify::ssh-key() { run verify-public; }
-verify::wg-key() { run verify-public; }
-verify:host:age-key() { run verify-identity verify-host; }
-verify:host:luks-key() { run verify-host; }
-verify:user:passwd() { run verify-sha512; }
-verify:user:mail() { run verify-sha512; }
-
-verify:host:ssh-key() {
-    with public_file
-    scan:host:ssh-key | try diff - "$public_file"
+verify:() {
+    with derive_artifact artifact_file
+    try diff "$derive_artifact" "$artifact_file"
 }
 
-verify:domain:tls-cert() {
-    with public_file secret_file
-
-    try openssl x509 -in "$public_file" -checkend 2592000
-
-    openssl x509 -in "$public_file" -noout -ext subjectAltName |
-        try grep -q "DNS:$entity"
-
-    openssl pkey -in "$secret_file" -pubout |
-        try diff - <(openssl x509 -in "$public_file" -pubkey -noout)
-}
-
-verify-identity::() {
-    with derive_public
-    get-identity | try diff "$derive_public" -
-}
-
-verify-public::() {
-    with derive_public public_file
-    try diff "$derive_public" "$public_file"
-}
-
-verify-host::() {
+verify:host() {
+    # here we retreive secret before opening a pipe to locksmith to prevent
+    # locksmith errors from masking retreival errors
     with base64_secret
     echo "$base64_secret" | locksmith "$key"
 }
 
-verify-sha512::() {
-    key=$key-sha512 with secret_file
-    run sha512-secret | try diff - "$secret_file"
+# a hook again
+# this link will run after 'verify:host' only to invoke 'verify:' which
+# would have run naturally if this very link didn't terminate it, why?
+#
+# the reason is to provide a hook so it can be targeted from the outside world:
+#
+# 'verify' will do a full verification, including host check:
+# id-entities.sh -h [host] verify age-key
+#
+# 'verify:age-key' will skip the host check and only verify artifact:
+# id-entities.sh -h [host] verify:age-key age-key
+verify:age-key:() {
+    verify:
 }
 
-# --- align:*:*
-# --- align-[public|sha512]:*:*
-
-align::age-key() { upsert-identity; }
-align::wg-key() { run align-public; }
-align::tls-cert() { run align-public; }
-align::ssh-key() { run align-public; }
-align:user:passwd() { run align-sha512; }
-align:user:mail() { run align-sha512; }
-
-align:host:ssh-key() {
-    with public_path
-    scan:host:ssh-key >"$public_path"
+# ssh-keys don't use locksmith to verify, they use ssh-keyscan
+# (hosts' derived artifact by default)
+verify:host:ssh-key:() {
+    verify:
 }
 
-align-public::() {
-    with public_path
-    run derive-public >"$public_path"
+# this is a hook for doing offline verification on host ssh-keys
+verify:ssh-key:() {
+    with artifact_file
+    derive-artifact:ssh-key: | try diff - "$artifact_file"
 }
 
-align-sha512::() {
-    run sha512-secret | key=$key-sha512 run encrypt
+verify:domain:tls-cert:() {
+    with artifact_file secret_file
+
+    try openssl x509 -in "$artifact_file" -checkend 2592000 | log info
+
+    openssl x509 -in "$artifact_file" -noout -ext subjectAltName |
+        try grep -q "DNS:$entity"
+
+    openssl pkey -in "$secret_file" -pubout |
+        try diff - <(openssl x509 -in "$artifact_file" -pubkey -noout)
 }
 
-# --- derive-public:*:*
+# --- derive-artifact:*:*
 
-derive-public::age-key() { run cat-secret | try age-keygen -y; }
-derive-public::wg-key() { run cat-secret | try wg pubkey; }
+derive-artifact:age-key:() {
+    cat-secret: | try age-keygen -y
+}
 
-derive-public::ssh-key() {
+derive-artifact:passwd:() {
+    sha512-secret:
+}
+
+derive-artifact:mail:() {
+    derive-artifact:passwd
+}
+
+# luks-keys have no public artifact
+derive-artifact:luks-key:() {
+    :
+}
+
+derive-artifact:wg-key:() {
+    cat-secret: | try wg pubkey
+}
+
+derive-artifact:ssh-key:() {
     with secret_file
     try ssh-keygen -y -C "" -f "$secret_file"
 }
 
-derive-public::tls-cert() {
+derive-artifact:tls-cert:() {
     run cat-secret | try openssl req -new -x509 -key /dev/stdin \
         -subj "/CN=*.$entity" \
         -addext "subjectAltName=DNS:*.$entity,DNS:$entity" \
         -nodes -out - -days 3650
 }
 
+derive-artifact:host:ssh-key:() {
+    with fqdn
+    try ssh-keyscan -q "$fqdn" | awk '{print $2, $3}'
+}
+
+# --- get-artifact:*
+
+get-artifact:() {
+    with artifact_path
+    test -s "$artifact_path" &&
+        echo "$artifact_path" ||
+        die 1 "no artifact at $artifact_path"
+}
+
+get-artifact:age-key() {
+    with artifact_path
+    # the public age-key is stored under .identities in .sops.yaml.
+    get-identity >"$artifact_path"
+}
+
+get-artifact:passwd() {
+    with artifact_path
+    # create subshell to retreive secret from passwd-sha512 and use as artifact
+    key=$key-sha512 cat-secret: >"$artifact_path"
+}
+
+get-artifact:mail() {
+    get-artifact:passwd
+}
+
+get-artifact:luks-key:() {
+    echo /dev/null
+}
+
+# --- set-artifact:*
+
+set-artifact:() {
+    with artifact_path
+    cat >"$artifact_path"
+}
+
+set-artifact:age-key:() {
+    with id
+    upsert-identity "$id"
+}
+
+set-artifact:luks-key:() {
+    :
+}
+
+set-artifact:passwd:() {
+    key=$key-sha512 run encrypt
+}
+
+set-artifact:mail:() {
+    set-artifact:passwd
+}
+
 # --- [encrypt|decrypt|unset]:*:*
 
-encrypt::() {
+encrypt:() {
     with secret_path
     cat >"$secret_path"
     run validate
@@ -318,7 +486,7 @@ encrypt:root:() {
     try cp -a "$secret_path" "$backend_path"
 }
 
-decrypt::() {
+decrypt:() {
     with backend_file backend_component
     try sops decrypt --extract "$backend_component" "$backend_file"
 }
@@ -328,28 +496,28 @@ decrypt:root:() {
     try cat "$backend_path"
 }
 
-unset::() {
+unset:() {
     with backend_path backend_component
     try sops unset "$backend_path" "$backend_component"
 }
 
 # --- rebuild:*:*
 
-rebuild::() {
+rebuild:() {
     try rebuild-creation-rules
     [[ $class != "root" ]] || return 0
 
     with backend_path
+    local rc=0
     sops updatekeys -y "$backend_path" \
         > >(log important) \
-        2> >(grep "synced with" | log info) || true
-}
+        2> >(grep "synced with" | log info) ||
+        rc=$?
 
-# --- scan:*:*
-
-scan:host:ssh-key() {
-    with fqdn
-    try ssh-keyscan -q "$fqdn" | awk '{print $2, $3}'
+    case $rc in
+    0 | 1) return ;;
+    *) die $rc ;;
+    esac
 }
 
 # --- sideload:*:*
@@ -357,11 +525,17 @@ scan:host:ssh-key() {
 sideload:host:luks-key() {
     with secret_file secret_seed
 
+    # if the currently held secret and the user provide secret are identical,
+    # pass them to looksmith as two (also identical) base64-strings.
+    # this will instruct locksmith to drop the luks-key on the host.
     if cmp -s "$secret_file" "$secret_seed"; then
         run base64-secret new base64-secret | locksmith "$key"
         return
     fi
 
+    # otherwise create a new secret under first available slot and pass them
+    # as two base64-strings, this will instruct locksmith to add the second
+    # passphrase.
     with next_slot
     {
         run base64-secret
@@ -370,40 +544,46 @@ sideload:host:luks-key() {
 }
 
 sideload:host:age-key() {
-    run verify-identity
+    verify:age-key:
+    # age-keys are stacked in the hosts' key file and will remain until
+    # garbage-collected.
     run base64-secret new base64-secret | locksmith "$key"
 }
 
-# --- cat-[secret|public]:*:*
+# --- cat-[secret|artifact]:*:*
 
-cat-secret::() {
+cat-secret:() {
     with secret_file && cat "$secret_file"
 }
 
-cat-public::() {
-    with public_file
-    cat "$public_file"
+cat-artifact:() {
+    with artifact_file && cat "$artifact_file"
 }
 
-# --- proxies (lazy variables exposed as actions)
+# --- proxies (lazy variables exposed as links)
 
-next-slot::() { proxy next_slot; }
-base64-secret::() { proxy base64_secret; }
-json-secret::() { proxy json_secret; }
-sha512-secret::() { proxy sha512_secret; }
+next-slot:() { proxy next_slot; }
+base64-secret:() { proxy base64_secret; }
+json-secret:() { proxy json_secret; }
+sha512-secret:() { proxy sha512_secret; }
 
-# === section 2: lazy variables
+# === section 2: lazy variables (idempotent functions)
 
+# the %%:* drops everything past the first colon. if prefix is 'verify:ssh-key'
+# it would become 'verify'.
+# 'run' filters out all lines that doesn't match the full prefix
 callchain() {
     cat <<EOF
-$action:$class:$key
-$action:$class:
-$action::$key
-$action::
+${prefix%%:*}:$class:$key
+${prefix%%:*}:$class
+${prefix%%:*}:$key
+${prefix%%:*}:
 EOF
 }
 
-id() { echo "$class-$entity"; }
+id() {
+    echo "$class-$entity"
+}
 
 secret_path() {
     with exact_key
@@ -422,20 +602,27 @@ secret_file() {
         echo "$secret_path"
 }
 
-public_path() {
-    read-setting "public:$key"
+artifact_path() {
+    local s
+    # secrets that have public keys and other artifacts can store them at a
+    # permanent location specified in .sops.yaml
+    if s=$(LOG_LEVEL=off read-setting "artifact:$key"); then
+        echo "$s"
+    else
+        # otherwise a temp-file will be used
+        with exact_key
+        echo "$tmpdir/$class.$entity.$exact_key.artifact"
+    fi
 }
 
-public_file() {
-    with public_path
-    test -s "$public_path" &&
-        echo "$public_path" ||
-        die 1 "no public file at $public_path"
+artifact_file() {
+    run get-artifact
 }
 
-derive_public() {
-    local f="$tmpdir/$class.$entity.$key.public"
-    [[ -f $f ]] || run derive-public >"$f"
+derive_artifact() {
+    with exact_key
+    local f=$tmpdir/$class.$entity.$exact_key.derived
+    [[ -f $f ]] || run derive-artifact >"$f"
     echo "$f"
 }
 
@@ -454,6 +641,15 @@ backend_path() {
     search-setting "backend:$class backend"
 }
 
+backend_file() {
+    with backend_path backend_enabled
+    if [[ "$backend_enabled" == "true" ]]; then
+        echo "$backend_path"
+    else
+        die 1 "backend for '$entity' disabled"
+    fi
+}
+
 backend_enabled() {
     with backend_path
     local enabled rc
@@ -463,15 +659,6 @@ backend_enabled() {
     0) echo "$enabled" ;;
     100) die 1 "backend file missing for '$entity'" ;;
     esac
-}
-
-backend_file() {
-    with backend_path backend_enabled
-    if [[ "$backend_enabled" == "true" ]]; then
-        echo "$backend_path"
-    else
-        die 1 "backend for '$entity' disabled"
-    fi
 }
 
 exact_key() {
@@ -520,7 +707,7 @@ sha512_secret() {
     run cat-secret | mkpasswd -sm sha-512 -S "$salt"
 }
 
-# declarations of all lazy variables to satisfy shellcheck
+# declare lazy variables here to keep shellcheck happy
 declare -g \
     id \
     backend_path \
@@ -529,16 +716,16 @@ declare -g \
     backend_component \
     secret_path \
     secret_file \
-    public_path \
-    public_file \
-    derive_public \
+    artifact_path \
+    artifact_file \
+    derive_artifact \
     secret_seed \
     fqdn \
     base64_secret \
     json_secret \
     exact_key \
     next_slot \
-    cat_secret__
+    cat_secret_
 
 # --- misc helpers
 
@@ -559,12 +746,13 @@ locksmith() {
     [[ -n $payload ]] || die 1 "empty payload"
 
     lines=$(echo "$payload" | wc -l)
-    (("$lines" == 1 || "$lines" == 2)) || die 1 "payload must be 1-2 lines (was $lines)"
-
-    log debug "payload:"$'\n'"$payload"
+    (("$lines" == 1 || "$lines" == 2)) ||
+        die 1 "payload must be 1-2 lines (was $lines)"
 
     eval "$(ssh-agent -s)" >/dev/null
     trap 'ssh-agent -k >/dev/null 2>&1' EXIT
+
+    # create a subshell to retreive locksmith's ssh-key
     (
         class=service
         entity=locksmith
@@ -573,9 +761,9 @@ locksmith() {
         run cat-secret
     ) | ssh-add - 2>/dev/null
 
-    echo "$payload" | ssh "locksmith@$fqdn" "$1" \
+    echo "$payload" | try ssh "locksmith@$fqdn" "$1" \
         > >(log info) \
-        2> >(log error) || die
+        2> >(log error)
 }
 
 # --- main

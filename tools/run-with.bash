@@ -2,13 +2,46 @@
 # run-with.bash
 
 run() {
-    local context cmd
-    for context; do
-        printf -v "$command_context_identifier" '%s' "$context"
-        with callchain
-        cmd="$(find-first "$callchain" fn-exists)"
-        $cmd
+    local prefix callchain
+    local wrapper=${wrapper:-passthru}
+    for prefix; do
+        callchain=$(callchain | grep "^${prefix%:}")
+        links=$(find-links "$callchain")
+        log debug "$links"
+        [[ -n $links ]] ||
+            die 1 "'$prefix' didn't match any link in the callchain:"$'\n'"$(callchain)"
+        run-chain "$wrapper" "$links"
     done
+}
+
+find-links() {
+    local out rc
+
+    for link in $1; do
+        rc=0
+        out=$(link "$link") || rc=$?
+        case $rc in
+        0) echo "$out" ;;
+        1) continue ;;
+        2) echo "$out" && break ;;
+        esac
+    done
+}
+
+passthru() {
+    "$@"
+}
+
+run-chain() {
+    for link in $2; do
+        "$1" "$link"
+    done
+}
+
+link() {
+    declare -F "$1:" && exit 2
+    declare -F "$1" && exit 0
+    exit 1
 }
 
 with() {
@@ -24,16 +57,11 @@ with() {
 }
 
 run-with() {
-    local context cmd
-    for context; do
-        printf -v "$command_context_identifier" '%s' "$context"
-        with callchain
-        for item in $callchain; do
-            fn-exists "$item" >/dev/null || continue
-            with "$item"
-        done
-    done
+    wrapper=with run "$@"
 }
+
+cache-in() { try tee >"$1"; }
+cache-out() { try cat "$1"; }
 
 quiet() {
     "$@" >/dev/null 2>&1
@@ -50,9 +78,14 @@ tlog() {
 }
 
 log() {
-    local level=$1 msg=${2:-$(cat)}
+    local level=$1
 
-    [[ -n "$msg" ]] || return 0
+    if [[ $# -gt 1 ]]; then
+        msg="$2"
+    else
+        msg="$(cat)"
+        [[ -n "$msg" ]] || return 0
+    fi
 
     local caller=${FUNCNAME[1]}
     local depth=${#FUNCNAME[@]}
@@ -133,21 +166,9 @@ trailing-newline() {
 }
 
 find-first() {
-    local chain=$1 cmd=$2 index
-
-    read -r index <<<"$chain"
-
-    if grep -Fxq "$index" "$cache"; then
-        log debug "cache hit: $index"
-        grep -A1 -Fx "$index" "$cache" | tail -n1
-        return 0
-    fi
-
+    local chain=$1 cmd=$2
     for item in $chain; do
         result=$("$cmd" "$item" 2>/dev/null) || continue
-
-        printf '%s\n%s\n' "$index" "$result" >>"$cache"
-        log debug "$result"
         echo "$result"
         return 0
     done
@@ -194,6 +215,6 @@ declare -A LOG_LEVELS=(
     [off]=99
 )
 
-touch "$cache"
+mkdir -p "$cache"
 mkfifo "$pipe"
 trap cleanup EXIT

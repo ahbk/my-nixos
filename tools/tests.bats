@@ -13,7 +13,7 @@ setup() {
   mkdir -p "$testroot"
   cp -a "$here" "$testroot"
   cd "$testroot"
-  mkdir "enc" "keys" "public"
+  mkdir "enc" "keys" "artifacts"
 
   export PATH="$testroot/tools/dry-bin:$PATH"
 
@@ -67,10 +67,10 @@ EOF
 }
 
 @test "setup works" {
-  public_key=$(age-keygen -y <"keys/root-1")
+  artifact=$(age-keygen -y <"keys/root-1")
   root_identity=$(yq ".identities.root-1" .sops.yaml)
 
-  [[ $public_key == "$root_identity" ]]
+  [[ $artifact == "$root_identity" ]]
 }
 
 @test "no args" {
@@ -138,7 +138,7 @@ EOF
 }
 
 @test "new root" {
-  run "$test_cmd" -r 2 new age-key
+  run "$test_cmd" -r 2 init age-key
   expect 0 "main"
 
   run "$test_cmd" -r 1 verify age-key
@@ -148,7 +148,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -r 3 verify age-key
-  expect 1 "root-3 not found"
+  expect 1 "did you spell '3' correctly?"
 }
 
 @test "rotate root" {
@@ -166,7 +166,7 @@ EOF
   expect 1 "no identity found in 'keys/root-2'"
 
   SOPS_AGE_KEY_FILE=keys/root-1
-  run "$test_cmd" -r 2 new age-key
+  run "$test_cmd" -r 2 init age-key
   expect 0 "main"
 
   run $test_cmd -u testuser rebuild
@@ -198,8 +198,11 @@ EOF
   run "$test_cmd" -h testhost new-secret age-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify age-key
+  run "$test_cmd" -h testhost verify:age-key age-key
   expect 1 " > age"
+
+  run "$test_cmd" -h testhost verify:host age-key
+  expect 1 "locksmith: died."
 
   run "$test_cmd" -h testhost align age-key
   expect 0 "main"
@@ -304,14 +307,23 @@ EOF
   run "$test_cmd" -h testhost verify ssh-key
   expect 1 " > ssh-ed25519 AAAA"
 
+  run "$test_cmd" -h testhost verify:ssh-key ssh-key
+  expect 0 "main"
+
   run "$test_cmd" -h testhost align ssh-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify ssh-key
   expect 0 "main"
+
+  run "$test_cmd" -h testhost align:ssh-key ssh-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify ssh-key
+  expect 1 " > ssh-ed25519 AAAA"
 }
 
-@test "host new ssh-key (no public)" {
+@test "host new ssh-key (no artifact)" {
   setup-testhost
 
   run "$test_cmd" -h testhost init
@@ -321,7 +333,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify ssh-key
-  expect 1 "no public file at public/host-testhost-ssh-key.pub"
+  expect 1 "no artifact at artifacts/host-testhost-ssh-key.pub"
 }
 
 @test "host new wg-key" {
@@ -336,7 +348,7 @@ EOF
   run "$test_cmd" -h testhost verify wg-key
   expect 0 "main"
 
-  run test -f "$testroot/public/host-testhost-wg-key.pub"
+  run test -f "$testroot/artifacts/host-testhost-wg-key.pub"
   expect 0
 }
 
@@ -401,7 +413,7 @@ EOF
   run "$test_cmd" -u testuser verify ssh-key
   expect 0 "main"
 
-  run test -f "$testroot/public/user-testuser-ssh-key.pub"
+  run test -f "$testroot/artifacts/user-testuser-ssh-key.pub"
   expect 0
 }
 
@@ -419,7 +431,7 @@ EOF
   expect 1 " > ssh-ed25519 AAAA"
 }
 
-@test "user new ssh-key (no public)" {
+@test "user new ssh-key (no artifacts)" {
   run "$test_cmd" -u testuser init
   expect 0 "main"
 
@@ -427,7 +439,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -u testuser verify ssh-key
-  expect 1 "no public file at public/user-testuser-ssh-key.pub"
+  expect 1 "no artifact at artifacts/user-testuser-ssh-key.pub"
 }
 
 @test "user new passwd" {
@@ -470,7 +482,7 @@ EOF
   run "$test_cmd" -d testdomain verify tls-cert
   expect 0 "main"
 
-  run test -f "$testroot/public/domain-testdomain-tls-cert.pem"
+  run test -f "$testroot/artifacts/domain-testdomain-tls-cert.pem"
   expect 0
 }
 
@@ -504,26 +516,17 @@ EOF
   run "$test_cmd" -u testuser init
   expect 0 "main"
 
-  run "$test_cmd" -u testuser verify-public age-key
-  expect 1 "age-key not found"
-
-  run "$test_cmd" -u testuser verify-host
-  expect 1 "only hosts can have fqdn"
-
   run "$test_cmd" -s testuser init
   expect 0 "main"
 
   run "$test_cmd" testuser cat-secret
-  expect 1 "ambiguous query"
+  expect 1 "could not infer a valid context"
 
   run "$test_cmd" -u testuser cat-secret passwd
   expect 1 "component ['passwd'] not found"
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
-
-  run "$test_cmd" -h testhost verify-sha512
-  expect 1 "component ['age-key-sha512'] not found"
 }
 
 test_identity_root_1=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D

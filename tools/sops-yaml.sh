@@ -9,9 +9,9 @@ create-sops-yaml() {
 fqdn: $entity.local
 backend: enc/$class-$entity.yaml
 backend:root: keys/$class-$entity
-public:ssh-key: public/$class-$entity-$key.pub
-public:wg-key: public/$class-$entity-$key.pub
-public:tls-cert: public/$class-$entity-$key.pem
+artifact:ssh-key: artifacts/$class-$entity-$key.pub
+artifact:wg-key: artifacts/$class-$entity-$key.pub
+artifact:tls-cert: artifacts/$class-$entity-$key.pem
 EOF
 }
 
@@ -64,7 +64,7 @@ get-identity() {
 }
 
 upsert-identity() {
-    age_key=$(run derive-public) id="$(id)" \
+    age_key=$(cat) id="$1" \
         yq-sops-i '(
             .identities.$id = "$age_key" |
             .identities.$id anchor = "$id"

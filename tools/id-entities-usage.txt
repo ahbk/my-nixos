@@ -2,8 +2,8 @@ NAME
     id-entities.sh - Manage (id)entities like hosts, users or domains.
 
 USAGE
-    id-entities.sh [--root|--host|--user|--domain|--service] <entity> <action> [key] [slot]
-    id-entities.sh <identity-query> <action> [key] [slot]
+    id-entities.sh [--root|--host|--user|--domain|--service] <entity> <prefix> [key] [slot]
+    id-entities.sh <identity-query> <prefix> [key] [slot]
     id-entities.sh --help
 
 DESCRIPTION
@@ -13,7 +13,7 @@ DESCRIPTION
 
     All commands follow the same grammar, the first argument specifies the class
     of the entity (--user for humans, --host for machines etc.), next argument names
-    an entity, the third is the action to perform and last argument names
+    an entity, the third is the prefix to perform and last argument names
     the key. Different procedures are assigned to different combinations of these
     commands, and the output will show which procedures were chosen.
 
@@ -29,7 +29,7 @@ CLASS and ENTITY
    --domain <entity> Things that span over several hosts
 
 ACTIONS
-    The action specifies the operation to perform on the entity:
+    The prefix specifies the operation to perform on the entity:
 
     init             Create a new age identity and encrypted backend.
     new              Create/renew all. Equivalent to new-secret + align.
@@ -57,42 +57,42 @@ ENVIRONMENT VARIABLES
         Sets logging verbosity
 
     SEED_SECRET=<path>
-        If set during a 'new', 'new-secret', 'init' or 'sideload' action, the contents of the
+        If set during a 'new', 'new-secret', 'init' or 'sideload' prefix, the contents of the
         file will be used as secret instead of generating a new one.
 
 EXAMPLES
     Initialize the repository for the first time with root key #1:
-        $ SEED_SECRET=<(age-keygen) ./id-entities.sh -r 1 init
+        $ SEED_SECRET=<(age-keygen) id-entities.sh -r 1 init
 
     Create a new host identity for 'webserver-01'
-        $ ./id-entities.sh -h webserver-01 init
+        $ id-entities.sh -h webserver-01 init
 
     Sideload age-key to host (see modules/keyservice.nix to setup keyservice)
-        $ ./id-entities.sh -h webserver-01 sideload
+        $ id-entities.sh -h webserver-01 sideload
 
     Check if it's there
-        $ ./id-entities.sh -h webserver-01 verify
+        $ id-entities.sh -h webserver-01 verify
 
     Scan host and retreive the public key
-        $ ./id-entities.sh -h webserver-01 align ssh-key
+        $ id-entities.sh -h webserver-01 align ssh-key
 
     Check if it worked
-        $ ./id-entities.sh -h webserver-01 verify ssh-key
+        $ id-entities.sh -h webserver-01 verify ssh-key
 
     Create a new password for user 'jane':
-        $ ./id-entities.sh -u jane new passwd
+        $ id-entities.sh -u jane new passwd
 
     Write the sha-512 hash to stdout:
-        $ ./id-entities.sh -u jane cat-secret passwd-hashed
+        $ id-entities.sh -u jane cat-secret passwd-hashed
 
     Renew passwd only, without modifying the hash
-        $ ./id-entities.sh -u jane new-secret passwd
+        $ id-entities.sh -u jane new-secret passwd
 
     See how they don't match
-        $ ./id-entities.sh -u jane verify passwd
+        $ id-entities.sh -u jane verify passwd
 
     Sync again
-        $ ./id-entities.sh -u jane align passwd
+        $ id-entities.sh -u jane align passwd
 
     See how they match
-        $ ./id-entities.sh -u jane verify passwd
+        $ id-entities.sh -u jane verify passwd

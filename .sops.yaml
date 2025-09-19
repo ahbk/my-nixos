@@ -1,9 +1,9 @@
 fqdn: $entity.km
 backend: enc/$class-$entity.yaml
 backend:root: keys/$class-$entity
-public:ssh-key: public-keys/$class-$entity-$key.pub
-public:wg-key: public-keys/$class-$entity-$key.pub
-public:tls-cert: public-keys/$class-$entity-$key.pem
+artifact:ssh-key: public-keys/$class-$entity-$key.pub
+artifact:wg-key: public-keys/$class-$entity-$key.pub
+artifact:tls-cert: public-keys/$class-$entity-$key.pem
 ops:
   rebuild:
     all:
