@@ -1,30 +1,34 @@
 #!/usr/bin/env bash
 # run-with.bash
 
+tmpdir=$(mktemp -d)
+declare -rx tmpdir
+
+cleanup() {
+    if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
+        rm -fR "$tmpdir"
+    fi
+}
+trap cleanup EXIT
+
+# take a list of prefixes and run their callchains
 run() {
-    local prefix callchain
-    local wrapper=${wrapper:-passthru}
+    local cmd links
+    cmd="${cmd:-passthru}"
+
     for prefix; do
-        callchain=$(callchain | grep "^${prefix%:}")
-        links=$(find-links "$callchain")
-        log debug "$links"
+        links=$(for link in $(callchain | grep "^${prefix%:}"); do
+            declare -F "$link:" && break || declare -F "$link" || continue
+        done)
+
         [[ -n $links ]] ||
             die 1 "'$prefix' didn't match any link in the callchain:"$'\n'"$(callchain)"
-        run-chain "$wrapper" "$links"
-    done
-}
 
-find-links() {
-    local out rc
+        log debug "$links"
 
-    for link in $1; do
-        rc=0
-        out=$(link "$link") || rc=$?
-        case $rc in
-        0) echo "$out" ;;
-        1) continue ;;
-        2) echo "$out" && break ;;
-        esac
+        for link in $links; do
+            "$cmd" "$link"
+        done
     done
 }
 
@@ -32,36 +36,16 @@ passthru() {
     "$@"
 }
 
-run-chain() {
-    for link in $2; do
-        "$1" "$link"
-    done
-}
-
-link() {
-    declare -F "$1:" && exit 2
-    declare -F "$1" && exit 0
-    exit 1
-}
-
 with() {
-    local cmd var out
+    local cmd out
     for cmd; do
-        var=${cmd//-/_}
-        var=${var//:/_}
-        if ! out="$("$cmd")"; then
-            exit 1
-        fi
-        printf -v "$var" '%s' "$out"
+        out="$("$cmd")" && printf -v "${cmd//[^a-zA-Z0-9_]/_}" '%s' "$out" || exit 1
     done
 }
 
 run-with() {
-    wrapper=with run "$@"
+    cmd=with run "$@"
 }
-
-cache-in() { try tee >"$1"; }
-cache-out() { try cat "$1"; }
 
 quiet() {
     "$@" >/dev/null 2>&1
@@ -147,47 +131,16 @@ try() {
 }
 
 fn-exists() {
-    local fn=$1
-    declare -F "$fn" >/dev/null && echo "$fn"
+    declare -F "$1"
 }
 
 fn-match() {
-    local pat=$1
-    declare -F | awk '{print $3}' | grep -E "$pat" >/dev/null
+    declare -F | awk '{print $3}' | grep -E "$1" >/dev/null
 }
 
 trailing-newline() {
-    local file
-    file=$1
-    if [[ $(tail -c1 "$file" | hexdump -C) == *"0a"* ]]; then
-        return 0
-    fi
-    return 1
+    [[ $(tail -c1 "$1" | hexdump -C) == *"0a"* ]]
 }
-
-find-first() {
-    local chain=$1 cmd=$2
-    for item in $chain; do
-        result=$("$cmd" "$item" 2>/dev/null) || continue
-        echo "$result"
-        return 0
-    done
-    die 1 $'no valid items in the chain:\n'"$chain"
-}
-
-cleanup() {
-    if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
-        rm -fR "$tmpdir"
-    fi
-}
-
-declare -x tmpdir
-tmpdir=$(mktemp -d)
-
-# shellcheck disable=SC2034
-declare -g callchain command_context_identifier="command"
-declare -x pipe=$tmpdir/pipe
-declare -g cache="$tmpdir/cache"
 
 RN='\033[0;31m'
 RB='\033[1;31m'
@@ -214,7 +167,3 @@ declare -A LOG_LEVELS=(
     [test]=98
     [off]=99
 )
-
-mkdir -p "$cache"
-mkfifo "$pipe"
-trap cleanup EXIT

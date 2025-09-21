@@ -31,7 +31,12 @@ read-setting() {
 }
 
 search-setting() {
-    find-first "$1" read-setting
+    local result
+    for item; do
+        result=$(read-setting "$item" 2>/dev/null) || continue
+        echo "$result"
+        return 0
+    done
 }
 
 autocomplete-identity() {

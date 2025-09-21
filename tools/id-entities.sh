@@ -50,11 +50,11 @@ main() {
     # setup prefix, class, key etc.
     setup "$@" || die 1 "setup failed"
 
-    # run most specific command matching ^$prefix
-    # (keep scrolling down for a gradual introduction of 'run' et al.)
+    # map command to a link and invoke it e.g.
+    # id-entities.sh -u alex verify ssh-key -> verify:user:ssh-key
     run "$prefix"
 
-    # 'with id' runs id() and brings the result into scope $id,
+    # 'with id' runs id() and brings the result into scope as $id,
     # like a lazy variable.
     with id
     sync && log success "$prefix $key for $id completed."
@@ -89,10 +89,7 @@ setup() {
     key=${4-"age-key"}
     slot=${5:-0}
 
-    check-input
-    check-sops-yaml
-    check-backend
-    check-doas
+    check-input && check-sops-yaml && check-backend && check-doas
 }
 
 check-input() {
@@ -204,7 +201,7 @@ new:age-key() {
 # --- new-secret:*:*
 
 new-secret:() {
-    # If SECRET_SEED is set to the path to a file, the path will be available
+    # If SECRET_SEED is set to the path of a file, the path will be available
     # in $secret_seed
     with secret_seed
     if [[ -s "$secret_seed" ]]; then
@@ -638,7 +635,7 @@ secret_seed() {
 }
 
 backend_path() {
-    search-setting "backend:$class backend"
+    search-setting "backend:$class" "backend"
 }
 
 backend_file() {
