@@ -50,13 +50,15 @@ main() {
     # setup prefix, class, key etc.
     setup "$@" || die 1 "setup failed"
 
-    # map command to a link and invoke it e.g.
+    # map command to a link and invoke it, e.g.
     # id-entities.sh -u alex verify ssh-key -> verify:user:ssh-key
     run "$prefix"
 
     # 'with id' runs id() and brings the result into scope as $id,
     # like a lazy variable.
     with id
+
+    # sync to seize control over final output
     sync && log success "$prefix $key for $id completed."
 }
 
@@ -120,8 +122,8 @@ check-backend() {
 }
 
 check-doas() {
-    # bootstrap root-1 need not be checked, as it has nothing to be checked against
     with id
+    # bootstrap root-1 need not be checked, as it has nothing to be checked against
     [[ "$prefix-$id" != "init-root-1" ]] || return 0
 
     doas=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | find-identity) ||
@@ -131,11 +133,6 @@ check-doas() {
 }
 
 # === section 1: links
-#
-# links are commands that are named so that they can be inferred by the context,
-# they have the following structure:
-#
-# prefix:[class]:[key] (e.g. derive-artifact:host:ssh-key)
 #
 # 'run' runs a list (callchain) of all reasonable arrangements (4) ordered from
 # most specific to most general. Like this:
@@ -150,8 +147,7 @@ check-doas() {
 
 # --- init:*:*
 
-# note the trailing colon! it causes the callchain to terminate here instead
-# of invoking next link
+# a trailing colon terminates the callchain
 init:root:() {
     run new
 }
@@ -191,7 +187,7 @@ new:host:ssh-key:() {
 
 # here's just a guard to prevent identities from rotating themselves out of
 # access, note the absence of a trailing colon, the callchain will invoke
-# next link (which is new: in this case) as usual if the guard passes.
+# next link (which is 'new:' in this case) if the guard passes.
 new:age-key() {
     with id
     [[ "$id" != "${doas:-}" ]] ||
@@ -217,20 +213,66 @@ align:() {
     run derive-artifact | run set-artifact
 }
 
-# these two links below provide a mechanism for aligning ssh-keys against
-# stored secrets instead of ssh-keyscan, example:
+# align hosts' ssh-keys against stored secrets or hostscan?
 #
-# align from host scan (run funcion below and terminate):
-# id-entities.sh -h [host] align ssh-key
-#
-# align from stored secret (follow the default flow for non-host ssh-keys)
+# trick to be able to force stored secret (i.e. follow the default flow for
+# non-host ssh-keys), with this we can do:
 # id-entities.sh -h [host] align:ssh-key ssh-key
 align:ssh-key:() {
     derive-artifact:ssh-key: | run set-artifact
 }
 
+# hostscan (run funcion below and terminate):
+# id-entities.sh -h [host] align ssh-key
 align:host:ssh-key:() {
     align:
+}
+
+# --- verify:*:*
+
+verify:() {
+    with derive_artifact artifact_file
+    try diff "$derive_artifact" "$artifact_file"
+}
+
+# force artifact-only verification for age-key
+# id-entities.sh -h [host] verify:age-key age-key
+verify:age-key:() {
+    verify:
+}
+
+verify:host() {
+    # retreive secret *before* opening a pipe to locksmith, this to
+    # prevent locksmith errors from masking retreival errors
+    with base64_secret
+    echo "$base64_secret" | locksmith "$key"
+
+    # maybe ensure that the secret is as shortlived as possible and
+    # accept the unexpected error:
+    # base64-secret: | locksmith "$key"
+}
+
+# ssh-key skips verify:host
+verify:host:ssh-key:() {
+    verify:
+}
+
+# force artifact-only verification
+verify:ssh-key:() {
+    with artifact_file
+    derive-artifact:ssh-key: | try diff - "$artifact_file"
+}
+
+verify:domain:tls-cert:() {
+    with artifact_file secret_file
+
+    try openssl x509 -in "$artifact_file" -checkend 2592000 | log info
+
+    openssl x509 -in "$artifact_file" -noout -ext subjectAltName |
+        try grep -q "DNS:$entity"
+
+    openssl pkey -in "$secret_file" -pubout |
+        try diff - <(openssl x509 -in "$artifact_file" -pubkey -noout)
 }
 
 # --- create-secret:*:*
@@ -299,11 +341,12 @@ validate:mail-sha512:() {
 }
 
 validate-sha512() {
-    # 'run-with cat-secret' does what it sounds like: brings the secret into
-    # scope under variable cat_secret_
+    # 'run-with' brings the result from a prefix into scope, in this case
+    # 'cat-secret:' -> $cat_secret_
     #
-    # highly unusual and ill-adviced in general, but ssh-512's are already
-    # hashed and encrypted so we might as well take bash and run with it.
+    # ill-adviced in general to load secrets into variables like this,
+    # but *-ssh-512 are already hashed and encrypted so we might as well
+    # take bash and run with it.
     run-with cat-secret
     [[ "$cat_secret_" =~ ^\$6\$[^$]+\$[./0-9A-Za-z]+$ ]]
 }
@@ -318,60 +361,6 @@ validate-passphrase() {
     [[ $(wc -m <"$secret_file") -ge "$min_length" ]] ||
         die 1 "'$(cat "$secret_file")' is shorter than $min_length chars"
 }
-
-# --- verify:*:*
-
-verify:() {
-    with derive_artifact artifact_file
-    try diff "$derive_artifact" "$artifact_file"
-}
-
-verify:host() {
-    # here we retreive secret before opening a pipe to locksmith to prevent
-    # locksmith errors from masking retreival errors
-    with base64_secret
-    echo "$base64_secret" | locksmith "$key"
-}
-
-# a hook again
-# this link will run after 'verify:host' only to invoke 'verify:' which
-# would have run naturally if this very link didn't terminate it, why?
-#
-# the reason is to provide a hook so it can be targeted from the outside world:
-#
-# 'verify' will do a full verification, including host check:
-# id-entities.sh -h [host] verify age-key
-#
-# 'verify:age-key' will skip the host check and only verify artifact:
-# id-entities.sh -h [host] verify:age-key age-key
-verify:age-key:() {
-    verify:
-}
-
-# ssh-keys don't use locksmith to verify, they use ssh-keyscan
-# (hosts' derived artifact by default)
-verify:host:ssh-key:() {
-    verify:
-}
-
-# this is a hook for doing offline verification on host ssh-keys
-verify:ssh-key:() {
-    with artifact_file
-    derive-artifact:ssh-key: | try diff - "$artifact_file"
-}
-
-verify:domain:tls-cert:() {
-    with artifact_file secret_file
-
-    try openssl x509 -in "$artifact_file" -checkend 2592000 | log info
-
-    openssl x509 -in "$artifact_file" -noout -ext subjectAltName |
-        try grep -q "DNS:$entity"
-
-    openssl pkey -in "$secret_file" -pubout |
-        try diff - <(openssl x509 -in "$artifact_file" -pubkey -noout)
-}
-
 # --- derive-artifact:*:*
 
 derive-artifact:age-key:() {
@@ -522,7 +511,7 @@ rebuild:() {
 sideload:host:luks-key() {
     with secret_file secret_seed
 
-    # if the currently held secret and the user provide secret are identical,
+    # if the currently held secret and the user-provided-secret are identical,
     # pass them to looksmith as two (also identical) base64-strings.
     # this will instruct locksmith to drop the luks-key on the host.
     if cmp -s "$secret_file" "$secret_seed"; then
