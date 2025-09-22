@@ -1,4 +1,4 @@
-init: ENC[AES256_GCM,data:Hj1Fcw==,iv:PNVvRbZHVxixT+wGuRA9WE7oStdmN0sis0vGYZKICx8=,tag:yIEABiNNCoKTaE7WC0ZVbQ==,type:bool]
+enable: ENC[AES256_GCM,data:nXWtpA==,iv:X3B9/Z45SBV6NpsvWz9hYOO46qFM5U46DYzfd6ziXpQ=,tag:aLDGPqzUmKZYLZHaQ1uyXA==,type:bool]
 nixbuilder:
     age-key: ENC[AES256_GCM,data:vf+iGNTxGHlQWrjx67D+TPDDAaTNufsQsFBKgrdM7pbIhQmw6ih6ovr/CPSAcDQmeWLk2HwxY7wYi1Hc/muQijOnWUaf0lqNGxDb,iv:Cn29fjACjVpulBNQ2TGLW9O2O4FvjSjjrPCRRYTi45k=,tag:22dYPqm85yM83EQkNYCKbQ==,type:str]
     ssh-key: ENC[AES256_GCM,data:MzwASLOsfYAN30YYvSQQmt5cu87om6+64/XUgzRu6KDfy0QpZRqne9+eLCLE5wD0VOMCxctYC4NDrqhpOlKYz4AxC0ycNzbhrPZ4M3IFdiSZ7tgsBr2tQ341lThHpA7BMgbVKelbhWK2HhpjkPdNEhJ808BxxMihjKbdUluhvQ6IPW5YYRnqTNdQm3T/jfAo7A9T0VW8iEyZW+MJUJAG+H7ooUqxJJTf6iyDHpFAJzDZDIID9chmkOhdJT80JZFgJC+bV6Mf4r1x2almqPqppu2rxbxurbiik3HRs5HXuT02mp6DT+eRSWOPnGh6NlnNVT+qwX/tP00EixkszRUn/x6UttHLdSzZ30anUOynX5e3/Z/Dl7CsBKa5UFNhm9cQw2rrCt5u6QFcChJYDrgQYwhZ56m7qUfE3nIXB5ZL87Syhm5ZaN4XJ3woqMjXtnzpwC+Ps5dLy5FAMRBn2RRf6/wY7lBEGSPXcgpF16PWEIvewi3JV9NR7OMfA9+5RlEP/DP4,iv:4v6wDafsGOsoo6V/aJ9bQEkL4WmmHXOVs8HlP3rnuqY=,tag:vuMRKOT8fAZmSM2l4u+Wcw==,type:str]
@@ -22,7 +22,7 @@ sops:
             M0Z1Z2JCcERiRDZValJ0anM1S2JrS1UKqniUVhvtbOTiWZgzroKpanSq1ejodi9y
             E8K7tDGM2SMPS/wFeqgWI0FHlfAr+QgVIe3GOZNXXZClH9sRvhl2kg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-09-11T21:08:09Z"
-    mac: ENC[AES256_GCM,data:KnIrZlSyjkKlepz6Fe4glcSstdqJIjKsB8OJqVsGTTqepuYZs+Gl6WsgiUObfmE9SNmtBDJGy0ickIB33NKa4tLeJ+KjHsPbtqTK1Cu0EBpLB1CpQAtB7aB3UmSalqYOQDjFbGWeD2VnCVVAtbMC2Lx7qazU5kZk+3ws1lYD8Gk=,iv:KobtqgXlAbbPCes7s4LMEgDukERfhNmCzJms2XkfK2g=,tag:1G5hPzVxJeB0H2zaku5t9w==,type:str]
+    lastmodified: "2025-09-22T06:55:32Z"
+    mac: ENC[AES256_GCM,data:70w/lmghp6NWabvuQYTtHRR/9yUrJvlv7OR+stpN578iLMuJ2yezmVl2LKf0Mpx3GouMmUSzM5U/TlZfUFZzCAvGaijGVV5ISU93xkOR9v9nUXFmAMVFOKUPQNE+RjC3hlW4DifpDA/vC03MISAZi1RVgm+VCHIb9WykDAlBaWs=,iv:qu88xgZd0PW7e9fXi77N8DHGyyv5MfZkpwWPYY66Is8=,tag:2/vRwAVvUd4opgkrzqlSnQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.10.2
