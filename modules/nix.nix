@@ -138,7 +138,7 @@ in
 
       security.sudo.extraRules = [
         {
-          users = [ "nixservice" ];
+          users = [ "nixswitcher" ];
           commands = [
             {
               command = "${nixservicePkg}/bin/nixservice switch *";
