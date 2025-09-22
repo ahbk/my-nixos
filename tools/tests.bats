@@ -368,6 +368,47 @@ EOF
   expect 1 " > "
 }
 
+@test "host new nix-cache-key" {
+  setup-testhost
+
+  run "$test_cmd" -h testhost init
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost new nix-cache-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify nix-cache-key
+  expect 0 "main"
+
+  run test -s "$testroot/artifacts/host-testhost-nix-cache-key.pub"
+  expect 0
+}
+
+@test "host new nix-cache-key (missing/mismatch)" {
+  setup-testhost
+
+  run "$test_cmd" -h testhost init
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost new-secret nix-cache-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify nix-cache-key
+  expect 1 "no artifact at artifacts/host-testhost-nix-cache-key.pub"
+
+  run "$test_cmd" -h testhost align nix-cache-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify nix-cache-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost new-secret nix-cache-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify nix-cache-key
+  expect 1 "\ No newline"
+}
+
 @test "user new age-key" {
   run "$test_cmd" -u testuser init
   expect 0 "main"

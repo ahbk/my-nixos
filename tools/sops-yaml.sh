@@ -10,6 +10,7 @@ fqdn: $entity.local
 backend: enc/$class-$entity.yaml
 backend:root: keys/$class-$entity
 artifact:ssh-key: artifacts/$class-$entity-$key.pub
+artifact:nix-cache-key: artifacts/$class-$entity-$key.pub
 artifact:wg-key: artifacts/$class-$entity-$key.pub
 artifact:tls-cert: artifacts/$class-$entity-$key.pem
 EOF
@@ -27,7 +28,7 @@ create-sops-backend() {
 }
 
 read-setting() {
-    path=$1 try yq-sops-e '.["$path"] // error("$path not found")'
+    path=$1 yq-sops-e '.["$path"] // error("$path not found")'
 }
 
 search-setting() {

@@ -8,6 +8,7 @@ api-key-glesys: ENC[AES256_GCM,data:oKL3Vjavg95wqB7ZxEMKCuEnnG7FiKJiI2De6QW+10Wd
 nextcloud-ahbk:
     admin-password: ENC[AES256_GCM,data:kSlbFS+iw3CbzUnn,iv:GfLZBPO0XZRRwSfII48hPkjvIzImvipqg7N3S70435s=,tag:ezibAecQfezYzczSceswMg==,type:str]
     db-password: ENC[AES256_GCM,data:R43LJ0b3XaZMFW6U,iv:YG8diuS7HKW8XXmd+zIn+iQbz12Lvaz+cMZNkVE2wYU=,tag:aqsNyOH4ZbBn2wvwGRy3FQ==,type:str]
+nix-cache-key: ENC[AES256_GCM,data:JKTuIpn+NO9zhFN7Wvhcny+0TF5yU4YN4oK4s6qW2bMy+zhJTgHbHUx/gqG79tY6tEfMW6MtakXmXTSTmzZBmrtZwn6iyjNfDeISlQTRPUNoWU2J8xlhWP3Ckma6ezP7iwJBGcOx,iv:ox3HHz/i9D5WlxyRwoelzCzwEzW1dIGMbq9MtYwSq28=,tag:vLyZPo2Tq2WBV8cBig0QrA==,type:str]
 sops:
     age:
         - recipient: age1cavc8kaykuqxk9xk6ca78fea73ym32ugxvhq9ek0xgg0aar23qpqg5psm3
@@ -28,7 +29,7 @@ sops:
             eGE1SHNObzlMUGFiZ0dlRC9OZ2hkdGMK+jPo/aMK+qdlisadq2PGsmJtBgzXuPh6
             2hdbP8d4fP8CahrdmQ9OLD9CY2s+2yCem34O4hyL8nimD+jhEG+r2A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-09-22T07:29:25Z"
-    mac: ENC[AES256_GCM,data:xxmRwGhD84lAlFUxoxPZJKF38KFTSgvkRu0nBhy7i8BgFr5uQ0mtqB7Qtdlpla5+iFwA8lAkk97kS3e43MRyy3523D2BSjrqxpXGJpTGUK6q6Dnf+0UG8ZNhZX0SG2GchOmEdGUv0DVY0qL2fEyn1Fii68r0J5kv2mD1BOLIcic=,iv:KwRCruVRUzRkCQQAx46ab5MUX2fh9ly2TdjYbxRhU+g=,tag:4OJk8+wXmUpFweOKTSUQGA==,type:str]
+    lastmodified: "2025-09-22T20:08:15Z"
+    mac: ENC[AES256_GCM,data:Y2c0rXX7cx2G85pt6C5g2wkobwU01e2oBEO7WN+/qlvbgL8Pp/NzK3bHWb3E9z2fVUC+TbpiKg2iKXW8gHsLbR1LCQT08kJvov3HeL30x1LbI060ZtJJTCXrTm5aUK+qJBbgvvexbiJH4fzi9J0efYdovHT7aNtoF/robCMaaOY=,iv:qzLsXORVUmUR1IuqRR42cLD5+3wKZiASjuEYgBPH3hw=,tag:wGuP9WB2A8jofxazVh3VVQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.10.2

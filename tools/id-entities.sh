@@ -31,7 +31,7 @@ declare -g slot
 
 declare -A allowed_keys=(
     ["root"]="age-key"
-    ["host"]="age-key ssh-key wg-key luks-key"
+    ["host"]="age-key ssh-key wg-key luks-key nix-cache-key"
     ["service"]="age-key ssh-key passwd"
     ["user"]="age-key ssh-key passwd mail"
     ["domain"]="age-key tls-cert"
@@ -175,8 +175,8 @@ new:() {
     run new-secret align
 }
 
-# hosts' ssh-keys are normally aligned against ssh-keyscan, but we don't want to rely
-# on live environment when setting up new hosts, hence this override.
+# hosts' ssh-keys are normally aligned against ssh-keyscan, but we don't want
+# to rely on live environment when setting up new hosts, hence this override.
 new:host:ssh-key:() {
     run new-secret
     derive-artifact:ssh-key: | run set-artifact
@@ -185,9 +185,9 @@ new:host:ssh-key:() {
     log warning "next 'align' will replace public ssh key at '$artifact_file'"
 }
 
-# here's just a guard to prevent identities from rotating themselves out of
-# access, note the absence of a trailing colon, the callchain will invoke
-# next link (which is 'new:' in this case) if the guard passes.
+# prevent identities from rotating themselves out of access no trailing colon,
+# so the callchain will invoke next link (which is 'new:' in this case) if the
+# guard passes.
 new:age-key() {
     with id
     [[ "$id" != "${doas:-}" ]] ||
@@ -213,16 +213,14 @@ align:() {
     run derive-artifact | run set-artifact
 }
 
-# align hosts' ssh-keys against stored secrets or hostscan?
-#
-# trick to be able to force stored secret (i.e. follow the default flow for
-# non-host ssh-keys), with this we can do:
+# this is a trick to force stored secret (i.e. follow the default flow for
+# non-host ssh-keys):
 # id-entities.sh -h [host] align:ssh-key ssh-key
 align:ssh-key:() {
     derive-artifact:ssh-key: | run set-artifact
 }
 
-# hostscan (run funcion below and terminate):
+# hostscan:
 # id-entities.sh -h [host] align ssh-key
 align:host:ssh-key:() {
     align:
@@ -250,6 +248,11 @@ verify:host() {
     # maybe ensure that the secret is as shortlived as possible and
     # accept the unexpected error:
     # base64-secret: | locksmith "$key"
+}
+
+# nix-cache-key skips verify:host
+verify:host:nix-cache-key:() {
+    verify:
 }
 
 # ssh-key skips verify:host
@@ -281,6 +284,18 @@ create-secret:age-key() {
     try age-keygen 2> >(log info) | tail -1
 }
 
+create-secret:ssh-key() {
+    with id tmp_path
+    try ssh-keygen -t "ed25519" -f "$tmp_path" -N "" -C "$id" > >(log info)
+    cat "$tmp_path"
+}
+
+create-secret:nix-cache-key() {
+    with fqdn tmp_path
+    nix-store --generate-binary-cache-key "$fqdn" "$tmp_path" "$tmp_path.pub"
+    cat "$tmp_path"
+}
+
 create-secret:wg-key() {
     try wg genkey
 }
@@ -301,14 +316,6 @@ create-secret:passwd() {
 # on passwd for all ops
 create-secret:mail() {
     create-secret:passwd
-}
-
-create-secret:ssh-key() {
-    local s
-    with id
-    s=$(mktemp "$tmpdir/XXXXXX") && rm "$s"
-    try ssh-keygen -t "ed25519" -f "$s" -N "" -C "$id" > >(log info)
-    cat "$s"
 }
 
 # --- validate:*:*
@@ -387,6 +394,14 @@ derive-artifact:wg-key:() {
 derive-artifact:ssh-key:() {
     with secret_file
     try ssh-keygen -y -C "" -f "$secret_file"
+}
+
+derive-artifact:nix-cache-key:() {
+    with fqdn secret_file
+    {
+        echo -n "$fqdn:"
+        cut -d: -f2 <"$secret_file" | base64 --decode | tail -c 32 | base64 -w 0
+    }
 }
 
 derive-artifact:tls-cert:() {
@@ -588,17 +603,18 @@ secret_file() {
         echo "$secret_path"
 }
 
-artifact_path() {
+tmp_path() {
     local s
+    s=$(mktemp "$tmpdir/XXXXXX") && rm "$s"
+    echo "$s"
+}
+
+artifact_path() {
     # secrets that have public keys and other artifacts can store them at a
     # permanent location specified in .sops.yaml
-    if s=$(LOG_LEVEL=off read-setting "artifact:$key"); then
-        echo "$s"
-    else
-        # otherwise a temp-file will be used
-        with exact_key
+    with exact_key
+    LOG_LEVEL=off read-setting "artifact:$key" ||
         echo "$tmpdir/$class.$entity.$exact_key.artifact"
-    fi
 }
 
 artifact_file() {
@@ -695,6 +711,7 @@ sha512_secret() {
 # declare lazy variables here to keep shellcheck happy
 declare -g \
     id \
+    tmp_path \
     backend_path \
     backend_file \
     backend_enabled \

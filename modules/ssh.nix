@@ -6,7 +6,6 @@
 }:
 let
   inherit (lib)
-    mapAttrs
     mkEnableOption
     mkIf
     ;

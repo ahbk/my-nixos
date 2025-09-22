@@ -3,6 +3,7 @@ backend: enc/$class-$entity.yaml
 backend:root: keys/$class-$entity
 artifact:ssh-key: public-keys/$class-$entity-$key.pub
 artifact:wg-key: public-keys/$class-$entity-$key.pub
+artifact:nix-cache-key: public-keys/$class-$entity-$key.pub
 artifact:tls-cert: public-keys/$class-$entity-$key.pem
 ops:
   rebuild:

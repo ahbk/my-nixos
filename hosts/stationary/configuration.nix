@@ -96,6 +96,7 @@
     ssh.enable = true;
     sops.enable = true;
     facter.enable = true;
+    nix.serveStore = true;
 
     locksmith = {
       luksDevice = "/dev/null";
