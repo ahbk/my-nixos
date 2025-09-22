@@ -116,7 +116,6 @@ die() {
 }
 
 try() {
-    log debug "try: $*"
     local std=$tmpdir/std.$$.$BASHPID
     local exit_code=0
 

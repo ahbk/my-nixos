@@ -47,7 +47,7 @@ KEY TYPES
     age-key           public key is entity's identity in .sops.yaml, also hosts' decryption key
     ssh-key           host's host key is source of truth on this one, not backend
     wg-key            no host verification (ping is the host verification)
-    luks-key          Key for LUKS disk encryption can be sideloaded and verified via keyservice 
+    luks-key          Key for LUKS disk encryption can be sideloaded and verified via locksmith
     tls-cert          A TLS certificate for domains that span hosts
     passwd            A user password with passwd-hashed as artifact
     mail              Passwords for nixos-simple-mailserver behave exactly like passwd
@@ -67,7 +67,7 @@ EXAMPLES
     Create a new host identity for 'webserver-01'
         $ id-entities.sh -h webserver-01 init
 
-    Sideload age-key to host (see modules/keyservice.nix to setup keyservice)
+    Sideload age-key to host (see modules/locksmith.nix to setup locksmith)
         $ id-entities.sh -h webserver-01 sideload
 
     Check if it's there

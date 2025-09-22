@@ -1,27 +1,32 @@
-export REPO="github:ahbk/my-nixos/add-host-helsinki"
+#!/usr/bin/env bash
 
 main() {
-    repo=${2:-$REPO}
-    echo "$1"
+    case $1 in
+    build)
+        local host=$2
+        ;;
+    copy)
+        local from=$2
+        local closure=$3
+        ;;
+    switch)
+        local build=$2
+        ;;
+    *) exit 1 ;;
+    esac
     "$1" "$@"
 }
 
-# shellcheck disable=SC2120
 build() {
-    #gh="github:ahbk/my-nixos/add-host-helsinki"
-
-    host=lenovo
-    nix build "$repo#nixosConfigurations.$host.config.system.build.toplevel" \
-        --print-out-paths --no-link
+    nix build "$REPO#nixosConfigurations.$host.config.system.build.toplevel" \
+        --print-out-paths --no-link --refresh
 }
 
 copy() {
-    nix copy --to "ssh://nixbuilder@$host.km" "$(build)"
+    nix copy --from "http://$from.km:5000" "$closure"
 }
 
 switch() {
-    local build
-    build=$(build)
     sudo nix-env -p /nix/var/nix/profiles/system --set "$build"
     sudo "$build/bin/switch-to-configuration" switch
 }

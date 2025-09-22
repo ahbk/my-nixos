@@ -4,6 +4,7 @@
   inputs,
   lib,
   pkgs,
+  host,
   ...
 }:
 
@@ -81,6 +82,11 @@ in
     environment.etc = {
       "nix/inputs/self".source = "${inputs.self}";
       "nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
+    };
+
+    services.nix-serve = {
+      enable = true;
+      bindAddress = "0.0.0.0";
     };
 
     users.users.nixbuilder = {

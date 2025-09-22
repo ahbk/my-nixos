@@ -32,7 +32,7 @@ declare -g slot
 declare -A allowed_keys=(
     ["root"]="age-key"
     ["host"]="age-key ssh-key wg-key luks-key"
-    ["service"]="age-key ssh-key"
+    ["service"]="age-key ssh-key passwd"
     ["user"]="age-key ssh-key passwd mail"
     ["domain"]="age-key tls-cert"
 )
@@ -337,7 +337,7 @@ validate:passwd-sha512:() {
 }
 
 validate:mail-sha512:() {
-    validate:passwd-sha512
+    validate:passwd-sha512:
 }
 
 validate-sha512() {
@@ -372,7 +372,7 @@ derive-artifact:passwd:() {
 }
 
 derive-artifact:mail:() {
-    derive-artifact:passwd
+    derive-artifact:passwd:
 }
 
 # luks-keys have no public artifact
@@ -451,7 +451,7 @@ set-artifact:passwd:() {
 }
 
 set-artifact:mail:() {
-    set-artifact:passwd
+    set-artifact:passwd:
 }
 
 # --- [encrypt|decrypt|unset]:*:*
@@ -671,12 +671,11 @@ passphrase() {
 }
 
 next_slot() {
-    for ((slot = 0; ; slot++)); do
-        (slot="$slot" with secret_file) || {
-            echo "$slot"
-            return
-        }
+    local slot=0
+    while (run decrypt >/dev/null); do
+        ((slot++))
     done
+    echo "$slot"
 }
 
 base64_secret() {
