@@ -35,7 +35,7 @@ in
     repo = lib.mkOption {
       description = "repo for this config";
       type = lib.types.str;
-      default = "github:ahbk/my-nixos";
+      default = "github:ahbk/my-nixos/add-host-helsinki";
     };
   };
   config = {
@@ -86,9 +86,11 @@ in
     users.users.nixbuilder = {
       isSystemUser = true;
       shell = pkgs.bash;
+      home = "/var/lib/nixbuilder";
+      createHome = true;
 
       openssh.authorizedKeys.keyFiles = [
-        ../public-keys/user-nixbuilder-ssh-key.pub
+        ../public-keys/service-nixbuilder-ssh-key.pub
       ];
       uid = ids.nixbuilder.uid;
       group = "nixbuilder";
@@ -103,7 +105,7 @@ in
       shell = pkgs.bash;
 
       openssh.authorizedKeys.keyFiles = [
-        ../public-keys/user-nixswitcher-ssh-key.pub
+        ../public-keys/service-nixswitcher-ssh-key.pub
       ];
       uid = ids.nixswitcher.uid;
       group = "nixswitcher";

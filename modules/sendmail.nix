@@ -42,7 +42,7 @@ in
     sops.secrets = mapAttrs' (
       user: cfg:
       (nameValuePair "${user}/mail" {
-        sopsFile = ../users/${user}-enc.yaml;
+        sopsFile = ../enc/user-${user}.yaml;
         owner = user;
         group = user;
       })

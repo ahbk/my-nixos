@@ -8,8 +8,6 @@
 let
   inherit (lib)
     filterAttrs
-    hasAttr
-    mapAttrs
     mapAttrs'
     mkEnableOption
     mkIf
@@ -57,7 +55,6 @@ let
   };
 in
 {
-
   options.my-nixos.users =
     with types;
     mkOption {
@@ -69,7 +66,7 @@ in
   config = mkIf (cfg != { }) {
     sops.secrets = mapAttrs' (
       user: cfg:
-      (nameValuePair "${user}/passwd-hashed") {
+      (nameValuePair "${user}/passwd-sha512") {
         neededForUsers = true;
         sopsFile = ../enc/user-${user}.yaml;
       }
@@ -82,7 +79,7 @@ in
           isNormalUser = true;
           group = user;
           extraGroups = cfg.groups;
-          hashedPasswordFile = config.sops.secrets."${user}/passwd-hashed".path;
+          hashedPasswordFile = config.sops.secrets."${user}/passwd-sha512".path;
           openssh.authorizedKeys.keyFiles = cfg.keys;
         };
         groups.${user}.gid = config.users.users.${user}.uid;
@@ -105,7 +102,7 @@ in
 
     services.fail2ban.jails = {
       sshd.settings = {
-        filter = "sshd[mode=aggressive]";
+        filter = "sshd[mode=normal]";
       };
     };
   };

@@ -7,6 +7,7 @@ rec {
     ./system.nix
     ./nix.nix
     ./locksmith.nix
+    ./preserve.nix
   ];
 
   peer = [
@@ -17,6 +18,7 @@ rec {
     ./fail2ban.nix
     ./backup.nix
     ./backup-server.nix
+    ./sendmail.nix
   ]
   ++ base;
 

@@ -19,17 +19,17 @@ in
   };
 
   config = mkIf (cfg.enable) {
-    sops.secrets."tunnelservice/passwd-hashed" = {
+    sops.secrets."tunnelservice/passwd-sha512" = {
       neededForUsers = true;
-      sopsFile = ../enc/user-tunnelservice.yaml;
+      sopsFile = ../enc/service-tunnelservice.yaml;
     };
 
     users.users.tunnelservice = {
       isSystemUser = true;
       shell = pkgs.shadow;
-      hashedPasswordFile = config.sops.secrets."tunnelservice/passwd-hashed".path;
+      hashedPasswordFile = config.sops.secrets."tunnelservice/passwd-sha512".path;
       openssh.authorizedKeys.keyFiles = [
-        ../public-keys/user-tunnelservice-ssh-key.pub
+        ../public-keys/service-tunnelservice-ssh-key.pub
       ];
       uid = ids.tunnelservice.uid;
       group = "tunnelservice";

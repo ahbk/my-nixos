@@ -77,7 +77,7 @@ in
       ];
 
       sops.secrets = lib'.mergeAttrs (user: _: {
-        "${user}/mail-hashed" = {
+        "${user}/mail-sha512" = {
           sopsFile = ../enc/user-${user}.yaml;
           owner = user;
           group = user;
@@ -101,7 +101,7 @@ in
           name = config.my-nixos.users.${user}.email;
           value = {
             inherit (userCfg) catchAll;
-            hashedPasswordFile = config.sops.secrets."${user}/mail-hashed".path;
+            hashedPasswordFile = config.sops.secrets."${user}/mail-sha512".path;
             aliases = config.my-nixos.users.${user}.aliases;
           };
         }) cfg.users;
