@@ -69,17 +69,25 @@
     sops.enable = true;
     ssh.enable = true;
 
-    keyservice = {
+    locksmith = {
       enable = true;
       luksDevice = "/dev/sda3";
+    };
+
+    wireguard.wg0.enable = true;
+
+    backup.km = {
+      enable = true;
+      target = "backup.km";
     };
 
     users = with users; {
       inherit admin alex;
     };
-    shell.admin.enable = true;
 
+    shell.admin.enable = true;
     shell.alex.enable = true;
+
     ide.alex = {
       enable = true;
       postgresql = true;
@@ -88,11 +96,5 @@
     hm.alex.enable = true;
     desktop-env.alex.enable = true;
 
-    wireguard.wg0.enable = true;
-
-    backup.km = {
-      enable = true;
-      target = "backup.km";
-    };
   };
 }

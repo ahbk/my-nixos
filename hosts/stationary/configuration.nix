@@ -4,7 +4,11 @@
   ...
 }:
 {
-  facter.reportPath = ./facter.json;
+  imports = [
+    ../../modules/facter.nix
+    ../../modules/glesys-updaterecord.nix
+    ../../modules/monitor.nix
+  ];
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/7790a226-31aa-44e3-abc5-8e96df673c74";
@@ -88,25 +92,17 @@
   users.groups.jellyfin.gid = 970;
 
   my-nixos = {
-    users = with users; {
-      inherit admin alex;
-    };
-
-    shell.alex.enable = true;
-    hm.alex.enable = true;
-    ide.alex = {
-      enable = true;
-      postgresql = true;
-      mysql = true;
-    };
-
     sysadm.rescueMode = true;
-    keyservice = {
+    ssh.enable = true;
+    sops.enable = true;
+    facter.enable = true;
+
+    locksmith = {
       luksDevice = "/dev/null";
       enable = true;
     };
 
-    tls-certs = [ "km" ];
+    wireguard.wg0.enable = true;
 
     backup-server.enable = true;
 
@@ -115,24 +111,13 @@
       target = "backup.km";
     };
 
+    users = with users; {
+      inherit admin;
+    };
+
+    tls-certs = [ "km" ];
+
     monitor.enable = true;
-
-    nextcloud.sites."nextcloud-ahbk" = {
-      enable = true;
-      hostname = "nextcloud.ahbk.se";
-      collaboraHost = "collabora.stationary.ahbk.se";
-      ssl = true;
-      subnet = false;
-      port = 2006;
-      uid = 981;
-    };
-
-    collabora = {
-      enable = true;
-      subnet = false;
-      host = "collabora.stationary.ahbk.se";
-      allowedHosts = [ "nextcloud.ahbk.se" ];
-    };
 
     glesys.updaterecord = {
       enable = true;
@@ -148,16 +133,12 @@
       ];
     };
 
-    wireguard.wg0.enable = true;
-
-    sendmail.alex.enable = true;
-
     nginx = {
       enable = true;
-      email = users.alex.email;
+      email = users.admin.email;
     };
 
-    wordpress.sites."esse_test" = (import ../../sites.nix)."esse_test";
+    #wordpress.sites."esse_test" = (import ../../sites.nix)."esse_test";
 
     mobilizon.sites."klimatkalendern-dev" = {
       enable = true;

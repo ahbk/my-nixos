@@ -82,7 +82,7 @@
   my-nixos = {
     sysadm.rescueMode = true;
     facter.enable = true;
-    keyservice = {
+    locksmith = {
       enable = true;
       luksDevice = "/dev/sda3";
     };
