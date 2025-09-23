@@ -1,3 +1,4 @@
+enable: ENC[AES256_GCM,data:FPGzGw==,iv:ubfESRVYBD4PtwI8JvWmrdsPwZYJjbjhVnTIB+ghCJQ=,tag:Vsm7/EmqosFxRIJKqD4bQw==,type:bool]
 age-key: ENC[AES256_GCM,data:zmS5xVn/hpLTulLMChbG4QnU+eNs6CtFv5iriTW5nTCcbLuHHbyTyYxsvyBN/fljIouvIWhMFF1jskPdpXTB3cqUDHZj2Su2GQxk,iv:Fm5z6Pbr4b7/YjspkgZIT0h3LzGYn25ah0FjGygk8ds=,tag:wqKA8LhAqUZOmZu+z4HIQQ==,type:str]
 ssh-key: ENC[AES256_GCM,data:FoLVZgzht6bDHQtmTyMS8bgpfDVjeqIMHkoA2rsLYRGTh01zDMwRzSbdGryMbrJswIYvTujnC82XgWeVpNNA5wDSzcw3RVaoAAa3ZMSfG67BvkctrQmQAH7RZE1ZcNjesUZwUaP3zcetHqJ78uobON5ELDjQxAPPLtpxe4zmM6ry9fyjqk7KOth37kgVURqHyX9RqjPhAFZPkISTBo8O9qzc4zAFNdW0SxsIk5H3dcF6hZSlMnbNm0ZEkKihRqXFikvlHKAgrddilVC+vRKlnSP0riKernCPuEixcoFKiQVVteGlxNXS5psiZ6/m2uy1grrbD8RXZF2++OjuDvUeeOfQB8rvBglW+frDxb1lJ6JI+DhoTBDRMYMQIO98wVvYLTD6wsS3buxtAYG90TQpJKFoXDsJAv66LLbUBYvPKV7XCVFnVdddSZSANA9zP2ng1QeWlwj9S+3qEmhCJRyKvgWwA06Ugje29l5TtHjVq9lNFzfCnBkW1/UxjhR+/Z5LBqVlEShQJPNyGQmi9leJ,iv:QnD4n212qP4+Ok5aqFxnXM5Lqt222xI5LWTkPXRgI5w=,tag:zotaHL1K671cOjambQChng==,type:str]
 luks-key: ENC[AES256_GCM,data:Thge6t7x1lA4dTFBQuEWIg==,iv:UKDIqH3jCkxmh8nu6rxeptc0atJCKPMQRPVk+f7Q1+A=,tag:McsQm3v3eeYBp3/fu/Yj3w==,type:str]
@@ -23,7 +24,7 @@ sops:
             cXFsb0t0QXhrdmpLaXJlQ1NuOFlGUmMK4R5plkf+4gZdvfpRZJr3m8pH1GRnwzrL
             O/TugT8yAtrfcGXJw/FsjxWewRMWupM+r9gqGl7aA8qpQAI5FzwPBA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-09-15T13:30:14Z"
-    mac: ENC[AES256_GCM,data:ZnmQlIU6FdnIlqQfWgq8kLcnkkIXWM867ervUjWd2IcBs6dqMDVD5Ycmbq+klBW3Q/8+r3I7uFL/z4QURq7BCHrfEaD0D6LHOu5RsCJyOintS4kYSGafBeS4qypCChFJjp7TFDqs58M5AkQt37K+ICXHVHSNJ3QdYDR0XSt1A74=,iv:qQUnvvmolVr9/OippZqyanVt8OtMtBjbOhxI3poDNvY=,tag:Eve2G872UGw+uKxhWca+Gg==,type:str]
+    lastmodified: "2025-09-23T08:18:10Z"
+    mac: ENC[AES256_GCM,data:9rnfoP6YOczrZcsAYaWzrX5AKFp9b3VO8kLYwbrnwkHNXKWJclG8yNJNV1Gmpa8fZ7ADe4Mzjfkh5mUCu4n9QqmeWrQJKdejAI37CTc8S9AwbxntxGzwtL1mS3SpggLfzvaMv5tjGMgjLl7mh2jOeDSHkg/rPPkY4LkPXDJVUEI=,iv:TEl5VcRyaBy0C5A1CO4+2WBgeGtGNpqS+fofRTAyciE=,tag:ka62WCVOd49iNHWBNzGAJA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.10.2
