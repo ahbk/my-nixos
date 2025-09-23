@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# nixservice.sh
 
 main() {
     case $1 in

@@ -5,7 +5,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$here/run-with.bash"
 
 cleanup() {
-    ssh-agent -k >/dev/null
+    ssh-agent -k > >(log info)
 }
 trap cleanup EXIT
 
@@ -14,7 +14,7 @@ as() {
     local key_file=$tmpdir/age-key
     shift
 
-    eval "$(ssh-agent -s)" >/dev/null 2> >(log info)
+    eval "$(ssh-agent -s)" > >(log info)
 
     "$here/id-entities.sh" "$entity" cat-secret age-key >"$key_file"
 

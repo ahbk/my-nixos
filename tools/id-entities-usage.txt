@@ -38,7 +38,7 @@ ACTIONS
     verify           All that apply of verify-host|hash|public|identity.
     cat-secret       Write secret to stdout.
     cat-public       Write public artifact to stdout.
-    sideload         Push imperative secrets to host (age-key and luks-key).
+    push             Push imperative secrets to host (age-key and luks-key).
     
 KEY TYPES
     Type of procedure to run on the secret, defaults to 'age-key'.
@@ -47,7 +47,7 @@ KEY TYPES
     age-key           public key is entity's identity in .sops.yaml, also hosts' decryption key
     ssh-key           host's host key is source of truth on this one, not backend
     wg-key            no host verification (ping is the host verification)
-    luks-key          Key for LUKS disk encryption can be sideloaded and verified via locksmith
+    luks-key          Key for LUKS disk encryption can be pushed and verified via locksmith
     tls-cert          A TLS certificate for domains that span hosts
     passwd            A user password with passwd-hashed as artifact
     mail              Passwords for nixos-simple-mailserver behave exactly like passwd
@@ -57,7 +57,7 @@ ENVIRONMENT VARIABLES
         Sets logging verbosity
 
     SEED_SECRET=<path>
-        If set during a 'new', 'new-secret', 'init' or 'sideload' prefix, the contents of the
+        If set during a 'new', 'new-secret', 'init' or 'push' prefix, the contents of the
         file will be used as secret instead of generating a new one.
 
 EXAMPLES
@@ -68,7 +68,7 @@ EXAMPLES
         $ id-entities.sh -h webserver-01 init
 
     Sideload age-key to host (see modules/locksmith.nix to setup locksmith)
-        $ id-entities.sh -h webserver-01 sideload
+        $ id-entities.sh -h webserver-01 push
 
     Check if it's there
         $ id-entities.sh -h webserver-01 verify

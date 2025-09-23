@@ -217,13 +217,13 @@ EOF
   expect 1 "locksmith: died."
 }
 
-@test "host sideload age-key" {
+@test "host push age-key" {
   setup-testhost
 
   SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  SECRET_SEED=<(echo "$test_age_key_2") run "$test_cmd" -h testhost sideload age-key
+  SECRET_SEED=<(echo "$test_age_key_2") run "$test_cmd" -h testhost push age-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify age-key
@@ -235,7 +235,7 @@ EOF
   run "$test_cmd" -h testhost new-secret age-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost sideload age-key
+  run "$test_cmd" -h testhost push age-key
   expect 1 " > age1hxkj8za4tstrxzlrhn7xpthlrxwnyzquz8er7l48v8zgparape7qyu0aa7"
 }
 
@@ -267,7 +267,7 @@ EOF
   expect 1 "locksmith: No key available with this passphrase."
 }
 
-@test "host sideload luks-key" {
+@test "host push luks-key" {
   setup-testhost
 
   SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
@@ -288,7 +288,7 @@ EOF
   run "$test_cmd" -h testhost check luks-key
   expect 0 "main"
 
-  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key
+  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost push luks-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost check luks-key 0
@@ -297,14 +297,14 @@ EOF
   run "$test_cmd" -h testhost check luks-key 1
   expect 0 "main"
 
-  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 2
+  SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost push luks-key 2
   expect 1 "component ['luks-key--2'] not found"
 
-  SECRET_SEED=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost sideload luks-key 0
+  SECRET_SEED=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost push luks-key 0
   expect 0 "main"
 
   run "$test_cmd" -h testhost check luks-key 2
-  expect 1 "component ['luks-key--2'] not found"
+  expect 1 "locksmith: empty payload"
 
   run "$test_cmd" -h testhost check luks-key 1
   expect 0 "main"
@@ -514,6 +514,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -u testuser new passwd
+  expect 0 "main"
 
   run "$test_cmd" -u testuser new-secret passwd
   expect 0 "main"

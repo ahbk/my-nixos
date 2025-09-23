@@ -13,7 +13,7 @@ trap cleanup EXIT
 
 # take a list of prefixes and run their callchains
 run() {
-    local cmd links
+    local cmd links prefix
     cmd="${cmd:-passthru}"
 
     for prefix; do
@@ -26,9 +26,22 @@ run() {
 
         log debug "$links"
 
-        for link in $links; do
-            "$cmd" "$link"
-        done
+        if [[ $cmd == "with" ]]; then
+            local out
+            out="$(run-links "$links")" &&
+                printf -v "${prefix//[^a-zA-Z0-9_]/_}" '%s' "$out" ||
+                exit 1
+        else
+            run-links "$links"
+        fi
+
+    done
+}
+
+run-links() {
+    local link
+    for link in $1; do
+        "$link"
     done
 }
 
@@ -39,7 +52,9 @@ passthru() {
 with() {
     local cmd out
     for cmd; do
-        out="$("$cmd")" && printf -v "${cmd//[^a-zA-Z0-9_]/_}" '%s' "$out" || exit 1
+        out="$("$cmd")" &&
+            printf -v "${cmd//[^a-zA-Z0-9_]/_}" '%s' "$out" ||
+            exit 1
     done
 }
 
