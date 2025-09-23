@@ -195,19 +195,25 @@ EOF
   run "$test_cmd" -h testhost verify age-key
   expect 0 "main"
 
+  run "$test_cmd" -h testhost check age-key
+  expect 0 "main"
+
   run "$test_cmd" -h testhost new-secret age-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify:age-key age-key
+  run "$test_cmd" -h testhost verify age-key
   expect 1 " > age"
 
-  run "$test_cmd" -h testhost verify:host age-key
+  run "$test_cmd" -h testhost check age-key
   expect 1 "locksmith: died."
 
   run "$test_cmd" -h testhost align age-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify age-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost check age-key
   expect 1 "locksmith: died."
 }
 
@@ -221,6 +227,9 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify age-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost check age-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost new-secret age-key
@@ -245,10 +254,16 @@ EOF
   run "$test_cmd" -h testhost verify luks-key
   expect 0 "main"
 
+  run "$test_cmd" -h testhost check luks-key
+  expect 0 "main"
+
   SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost new luks-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost check luks-key
   expect 1 "locksmith: No key available with this passphrase."
 }
 
@@ -262,21 +277,24 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify luks-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost check luks-key
   expect 1 "No key available with this passphrase."
 
   SECRET_SEED=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost new luks-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify luks-key
+  run "$test_cmd" -h testhost check luks-key
   expect 0 "main"
 
   SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify luks-key 0
+  run "$test_cmd" -h testhost check luks-key 0
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify luks-key 1
+  run "$test_cmd" -h testhost check luks-key 1
   expect 0 "main"
 
   SECRET_SEED=<(echo -n "$test_luks_key_2") run "$test_cmd" -h testhost sideload luks-key 2
@@ -285,17 +303,17 @@ EOF
   SECRET_SEED=<(echo -n "$test_luks_key_1") run "$test_cmd" -h testhost sideload luks-key 0
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify luks-key 2
+  run "$test_cmd" -h testhost check luks-key 2
   expect 1 "component ['luks-key--2'] not found"
 
-  run "$test_cmd" -h testhost verify luks-key 1
+  run "$test_cmd" -h testhost check luks-key 1
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify luks-key
+  run "$test_cmd" -h testhost check luks-key
   expect 1 "No key available with this passphrase."
 }
 
-@test "host align ssh-key" {
+@test "host pull ssh-key" {
   setup-testhost
 
   run "$test_cmd" -h testhost init
@@ -305,18 +323,15 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify ssh-key
-  expect 1 " > ssh-ed25519 AAAA"
-
-  run "$test_cmd" -h testhost verify:ssh-key ssh-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost align ssh-key
+  run "$test_cmd" -h testhost check ssh-key
+  expect 1 " > ssh-ed25519 AAA"
+
+  run "$test_cmd" -h testhost pull ssh-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify ssh-key
-  expect 0 "main"
-
-  run "$test_cmd" -h testhost align:ssh-key ssh-key
+  run "$test_cmd" -h testhost check ssh-key
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify ssh-key

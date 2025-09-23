@@ -1,4 +1,4 @@
-init: ENC[AES256_GCM,data:5fPSyg==,iv:otpq98fj8929b5K5JpmfaQteFrHnNaVm12FF1Hnpm7M=,tag:Fx84dGXf4i1qGBGQ7TPNdQ==,type:bool]
+enable: ENC[AES256_GCM,data:oYhMMA==,iv:FsTc9EhhlmcP712r/Lbbgi0y60f0BKdrBYg7hKO7jJ4=,tag:0/hiLL898Nvd9VqrBJwxrQ==,type:bool]
 age-key: ENC[AES256_GCM,data:4R3HNQeWgeDzlRVcxcYzLjE6m9xVX+s82+h5h65SxoYXjykS6kYr+V8+AkLBPrN9ZGqvHmHqrwe7njzSOuNuMtnfRxegRXNeuyV1,iv:rlmu91QXeCxPmcSkTNCxDp8WBstpoRSzWBNVWpvx2Yo=,tag:9NlX4mSMPLWIV87RpbUSoA==,type:str]
 ssh-key: ENC[AES256_GCM,data:LiBsejN0XeTA6Dz3+3y5WEoxJ/KOFZD756t2BFqzIV3whBZE58XQWM1WrJkMc12M7K7kBht/WMAHlVxN48fiPXKn/B/XzwN7rS8AQzVWN+mtpX04m590g2e0oVjyfqYSX9sWSGpaMtJUhdVk3+2XgBeuIpYmS6GVMRSV8JqxR0Gy/J9foYgepm1v/p4Xk+wLR7fRVpOb8ex+F9XY3DIZJApnHgjsWmXrY8fgR06ri3St88Nc2WiC53o9Tz0n6WsQoGBOJYBCwInQmu/qVJjWWTNbSbk2v0NUOoUeEMgW2VdHPw6v26G36q4o998elJv002ZdNn7WVC9GOCc2pwjYFJ+YipMcnDHtAc13JkbhFFpSPBLpC70P4ieR6PKimpiaqn7cEIW7DIYDuWAdz4BiUJXHpWyXljCXLvQC1LqB69Xz81VXpk6TeparUtvq2zNu3OZE4kCBer/+attvVOuM/FyB1Zkk7RJ8HCmvRqPE4NopZ9V8oAzhPjH0pQyM2nJdRe0Z,iv:HgJyoXcGLfKmm2NZed6xuF815ShSpDARYUbyvZAhHcg=,tag:NsvPl33V/e0dKr2p4jXysQ==,type:str]
 wg-key: ENC[AES256_GCM,data:QlmBYzFTTL+JH5NW9KeAUY7KT4eGPutE113LF/xh99a1NJkIXghuIw2y0opZ,iv:OsUTN/qAoY/XWFUnjWT3mKkHshBBJ9XiHTGZGEzzHOA=,tag:oFjFXBELxP9drBua8jIjkA==,type:str]
@@ -22,7 +22,7 @@ sops:
             T1dpNXUwdjN3bDBabHFKK01kMGtlZXcKxTSKu6LpHQL6lrI7VFm+efpKwb8UsVTN
             uyPW4JXOVXDfTVKg0Z3QxOeAzjs7xyixyx2OBjjYDLah+VIrtj8WzQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-09-11T15:41:10Z"
-    mac: ENC[AES256_GCM,data:m6vML3mS62aOhy0Ifm7RuVT1yHUkELi6uuOywcEgGbMmULFyJhvUXVxMCIJ29KUnAEOgM65rVHFNeJW3KnubxFTILbfKfep/yXVWDlVLk1AXDcuHoKNTjMvskQo0rYylSinzHHe7mrIDvrllqtwMijfPLjL1FespN9dKClVK5Xs=,iv:Zbw4X/bR8ZAzpbYQ/99zdu19ZGYsFFfKmZlyxcTNW9M=,tag:LjZZAP6T9JW0Ezit2I42DQ==,type:str]
+    lastmodified: "2025-09-23T09:52:22Z"
+    mac: ENC[AES256_GCM,data:M/zG1YPrgMpKSb5HyIt2TbQs7k6wliyOAKBbdBdQWilTweieI9+y0X0ve/ZG8GFQY5bXTcEASlp9aPzJwhVtvnJAB+Tls10QtG4okDi8Z02cnRYfrZWf8Ur8EoZWRPLQc8HkKarYfE+OZRw1t4ppFGBqTBXWgpSR1dGlShjEv8E=,iv:avBi38Zs47+g8GHnTVFVWRxl1ZQ9t3f1n8kcuFyYDmE=,tag:Vsga+jB6TQdqeFjueL97tA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.10.2

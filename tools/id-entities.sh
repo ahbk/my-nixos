@@ -189,63 +189,22 @@ new-secret:() {
     fi
 }
 
-# --- align:*:*
-
-align:() {
-    run derive-artifact | run set-artifact
-}
-
-# derive-artifact runs a host scan for host:ssh-key, this may not always
-# be desired, so we can force alignment against stored secret like this:
-# id-entities.sh -h [host] align:ssh-key ssh-key
-align:ssh-key:() {
-    derive-artifact:ssh-key: | run set-artifact
-}
-
-# retain host scan as default behavior
-# id-entities.sh -h [host] align ssh-key
-align:host:ssh-key:() {
-    align:
-}
-
-# --- verify:*:*
+# --- [verify|check]:*:*
 
 verify:() {
     with derive_artifact artifact_file
     try diff "$derive_artifact" "$artifact_file"
 }
 
-verify:host() {
-    # retreive secret *before* opening a pipe to locksmith, this to
-    # prevent locksmith errors from masking retreival errors
-    with base64_secret
-    echo "$base64_secret" | locksmith "$key"
-
-    # maybe ensure that the secret is as shortlived as possible and
-    # accept a confusing error message?
-    # base64-secret: | locksmith "$key"
-}
-
-# force artifact-only verification for age-key
-# id-entities.sh -h [host] verify:age-key age-key
-verify:age-key:() {
-    verify:
-}
-
-# nix-cache-key skips verify:host
-verify:host:nix-cache-key:() {
-    verify:
-}
-
-# ssh-key skips verify:host
-verify:host:ssh-key:() {
-    verify:
-}
-
 # force artifact-only verification
-verify:ssh-key:() {
+verify:host:ssh-key:() {
     with artifact_file
     derive-artifact:ssh-key: | try diff - "$artifact_file"
+}
+
+# host scan under check:* instead
+check:host:ssh-key:() {
+    verify:
 }
 
 verify:domain:tls-cert:() {
@@ -258,6 +217,37 @@ verify:domain:tls-cert:() {
 
     openssl pkey -in "$secret_file" -pubout |
         try diff - <(openssl x509 -in "$artifact_file" -pubkey -noout)
+}
+
+check:host:age-key() {
+    # retreive secret *before* opening a pipe to locksmith, this to
+    # prevent locksmith errors from masking retreival errors
+    with base64_secret
+    echo "$base64_secret" | locksmith "$key"
+
+    # maybe ensure that the secret is as shortlived as possible and
+    # accept a confusing error message?
+    # base64-secret: | locksmith "$key"
+}
+
+check:host:luks-key() {
+    check:host:age-key
+}
+
+# --- [align|pull]:*:*
+
+align:() {
+    run derive-artifact | run set-artifact
+}
+
+# prevent derive-artifact from doing host scan for host:ssh-key
+align:host:ssh-key:() {
+    derive-artifact:ssh-key: | run set-artifact
+}
+
+# host scan under pull:* instead
+pull:host:ssh-key:() {
+    align:
 }
 
 # --- create-secret:*:*
@@ -529,7 +519,7 @@ sideload:host:luks-key() {
 }
 
 sideload:host:age-key() {
-    verify:age-key:
+    run verify
     # age-keys are stacked in the hosts' key file and will remain until
     # garbage-collected.
     run base64-secret new base64-secret | locksmith "$key"

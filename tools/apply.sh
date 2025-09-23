@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# apply.sh
 
 set -euo pipefail
 
@@ -7,19 +8,19 @@ declare -r here
 
 . "$here/run-with.bash"
 
-declare -x target
+declare -x target build_host="stationary"
 
 apply() {
     target=$1
     with build
     log important "$build"
-    "$here/as.sh" nixbuilder ssh "nixbuilder@$target.km" "copy stationary $build"
+    "$here/as.sh" nixbuilder ssh "nixbuilder@$target.km" "copy $build_host $build"
     "$here/as.sh" nixswitcher ssh "nixswitcher@$target.km" "$build"
 }
 
 declare -g build
 build() {
-    "$here/as.sh" nixbuilder ssh nixbuilder@stationary.km "build $target"
+    "$here/as.sh" nixbuilder ssh nixbuilder@$build_host.km "build $target"
 }
 
 apply "$@"

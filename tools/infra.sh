@@ -10,27 +10,23 @@ declare -x session class entity action key
 declare -x here
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$here/sops-yaml.sh"
+. "$here/run-with.bash"
 
 main() {
     for-all-identities "$1"
 }
 
 for-all-identities() {
-    local ak aks
 
-    yq eval '.identities | keys | .[]' .sops.yaml | while IFS='-' read -r class entity; do
+    all-identities | while IFS="-" read -r class entity; do
 
-        aks=$(LOG_LEVEL=off op=$1 yq-sops-e '.ops.$op
-        | with_entries(select(
-            .key == "$class-$entity" or
-            .key == "$class" or
-            .key == "all"
-            )
-        ) | [.all[], .$class[], .$class-$entity[] ][]') || continue
-
-        for ak in $aks; do
-            IFS=':' read -r action key <<<"$ak"
-            LOG_LEVEL=success ./tools/id-entities.sh --"$class" "$entity" "$action" "$key"
+        get-ops "$1" 2>/dev/null | while IFS= read -r ak; do
+            if [[ $ak == *" "* ]]; then
+                IFS=' ' read -r prefix key <<<"$ak"
+            else
+                IFS=':' read -r prefix key <<<"$ak"
+            fi
+            LOG_LEVEL=success ./tools/id-entities.sh --"$class" "$entity" "$prefix" "$key"
         done
     done
 }

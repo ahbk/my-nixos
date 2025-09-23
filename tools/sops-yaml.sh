@@ -28,7 +28,17 @@ create-sops-backend() {
 }
 
 read-setting() {
-    path=$1 yq-sops-e '.["$path"] // error("$path not found")'
+    path=$1 yq-sops-e '.["$path"] // error("$path not found")' 2> >(log error)
+}
+
+get-ops() {
+    op=$1 yq-sops-e '.ops.$op
+        | with_entries(select(
+            .key == "$class-$entity" or
+            .key == "$class" or
+            .key == "all"
+            )
+        ) | [.all[], .$class[], .$class-$entity[] ][]'
 }
 
 search-setting() {
@@ -67,6 +77,10 @@ find-identity() {
 
 get-identity() {
     id="$(id)" try yq-sops-e '.identities.$id // error("$id not found")'
+}
+
+all-identities() {
+    yq '.identities | keys | .[]' .sops.yaml
 }
 
 upsert-identity() {

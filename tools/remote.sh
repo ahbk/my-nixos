@@ -3,9 +3,11 @@
 # Yes, we know unescaped variables expand client side
 
 set -euo pipefail
-shopt -s globstar
 
-. ./tools/lib.sh
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+declare -r here
+
+. "$here/run-with.bash"
 
 main() {
     domain="kompismoln.se"
@@ -50,22 +52,15 @@ pull() {
     unwith
 }
 
+eff() {
+    sudo cp "$1" "$tmpdir/asdf"
+    sudo rm -f "$1"
+    sudo mount --bind "$tmpdir/asdf" "$1"
+
+    echo "Temporary $1 ($tmpdir/asdf) ready. Edit $1 freely."
+}
 push() {
     rsync -av --ignore-existing --info=NAME,SKIP --partial --progress "$src" "$user"@"$address":"$dest"
-}
-
-rebuild() {
-    with "$user"
-    local askpass
-    [[ "$user" != "root" && "$user" != "buildservice" ]] && askpass="--ask-sudo-password"
-    nixos-rebuild switch $askpass --flake "./#$host" --target-host "$user@$address"
-    unwith
-}
-
-login() {
-    with "$user"
-    ssh "$user@$address"
-    unwith
 }
 
 reset() {
@@ -100,18 +95,7 @@ reset() {
         --copy-host-keys
 }
 
-dirty-ssh() {
-    ssh -o StrictHostKeyChecking=no \
-        -o GlobalKnownHostsFile=/dev/null \
-        -o UserKnownHostsFile=/dev/null
-}
-
-switch() {
-    nixos-rebuild switch --use-remote-sudo --show-trace --verbose
-}
-
 tunnel() {
-    with "tunnelservice"
     local ssh_opts=(
         -N
         -T
@@ -127,7 +111,6 @@ tunnel() {
     )
 
     ssh "${ssh_opts[@]}" "tunnelservice@$host"
-    unwith
 }
 
 main "$@"

@@ -9,26 +9,32 @@ ops:
   rebuild:
     all:
       - rebuild:age-key
-  align:
-    host:
-      - align:wg-key
+  check:
     host-helsinki:
-      - align:ssh-key
+      - check:age-key
+      - check:ssh-key
+      - check:luks-key
     host-lenovo:
-      - align:ssh-key
+      - check:age-key
+      - check:ssh-key
+    host-stationary:
+      - check:age-key
+      - check:ssh-key
   verify:
     all:
-      - verify-identity:age-key
+      - "verify:age-key"
     user:
+      - verify:ssh-key
       - verify:passwd
       - verify:mail
+    host-stationary:
+      - verify:nix-cache-key
     host:
-      - verify:wg-key
+      - "verify:wg-key"
     service:
       - verify:ssh-key
-    host-helsinki:
-      - verify:ssh-key
-      - verify:age-key
+    domain:
+      - verify:tls-cert
 grants:
   domain-km:
     - host-adele
