@@ -1,27 +1,6 @@
 #!/usr/bin/env bash
 # id-entities.sh
 
-# shellcheck disable=SC2317,SC2030,SC2031,SC2016,SC2015,SC2029
-#
-# SC2317: This script has a dispatcher that makes dynamic calls to functions
-# that shellcheck believes are unreachable, so we disable this check globally.
-#
-# SC2030/31: The following exported variables are reassigned in subshells:
-#            (subshells inherit all of them except 'slot')
-#
-#     doas     the identity currently running this script
-#     entity   name of the target for all operations
-#     prefix   action/namespace to be performed
-#     class    the type of entity. can be host, user, service etc.
-#     key      type of key. can be age-key, ssh-key, passwd etc.
-#     slot     used for key juggling, does not interfere by default (0)
-#
-# This is not accidental, so we mute these warnings.
-# Will resort to discipline to uphold the de facto readonly status of these.
-#
-# SC2015: Got it, A && B || C is not if/then/else
-# SC2029: Noted, double qoutes in ssh commands expand client side
-
 # === section 0: setup
 
 set -euo pipefail
@@ -50,8 +29,12 @@ main() {
     # setup prefix, class, key etc.
     setup "$@" || die 1 "setup failed"
 
-    # map command to a link and invoke it, e.g.
-    # id-entities.sh -u alex verify ssh-key -> verify:user:ssh-key
+    # map command to a callchain and invoke its functions, e.g.
+    # id-entities.sh -u alex verify ssh-key ->
+    #     verify:user:ssh-key
+    #     verify:user
+    #     verify:ssh-key
+    #     verify
     run "$prefix"
 
     # 'with id' runs id() and brings the result into scope as $id,
@@ -60,6 +43,15 @@ main() {
 
     # sync to seize control over final output
     sync && log success "$prefix $key for $id completed."
+}
+
+callchain() {
+    cat <<EOF
+${prefix%%:*}:$class:$key
+${prefix%%:*}:$class
+${prefix%%:*}:$key
+${prefix%%:*}:
+EOF
 }
 
 setup() {
@@ -134,14 +126,6 @@ check-doas() {
 
 # === section 1: links
 #
-# 'run' runs a list (callchain) of all reasonable arrangements (4) ordered from
-# most specific to most general. Like this:
-#
-# verify:host:ssh-key
-# verify:host
-# verify:ssh-key
-# verify:
-#
 # there are ~70 links and they are listed below grouped by prefix and sorted
 # roughly by typical workflow order
 
@@ -185,9 +169,7 @@ new:host:ssh-key:() {
     log warning "next 'align' will replace public ssh key at '$artifact_file'"
 }
 
-# prevent identities from rotating themselves out of access no trailing colon,
-# so the callchain will invoke next link (which is 'new:' in this case) if the
-# guard passes.
+# prevent identities from rotating themselves out of access
 new:age-key() {
     with id
     [[ "$id" != "${doas:-}" ]] ||
@@ -213,14 +195,14 @@ align:() {
     run derive-artifact | run set-artifact
 }
 
-# this is a trick to force stored secret (i.e. follow the default flow for
-# non-host ssh-keys):
+# derive-artifact runs a host scan for host:ssh-key, this may not always
+# be desired, so we can force alignment against stored secret like this:
 # id-entities.sh -h [host] align:ssh-key ssh-key
 align:ssh-key:() {
     derive-artifact:ssh-key: | run set-artifact
 }
 
-# hostscan:
+# retain host scan as default behavior
 # id-entities.sh -h [host] align ssh-key
 align:host:ssh-key:() {
     align:
@@ -233,12 +215,6 @@ verify:() {
     try diff "$derive_artifact" "$artifact_file"
 }
 
-# force artifact-only verification for age-key
-# id-entities.sh -h [host] verify:age-key age-key
-verify:age-key:() {
-    verify:
-}
-
 verify:host() {
     # retreive secret *before* opening a pipe to locksmith, this to
     # prevent locksmith errors from masking retreival errors
@@ -246,8 +222,14 @@ verify:host() {
     echo "$base64_secret" | locksmith "$key"
 
     # maybe ensure that the secret is as shortlived as possible and
-    # accept the unexpected error:
+    # accept a confusing error message?
     # base64-secret: | locksmith "$key"
+}
+
+# force artifact-only verification for age-key
+# id-entities.sh -h [host] verify:age-key age-key
+verify:age-key:() {
+    verify:
 }
 
 # nix-cache-key skips verify:host
@@ -420,6 +402,8 @@ derive-artifact:host:ssh-key:() {
 
 get-artifact:() {
     with artifact_path
+    # shellcheck disable=SC2015
+    # (this is not if/then/else)
     test -s "$artifact_path" &&
         echo "$artifact_path" ||
         die 1 "no artifact at $artifact_path"
@@ -562,6 +546,8 @@ cat-artifact:() {
 }
 
 # --- proxies (lazy variables exposed as links)
+# so we can do stuff like
+# id-entities.sh -h [host] next-slot luks-key
 
 next-slot:() { proxy next_slot; }
 base64-secret:() { proxy base64_secret; }
@@ -570,43 +556,28 @@ sha512-secret:() { proxy sha512_secret; }
 
 # === section 2: lazy variables (idempotent functions)
 
-# the %%:* drops everything past the first colon. if prefix is 'verify:ssh-key'
-# it would become 'verify'.
-# 'run' filters out all lines that doesn't match the full prefix
-callchain() {
-    cat <<EOF
-${prefix%%:*}:$class:$key
-${prefix%%:*}:$class
-${prefix%%:*}:$key
-${prefix%%:*}:
-EOF
-}
+declare -g \
+    artifact_file \
+    artifact_path \
+    backend_component \
+    backend_enabled \
+    backend_file \
+    backend_path \
+    base64_secret \
+    cat_secret_ \
+    derive_artifact \
+    exact_key \
+    fqdn \
+    id \
+    json_secret \
+    next_slot \
+    secret_file \
+    secret_path \
+    secret_seed \
+    tmp_path
 
-id() {
-    echo "$class-$entity"
-}
-
-secret_path() {
-    with exact_key
-    local s=$tmpdir/$class.$entity.$exact_key.secret
-    [[ -f "$s" ]] || {
-        touch "$s"
-        chmod 600 "$s"
-    }
-    echo "$s"
-}
-
-secret_file() {
-    with secret_path
-    [[ -s $secret_path ]] ||
-        run decrypt >"$secret_path" &&
-        echo "$secret_path"
-}
-
-tmp_path() {
-    local s
-    s=$(mktemp "$tmpdir/XXXXXX") && rm "$s"
-    echo "$s"
+artifact_file() {
+    run get-artifact
 }
 
 artifact_path() {
@@ -617,39 +588,11 @@ artifact_path() {
         echo "$tmpdir/$class.$entity.$exact_key.artifact"
 }
 
-artifact_file() {
-    run get-artifact
-}
-
-derive_artifact() {
+backend_component() {
     with exact_key
-    local f=$tmpdir/$class.$entity.$exact_key.derived
-    [[ -f $f ]] || run derive-artifact >"$f"
-    echo "$f"
-}
-
-secret_seed() {
-    local f=$tmpdir/secret_seed
-
-    [[ -f "$f" ]] || {
-        touch "$f"
-        [[ -r ${SECRET_SEED:-} ]] &&
-            cat "$SECRET_SEED" >"$f"
-    }
-    echo "$f"
-}
-
-backend_path() {
-    search-setting "backend:$class" "backend"
-}
-
-backend_file() {
-    with backend_path backend_enabled
-    if [[ "$backend_enabled" == "true" ]]; then
-        echo "$backend_path"
-    else
-        die 1 "backend for '$entity' disabled"
-    fi
+    local c="['$exact_key']"
+    [[ $class == "host" ]] || c="['$entity']$c"
+    echo "$c"
 }
 
 backend_enabled() {
@@ -663,22 +606,55 @@ backend_enabled() {
     esac
 }
 
+backend_file() {
+    with backend_path backend_enabled
+    if [[ "$backend_enabled" == "true" ]]; then
+        echo "$backend_path"
+    else
+        die 1 "backend for '$entity' disabled"
+    fi
+}
+
+backend_path() {
+    search-setting "backend:$class" "backend"
+}
+
+base64_secret() {
+    run cat-secret | try base64 -w0
+}
+
+derive_artifact() {
+    with exact_key
+    local f=$tmpdir/$class.$entity.$exact_key.derived
+    [[ -f $f ]] || run derive-artifact >"$f"
+    echo "$f"
+}
+
 exact_key() {
     local exact_key=$key
     [[ "$slot" == "0" ]] || exact_key+="--$slot"
     echo "$exact_key"
 }
 
-backend_component() {
-    with exact_key
-    local c="['$exact_key']"
-    [[ $class == "host" ]] || c="['$entity']$c"
-    echo "$c"
-}
-
 fqdn() {
     [[ $class == "host" ]] || die 1 "only hosts can have fqdn"
-    read-setting "fqdn"
+    try read-setting "fqdn"
+}
+
+id() {
+    echo "$class-$entity"
+}
+
+json_secret() {
+    run cat-secret | try jq -Rs
+}
+
+next_slot() {
+    local slot=0
+    while (LOG_LEVEL=off run decrypt >/dev/null); do
+        ((slot++))
+    done
+    echo "$slot"
 }
 
 passphrase() {
@@ -686,20 +662,32 @@ passphrase() {
     openssl rand -base64 "$length" | tr -d '\n'
 }
 
-next_slot() {
-    local slot=0
-    while (run decrypt >/dev/null); do
-        ((slot++))
-    done
-    echo "$slot"
+secret_file() {
+    with secret_path
+    [[ -s $secret_path ]] ||
+        run decrypt >"$secret_path" &&
+        echo "$secret_path"
 }
 
-base64_secret() {
-    run cat-secret | try base64 -w0
+secret_path() {
+    with exact_key
+    local s=$tmpdir/$class.$entity.$exact_key.secret
+    [[ -f "$s" ]] || {
+        touch "$s"
+        chmod 600 "$s"
+    }
+    echo "$s"
 }
 
-json_secret() {
-    run cat-secret | try jq -Rs
+secret_seed() {
+    local f=$tmpdir/secret_seed
+
+    [[ -f "$f" ]] || {
+        touch "$f"
+        [[ -r ${SECRET_SEED:-} ]] &&
+            cat "$SECRET_SEED" >"$f"
+    }
+    echo "$f"
 }
 
 sha512_secret() {
@@ -708,28 +696,13 @@ sha512_secret() {
     run cat-secret | mkpasswd -sm sha-512 -S "$salt"
 }
 
-# declare lazy variables here to keep shellcheck happy
-declare -g \
-    id \
-    tmp_path \
-    backend_path \
-    backend_file \
-    backend_enabled \
-    backend_component \
-    secret_path \
-    secret_file \
-    artifact_path \
-    artifact_file \
-    derive_artifact \
-    secret_seed \
-    fqdn \
-    base64_secret \
-    json_secret \
-    exact_key \
-    next_slot \
-    cat_secret_
+tmp_path() {
+    local s
+    s=$(mktemp "$tmpdir/XXXXXX") && rm "$s"
+    echo "$s"
+}
 
-# --- misc helpers
+# === misc helpers
 
 usage() {
     sed -n '/^USAGE$/,/^$/p' "$here/id-entities-usage.txt"
@@ -748,7 +721,7 @@ locksmith() {
     [[ -n $payload ]] || die 1 "empty payload"
 
     lines=$(echo "$payload" | wc -l)
-    (("$lines" == 1 || "$lines" == 2)) ||
+    [[ "$lines" -eq 1 || "$lines" -eq 2 ]] ||
         die 1 "payload must be 1-2 lines (was $lines)"
 
     eval "$(ssh-agent -s)" >/dev/null
@@ -768,5 +741,5 @@ locksmith() {
         2> >(log error)
 }
 
-# --- main
+# === main
 main "$@"
