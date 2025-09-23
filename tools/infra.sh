@@ -9,15 +9,11 @@ declare -x session class entity action key
 
 declare -x here
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 . "$here/sops-yaml.sh"
 . "$here/run-with.bash"
 
-main() {
-    for-all-identities "$1"
-}
-
 for-all-identities() {
-
     all-identities | while IFS="-" read -r class entity; do
 
         get-ops "$1" 2>/dev/null | while IFS= read -r ak; do
@@ -27,8 +23,9 @@ for-all-identities() {
                 IFS=':' read -r prefix key <<<"$ak"
             fi
             LOG_LEVEL=success ./tools/id-entities.sh --"$class" "$entity" "$prefix" "$key"
+
         done
     done
 }
 
-main "$@"
+for-all-identities "$@"

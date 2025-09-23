@@ -682,7 +682,11 @@ secret_seed() {
 
 sha512_secret() {
     local salt
-    salt=$(key=$key-sha512 run cat-secret | awk -F'$' '{print $3}') || salt=""
+    salt=$(
+        LOG_LEVEL=off
+        key=$key-sha512
+        run cat-secret | awk -F'$' '{print $3}'
+    ) || salt=""
     run cat-secret | mkpasswd -sm sha-512 -S "$salt"
 }
 

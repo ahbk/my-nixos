@@ -76,6 +76,10 @@ in
         "/var/lib/redis-rspamd"
       ];
 
+      systemd.tmpfiles.rules = [
+        "d /var/lib/redis-rspamd 0750 redis-rspamd redis-rspamd -"
+      ];
+
       sops.secrets = lib'.mergeAttrs (user: _: {
         "${user}/mail-sha512" = {
           sopsFile = ../enc/user-${user}.yaml;
