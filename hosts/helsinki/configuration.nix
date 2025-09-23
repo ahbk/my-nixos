@@ -33,6 +33,7 @@
       listenPlain = [ "10.0.0.5:53" ];
       extraConfig = ''
         modules = { 'hints > iterate' }
+        hints['invoiceplane.km'] = '10.0.0.1'
         ${generateHints hosts}
       '';
     };
