@@ -100,6 +100,24 @@ in
         domains = mapAttrsToList (domain: _: domain) mailboxDomains;
         relayDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
         enableSubmissionSsl = false;
+        mailboxes = {
+          Drafts = {
+            auto = "subscribe";
+            specialUse = "Drafts";
+          };
+          Junk = {
+            auto = "subscribe";
+            specialUse = "Junk";
+          };
+          Sent = {
+            auto = "subscribe";
+            specialUse = "Sent";
+          };
+          Trash = {
+            auto = "subscribe";
+            specialUse = "Trash";
+          };
+        };
 
         loginAccounts = mapAttrs' (user: userCfg: {
           name = config.my-nixos.users.${user}.email;
