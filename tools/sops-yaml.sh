@@ -16,6 +16,21 @@ artifact:tls-cert: artifacts/$class-$entity-$key.pem
 EOF
 }
 
+identity-picker() {
+
+    options=("Option 1" "Option 2" "Option 3")
+    PS3="Choose an option: "
+
+    select opt in "${options[@]}"; do
+        if [[ -n "$opt" ]]; then
+            echo "You chose $opt"
+            break
+        else
+            echo "Invalid choice, try again."
+        fi
+    done
+}
+
 create-sops-backend() {
     local backend_path=$1
     mkdir -p "$(dirname "$backend_path")"
@@ -65,7 +80,7 @@ autocomplete-identity() {
     echo "$matches"
 }
 
-find-identity() {
+get-identity-by-age-key() {
     age_key=$(cat) try yq-sops-e '(
         .identities
             | to_entries

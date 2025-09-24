@@ -58,6 +58,7 @@ in
     services.nixos-cli = {
       enable = true;
     };
+    programs.bash.promptInit = builtins.readFile ../tools/prompt-init.sh;
 
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${host.system}.default

@@ -64,7 +64,7 @@
 
   adele = {
     name = "adele";
-    class = "peer";
+    class = "workstation";
     hostname = "adele.km";
     address = "10.0.0.8";
     system = "x86_64-linux";

@@ -126,7 +126,7 @@ preflight-doas() {
     # bootstrap root-1 need not be checked, as it has nothing to be checked against
     [[ "$prefix-$id" != "init-root-1" ]] || return 0
 
-    doas=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | find-identity) ||
+    doas=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | get-identity-by-age-key) ||
         die 1 "no identity found in '$SOPS_AGE_KEY_FILE'"
 
     log important "$doas"
