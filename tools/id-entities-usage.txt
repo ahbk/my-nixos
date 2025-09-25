@@ -1,98 +1,121 @@
 NAME
-    id-entities.sh - Manage (id)entities like hosts, users or domains.
+    id-entities.sh - Manage secrets and cryptographic identities.
 
 USAGE
-    id-entities.sh [--root|--host|--user|--domain|--service] <entity> <prefix> [key] [slot]
+    id-entities.sh <class-flag> <entity> <prefix> [key] [slot]
     id-entities.sh <identity-query> <prefix> [key] [slot]
     id-entities.sh --help
 
 DESCRIPTION
     This script manages the state and whereabouts of secrets and derived artifacts.
-    It's a boilerplate for automating creation, alignment, and verification
-    of keys within an infrastructure.
+    It is built on top of 'sops' and 'age' to provide a consistent framework for
+    automating key management within an infrastructure.
 
-    All commands follow the same grammar, the first argument specifies the class
-    of the entity (--user for humans, --host for machines etc.), next argument names
-    an entity, the third is the prefix to perform and last argument names
-    the key. Different procedures are assigned to different combinations of these
-    commands, and the output will show which procedures were chosen.
+    Operations are defined by a combination of the entity's class, its name,
+    an action to perform (the prefix), and the type of key to act upon.
 
-CLASS and ENTITY
-   Specify the class of entity followed by the name
-   id-entities.sh -r 1
-   id-entities.sh -h some-host
-   id-entities.sh -u admin
+ARGUMENTS
+    <class-flag> <entity>
+        Specify the class of the entity and its unique name.
 
-   --root <entity>   Root identities used to encrypt other entities
-   --host <entity>   Machines
-   --user <entity>   Humans
-   --domain <entity> Things that span over several hosts
+        -r, --root      Root identities used to encrypt other secrets.
+        -h, --host      Machines or servers.
+        -s, --service   Automated services (e.g., 'locksmith').
+        -u, --user      Human users.
+        -d, --domain    Domains for services like TLS.
 
-ACTIONS
-    The prefix specifies the operation to perform on the entity:
+    <prefix>
+        The action to perform on the entity's key.
 
-    init             Create a new age identity and encrypted backend.
-    new              Create/renew all. Equivalent to new-secret + align.
-    new-secret       Generate, encrypt and store a new secret.
-    align            Regenerate artifacts from source of truth.
-    verify           All that apply of verify-host|hash|public|identity.
-    cat-secret       Write secret to stdout.
-    cat-public       Write public artifact to stdout.
-    push             Push imperative secrets to host (age-key and luks-key).
-    
-KEY TYPES
-    Type of procedure to run on the secret, defaults to 'age-key'.
+        init          Create the encrypted backend file for a new entity. The
+                      entity's own age-key is created by default.
 
-    Type:             (devnote)
-    age-key           public key is entity's identity in .sops.yaml, also hosts' decryption key
-    ssh-key           host's host key is source of truth on this one, not backend
-    wg-key            no host verification (ping is the host verification)
-    luks-key          Key for LUKS disk encryption can be pushed and verified via locksmith
-    tls-cert          A TLS certificate for domains that span hosts
-    passwd            A user password with passwd-hashed as artifact
-    mail              Passwords for nixos-simple-mailserver behave exactly like passwd
+        new           Generate a new secret and immediately update its public
+                      artifact. (Equivalent to 'new-secret' followed by 'align').
+
+        new-secret    Generate and store a new secret, leaving the old artifact
+                      in place (the secret and artifact will be out of sync).
+
+        align         Update/regenerate the public artifact from the current secret.
+
+        verify        Check if the stored artifact matches one derived from the
+                      current secret. Makes no changes.
+
+        check         Same as 'verify' for most keys. For hosts, this performs a
+                      LIVE check against the remote machine via the locksmith service.
+
+        pull          Used for host ssh-keys. Scans the remote host's public key
+                      and updates the local secret to match, making the remote
+                      host the source of truth.
+
+        push          Push a secret to a remote host (e.g., adding an age-key or
+                      a new LUKS passphrase).
+
+        rebuild       Re-encrypt all backend files according to the current .sops.yaml
+                      rules. Used after adding or rotating a root key.
+
+        cat-secret    Decrypt and print a raw or encoded secret to stdout.
+        base64-secret
+        sha512-secret
+        json-secret
+
+        unset         Remove a key (and its specific slot) from the backend.
+
+        next-slot     Find the next available numbered slot for a multi-valued
+                      key (e.g., luks-key).
+
+    [key]
+        The type of secret to manage. Defaults to 'age-key'.
+
+        age-key         The primary age key used for sops encryption.
+        ssh-key         SSH keys for users or hosts.
+        wg-key          WireGuard private keys.
+        luks-key        Passphrases for LUKS disk encryption.
+        nix-cache-key   Signing keys for a Nix binary cache.
+        passwd          User passwords. The artifact is a SHA512 hash.
+        mail            Mailbox passwords (behaves identically to 'passwd').
+        tls-cert        Private keys for X.509 certificates.
+
+    [slot]
+        A non-negative integer for keys that support multiple values, like 'luks-key'.
+        Defaults to '0'.
 
 ENVIRONMENT VARIABLES
-    LOG_LEVEL=[debug|info|warning|error|important|focus|off]
-        Sets logging verbosity
+    SOPS_AGE_KEY_FILE=<path>
+        REQUIRED. Path to the private age key file of the identity authorized to
+        perform the requested action (e.g., a root key).
 
-    SEED_SECRET=<path>
-        If set during a 'new', 'new-secret', 'init' or 'push' prefix, the contents of the
-        file will be used as secret instead of generating a new one.
+    SECRET_SEED=<path>
+        If this file path is set during 'init', 'new', or 'push' operations, its
+        contents will be used as the secret instead of generating a new one.
+
+    LOG_LEVEL=[debug|info|important|warning|error|off]
+        Sets the logging verbosity for troubleshooting.
 
 EXAMPLES
-    Initialize the repository for the first time with root key #1:
-        $ SEED_SECRET=<(age-keygen) id-entities.sh -r 1 init
+    Bootstrap the repository with the first root key from a file:
+        $ SECRET_SEED=./my-root-key.txt id-entities.sh -r 1 init
 
-    Create a new host identity for 'webserver-01'
+    Create a new host identity for 'webserver-01':
         $ id-entities.sh -h webserver-01 init
 
-    Sideload age-key to host (see modules/locksmith.nix to setup locksmith)
-        $ id-entities.sh -h webserver-01 push
+    Create a new LUKS key for the host, push it, and check it live:
+        $ id-entities.sh -h webserver-01 new luks-key
+        $ id-entities.sh -h webserver-01 push luks-key
+        $ id-entities.sh -h webserver-01 check luks-key
 
-    Check if it's there
-        $ id-entities.sh -h webserver-01 verify
-
-    Scan host and retreive the public key
-        $ id-entities.sh -h webserver-01 align ssh-key
-
-    Check if it worked
+    Update the local store with the SSH public key currently on a host:
+        $ id-entities.sh -h webserver-01 pull ssh-key
         $ id-entities.sh -h webserver-01 verify ssh-key
 
-    Create a new password for user 'jane':
+    Create a new password for user 'jane' and then view it:
         $ id-entities.sh -u jane new passwd
+        $ id-entities.sh -u jane cat-secret passwd
 
-    Write the sha-512 hash to stdout:
-        $ id-entities.sh -u jane cat-secret passwd-hashed
+    Set a specific password for user 'jane' from a variable:
+        $ pw="S3cur3&P4ssw0rd!"
+        $ SECRET_SEED=<(echo -n "$pw") id-entities.sh -u jane new passwd
 
-    Renew passwd only, without modifying the hash
-        $ id-entities.sh -u jane new-secret passwd
-
-    See how they don't match
-        $ id-entities.sh -u jane verify passwd
-
-    Sync again
-        $ id-entities.sh -u jane align passwd
-
-    See how they match
-        $ id-entities.sh -u jane verify passwd
+    Add a new root key ('root-2') and re-encrypt all secrets so it can access them:
+        $ id-entities.sh -r 2 init
+        $ id-entities.sh -r all rebuild
