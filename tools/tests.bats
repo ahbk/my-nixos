@@ -205,7 +205,7 @@ EOF
   expect 1 " > age"
 
   run "$test_cmd" -h testhost check age-key
-  expect 1 "locksmith: died."
+  expect 1 "locksmith -> died."
 
   run "$test_cmd" -h testhost align age-key
   expect 0 "main"
@@ -214,7 +214,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost check age-key
-  expect 1 "locksmith: died."
+  expect 1 "locksmith -> died."
 }
 
 @test "host push age-key" {
@@ -264,7 +264,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost check luks-key
-  expect 1 "locksmith: No key available with this passphrase."
+  expect 1 "locksmith -> No key available with this passphrase."
 }
 
 @test "host push luks-key" {
@@ -304,7 +304,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost check luks-key 2
-  expect 1 "locksmith: empty payload"
+  expect 1 "locksmith -> empty payload"
 
   run "$test_cmd" -h testhost check luks-key 1
   expect 0 "main"

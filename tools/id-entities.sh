@@ -32,17 +32,18 @@ main() {
     # setup prefix, class, key etc.
     setup "$@" || die 1 "setup failed"
 
+    # 'with id' runs id() and brings the result into scope as $id,
+    # like a lazy variable.
+    with id
+    log info "$prefix $key for $id ready."
+
     # map command to a callchain and invoke its functions, e.g.
     # id-entities.sh -u alex verify ssh-key ->
     #     verify:user:ssh-key
     #     verify:user
     #     verify:ssh-key
-    #     verify
+    #     verify:
     run "$prefix"
-
-    # 'with id' runs id() and brings the result into scope as $id,
-    # like a lazy variable.
-    with id
 
     # sync to seize control over final output
     sync && log success "$prefix $key for $id completed."
@@ -119,6 +120,8 @@ preflight-backend() {
 
     [[ $prefix == "init" || -f "$backend_path" ]] ||
         die 1 "'$backend_path' doesn't exist, did you spell '$entity' correctly?"
+
+    log info "$backend_path"
 }
 
 preflight-doas() {
@@ -147,7 +150,7 @@ init:root:() {
 # non-root entities require a little dance to insert themselves in .sops.yaml
 # before backend is created (the age-key is encrypted by the age-key)
 init:() {
-    with secret_seed secret_path backend_path
+    with id backend_path secret_path secret_seed
 
     if [[ -s "$secret_seed" ]]; then
         cat "$secret_seed" >"$secret_path"
@@ -155,7 +158,6 @@ init:() {
         run create-secret >"$secret_path"
     fi
 
-    with id
     run derive-artifact | upsert-identity "$id"
     create-sops-backend "$backend_path"
     run new
@@ -190,27 +192,26 @@ new-secret:() {
 # --- [verify|check]:*:*
 
 verify:() {
-    run-with get-artifact
-    run derive-artifact | try diff - "$get_artifact"
+    with get-artifact:
+    run derive-artifact | try diff - "$get_artifact_"
 }
 
 # force artifact-only verification
 verify:host:ssh-key:() {
-    run-with get-artifact
-    derive-artifact:ssh-key: | try diff - "$get_artifact"
+    with get-artifact:
+    derive-artifact:ssh-key: | try diff - "$get_artifact_"
 }
 
 verify:domain:tls-cert:() {
-    run-with get-artifact
-    with secret_file
+    with get-artifact: secret_file
 
-    try openssl x509 -in "$get_artifact" -checkend 2592000 | log info
+    try openssl x509 -in "$get_artifact_" -checkend 2592000 | log info
 
-    openssl x509 -in "$get_artifact" -noout -ext subjectAltName |
+    openssl x509 -in "$get_artifact_" -noout -ext subjectAltName |
         try grep -q "DNS:$entity"
 
     openssl pkey -in "$secret_file" -pubout |
-        try diff - <(openssl x509 -in "$get_artifact" -pubkey -noout)
+        try diff - <(openssl x509 -in "$get_artifact_" -pubkey -noout)
 }
 
 # host scan under check:* instead
@@ -236,8 +237,8 @@ align:() {
 align:host:ssh-key:() {
     derive-artifact:ssh-key: | run set-artifact
 
-    run-with get-artifact
-    log warning "next 'pull' will replace public ssh key at '$get_artifact'"
+    with get-artifact:
+    log warning "next 'pull' will replace public ssh key at '$get_artifact_'"
 }
 
 # host scan under pull:* instead
@@ -259,10 +260,10 @@ push:host:luks-key() {
     # otherwise create a new secret under first available slot and pass them
     # as two base64-strings, this will instruct locksmith to add the second
     # passphrase.
-    run-with next-slot
+    with next-slot:
     {
         run base64-secret
-        slot=$next_slot run new base64-secret
+        slot=$next_slot_ run new base64-secret
     } | locksmith
 }
 
@@ -343,8 +344,10 @@ validate:mail-sha512:() {
 }
 
 validate-sha512() {
-    run-with cat-secret
-    [[ "$cat_secret" =~ ^\$6\$[^$]+\$[./0-9A-Za-z]+$ ]]
+    with secret_file
+    # shellcheck disable=SC2016
+    # - single quotes intentional
+    grep -q '^\$6\$[^$]\+\$[./0-9A-Za-z]\+$' "$secret_file"
 }
 
 validate-passphrase() {
@@ -467,9 +470,8 @@ encrypt:() {
     cat >"$secret_path"
     run validate
 
-    with backend_path backend_component
-    run-with json-secret
-    try sops set "$backend_path" "$backend_component" "$json_secret"
+    with backend_path backend_component json-secret:
+    try sops set "$backend_path" "$backend_component" "$json_secret_"
 }
 
 encrypt:root:() {
@@ -509,7 +511,7 @@ rebuild:() {
 
     case $rc in
     0 | 1) return ;;
-    *) die $rc ;;
+    *) die $rc "asdf" ;;
     esac
 }
 
@@ -550,13 +552,6 @@ sha512-secret:() {
 
 # === section 2: lazy variables (idempotent functions)
 
-# run-with
-declare -g \
-    cat_secret \
-    get_artifact \
-    json_secret \
-    next_slot
-
 # with
 declare -g \
     artifact_path \
@@ -565,8 +560,11 @@ declare -g \
     backend_file \
     backend_path \
     exact_key \
+    get_artifact_ \
     fqdn \
     id \
+    json_secret_ \
+    next_slot_ \
     secret_file \
     secret_path \
     secret_seed \
@@ -672,7 +670,7 @@ usage() {
 }
 
 locksmith() {
-    with fqdn
+    with id fqdn
 
     if [ -t 0 ]; then
         die 1 "no payload"
@@ -699,9 +697,16 @@ locksmith() {
         run cat-secret
     ) | ssh-add - 2>/dev/null
 
-    echo "$payload" | try ssh "locksmith@$fqdn" "$key" \
+    # shellcheck disable=SC2029
+    # - "$key" expands client side
+    echo "$payload" | ssh "locksmith@$fqdn" "$key" \
         > >(log info) \
-        2> >(log error)
+        2> >(log error) || die
+
+    case $lines in
+    1) log success "$key on $id confirmed" ;;
+    2) log success "$key on $id deployed" ;;
+    esac
 }
 
 # === main

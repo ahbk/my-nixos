@@ -22,7 +22,7 @@ for-all-identities() {
             else
                 IFS=':' read -r prefix key <<<"$ak"
             fi
-            LOG_LEVEL=success ./tools/id-entities.sh --"$class" "$entity" "$prefix" "$key"
+            ./tools/id-entities.sh --"$class" "$entity" "$prefix" "$key"
 
         done
     done

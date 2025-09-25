@@ -41,8 +41,8 @@ ARGUMENTS
         verify        Check if the stored artifact matches one derived from the
                       current secret. Makes no changes.
 
-        check         Same as 'verify' for most keys. For hosts, this performs a
-                      LIVE check against the remote machine via the locksmith service.
+        check         Performs a live check against a remote entity via the
+                      locksmith service.
 
         pull          Used for host ssh-keys. Scans the remote host's public key
                       and updates the local secret to match, making the remote
@@ -69,12 +69,12 @@ ARGUMENTS
 
         age-key         The primary age key used for sops encryption.
         ssh-key         SSH keys for users or hosts.
-        wg-key          WireGuard private keys.
+        wg-key          WireGuard key-pairs for hosts.
         luks-key        Passphrases for LUKS disk encryption.
         nix-cache-key   Signing keys for a Nix binary cache.
         passwd          User passwords. The artifact is a SHA512 hash.
         mail            Mailbox passwords (behaves identically to 'passwd').
-        tls-cert        Private keys for X.509 certificates.
+        tls-cert        Key-pairs for X.509 certificates.
 
     [slot]
         A non-negative integer for keys that support multiple values, like 'luks-key'.
@@ -90,7 +90,7 @@ ENVIRONMENT VARIABLES
         contents will be used as the secret instead of generating a new one.
 
     LOG_LEVEL=[debug|info|important|warning|error|off]
-        Sets the logging verbosity for troubleshooting.
+        Sets the logging verbosity for troubleshooting. Defaults to 'info'
 
 EXAMPLES
     Bootstrap the repository with the first root key from a file:

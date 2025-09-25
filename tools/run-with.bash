@@ -13,8 +13,7 @@ trap cleanup EXIT
 
 # take a list of prefixes and run their callchains
 run() {
-    local cmd links prefix
-    cmd="${cmd:-passthru}"
+    local link links prefix
 
     for prefix; do
         links=$(for link in $(callchain | grep "^${prefix%:}"); do
@@ -24,95 +23,58 @@ run() {
         [[ -n $links ]] ||
             die 1 "'$prefix' didn't match any link in the callchain:"$'\n'"$(callchain)"
 
-        log debug "$links"
-
-        if [[ $cmd == "with" ]]; then
-            local out
-            out="$(run-links "$links")" &&
-                printf -v "${prefix//[^a-zA-Z0-9_]/_}" '%s' "$out" ||
-                exit 1
-        else
-            run-links "$links"
-        fi
-
+        for link in $links; do
+            log debug "run $link"
+            "$link"
+        done
     done
-}
-
-run-links() {
-    local link
-    for link in $1; do
-        "$link"
-    done
-}
-
-passthru() {
-    "$@"
 }
 
 with() {
-    local cmd out
+    local cmd out var
     for cmd; do
-        out="$("$cmd")" &&
-            printf -v "${cmd//[^a-zA-Z0-9_]/_}" '%s' "$out" ||
-            exit 1
+        log trace "with $cmd"
+        out=$(if [[ $cmd == *:* ]]; then
+            run "$cmd"
+        else
+            "$cmd"
+        fi) && {
+            var="${cmd//[^a-zA-Z0-9_]/_}"
+            declare -g "$var=$out"
+        } || exit 1
     done
 }
 
-run-with() {
-    cmd=with run "$@"
-}
-
-quiet() {
-    "$@" >/dev/null 2>&1
-}
-
-proxy() {
-    with "$1"
-    echo "${!1}"
-}
-
 tlog() {
-    local level=$1
-    tee >(log "$level")
+    tee >(log "$1")
 }
 
 log() {
-    local level=$1
+    local label=$1
+    local level c1 c2 c3
+    IFS=' ' read -r level c1 c2 c3 <<<"${LOG_CONFIG[$label]}"
 
-    if [[ $# -gt 1 ]]; then
-        msg="$2"
-    else
-        msg="$(cat)"
-        [[ -n "$msg" ]] || return 0
-    fi
+    local msg="${2:-$(cat)}"
+    [[ -n "$msg" ]] || return 0
 
-    local caller=${FUNCNAME[1]}
-    local depth=${#FUNCNAME[@]}
+    [[ $level -ge ${LOG_CONFIG[${LOG_LEVEL:-info}]%% *} ]] ||
+        return 0
 
-    [[ $caller != tlog ]] || caller=${FUNCNAME[2]}
-    [[ $caller != die ]] || caller=${FUNCNAME[2]}
-    [[ $caller != with ]] || caller=${FUNCNAME[3]}
-    [[ $caller != try ]] || caller=${FUNCNAME[3]}
+    local backtrack=1
+    while [[ ${FUNCNAME[$backtrack]} =~ ^(tlog|die|try|with|run)$ ]]; do
+        ((backtrack++))
+    done
+
+    local caller=${FUNCNAME[$backtrack]}
+    local depth=$((${#FUNCNAME[@]} - backtrack - 1))
 
     [[ "$msg" == *$'\n'* ]] && {
         msg=$'\n'"$msg"
-        msg="${msg//$'\n'/$'\n |        '}"
+        msg="${msg//$'\n'/$'\n    | '}"
     }
 
-    case $level in
-    success) msg="[$depth]: $GB${caller}$GN: $msg$NC" ;;
-    debug) msg="[$depth]: $YB${caller}$NC: $msg$NC" ;;
-    focus) msg="$PB [$depth]:$PN $PN${caller}$PB: $msg$NC" ;;
-    info) msg="[$depth]: $BB${caller}$BN: $msg$NC" ;;
-    warning) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
-    important) msg="[$depth]: $YN${caller}$YB: $msg$NC" ;;
-    error) msg="[$depth]: $RB${caller}$RN: $msg$NC" ;;
-    test) msg="[test]: $TB${caller}$TN: $msg$NC" ;;
-    esac
-
-    if [[ ${LOG_LEVELS[$level]} -ge ${LOG_LEVELS[${LOG_LEVEL:-info}]:-99} ]]; then
-        echo -e "$msg" >&2
-    fi
+    printf "%b[%02d]: %b%s -> %b%s%b\n" \
+        "$c1" "$depth" "$c2" "$caller" "$c3" "$msg" "$NC" >&2
 }
 
 die() {
@@ -137,15 +99,13 @@ try() {
     "$@" >"$std.out" 2>"$std.err" || exit_code=$?
 
     if [[ $exit_code -eq 0 ]]; then
+        log debug "try $*"
+        log important <"$std.err"
         cat "$std.out"
     else
         cat "$std.out" >>"$std.err"
         die "$exit_code" "$(tr -d '\r' <"$std.err")"
     fi
-}
-
-fn-exists() {
-    declare -F "$1"
 }
 
 fn-match() {
@@ -164,20 +124,22 @@ YN='\033[0;33m'
 YB='\033[1;33m'
 BN='\033[0;34m'
 BB='\033[1;34m'
-PN='\033[0;35m'
-PB='\033[1;35m'
-TN='\033[0;36m'
-TB='\033[1;36m'
+MN='\033[0;35m'
+MB='\033[1;35m'
+CN='\033[0;36m'
+CB='\033[1;36m'
+WN='\033[0;37m'
+WB='\033[1;37m'
 NC='\033[0m'
 
-declare -A LOG_LEVELS=(
-    [debug]=0
-    [info]=1
-    [warning]=3
-    [important]=3
-    [success]=4
-    [error]=5
-    [focus]=98
-    [test]=98
-    [off]=99
+declare -A LOG_CONFIG=(
+    [trace]="0 $NC $WB $WN"
+    [debug]="1 $NC $CB $CN"
+    [info]="2 $NC $BB $BN"
+    [warning]="3 $NC $YB $YN"
+    [important]="3 $NC $YN $YB"
+    [success]="3 $NC $GB $GN"
+    [error]="4 $NC $RB $RN"
+    [focus]="98 $MB $MB $MN"
+    [off]="99"
 )
