@@ -20,7 +20,7 @@ let
     ;
 
   cfg = config.my-nixos.wireguard;
-  isGateway = cfg: cfg.name == "helsinki";
+  isGateway = cfg: cfg.name == "stationary";
   isServer = cfg: hasAttr "publicAddress" cfg;
   isPeer = cfg: hasAttr "address" cfg;
 in

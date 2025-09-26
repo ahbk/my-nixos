@@ -3,6 +3,7 @@
     name = "stationary";
     class = "webserver";
     hostname = "stationary.km";
+    publicAddress = "stationary.kompismoln.se";
     address = "10.0.0.1";
     system = "x86_64-linux";
     stateVersion = "20.03";
@@ -22,6 +23,7 @@
     class = "webserver";
     hostname = "glesys.km";
     address = "10.0.0.3";
+    publicAddress = "ahbk.se";
     system = "x86_64-linux";
     stateVersion = "23.11";
   };
