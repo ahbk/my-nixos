@@ -1,17 +1,34 @@
 {
-  inputs,
-  pkgs,
+  sites,
   ids,
   users,
+  modulesPath,
   ...
 }:
-let
-  sites = import ../../sites.nix;
-in
 {
   imports = [
-    ./hardware-configuration.nix
+    (modulesPath + "/profiles/qemu-guest.nix")
+    #../../modules/facter.nix
   ];
+
+  boot.initrd.availableKernelModules = [
+    "ata_piix"
+    "uhci_hcd"
+    "virtio_pci"
+    "virtio_scsi"
+    "sd_mod"
+    "sr_mod"
+  ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ ];
+  boot.extraModulePackages = [ ];
+
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/77e2add1-dbfd-4f79-aeb9-0f9703ea3f7b";
+    fsType = "ext4";
+  };
+
+  nixpkgs.hostPlatform = "x86_64-linux";
 
   boot.loader.grub = {
     enable = true;
@@ -46,86 +63,36 @@ in
     locations."/".return = "301 https://nc.kompismoln.se$request_uri";
   };
 
-  security.sudo.extraRules = [
-    {
-      users = [
-        "ludvig"
-        "alex"
-      ];
-      runAs = "ALL:mobilizon";
-      commands = [ "${pkgs.postgresql}/bin/psql" ];
-    }
-    {
-      users = [
-        "ludvig"
-        "alex"
-      ];
-      commands = [
-        "${pkgs.systemd}/bin/systemctl restart mobilizon.service"
-        "${pkgs.systemd}/bin/systemctl stop mobilizon.service"
-        "${pkgs.systemd}/bin/systemctl start mobilizon.service"
-      ];
-    }
-  ];
-
-  services.nginx.virtualHosts."kompismoln.se" = {
-    forceSSL = true;
-    enableACME = true;
-
-    root = inputs.kompismoln-site.packages."x86_64-linux".default;
-
-    locations."= /" = {
-      tryFiles = "/index.html =404";
-    };
-
-    locations."/" = {
-      tryFiles = "$uri $uri.html =404";
-    };
-  };
-
-  users.users.jellyfin = {
-    uid = 970;
-    isSystemUser = true;
-    group = "jellyfin";
-  };
-  users.groups.jellyfin.gid = 970;
-  services.jellyfin = {
-    enable = true;
-    openFirewall = true;
-  };
-
-  fileSystems."/var/lib/jellyfin/media" = {
-    device = "stationary.km:/mnt/t1/media";
-    fsType = "nfs";
-  };
-
   my-nixos = {
-    users = with users; {
-      inherit
-        admin
-        alex
-        ludvig
-        ;
-    };
-    shell.alex.enable = true;
-    hm.alex.enable = true;
+    users.admin = users.admin;
+    users.alex = users.alex;
+    sysadm.rescueMode = true;
+    ssh.enable = true;
+    sops.enable = true;
+    #facter.enable = true;
 
-    shell.ludvig.enable = true;
-    hm.ludvig.enable = true;
-
-    fail2ban = {
+    locksmith = {
       enable = true;
-      ignoreIP = [
-        "10.0.0.0/24"
-        "ahbk.se"
-        "stationary.ahbk.se"
-        "shadowserver.org"
-      ];
+      luksDevice = "/dev/null";
     };
+
+    wireguard.wg0.enable = true;
+
+    tls-certs = [ "km" ];
+
+    #fail2ban = {
+    #  enable = true;
+    #  ignoreIP = [
+    #    "10.0.0.0/24"
+    #    "ahbk.se"
+    #    "stationary.ahbk.se"
+    #    "shadowserver.org"
+    #  ];
+    #};
 
     backup.km = {
       enable = true;
-      target = "backup.ahbk";
+      target = "backup.km";
     };
 
     mobilizon.sites."klimatkalendern1" = {
@@ -156,10 +123,10 @@ in
       uid = 978;
       collaboraHost = "collabora.ahbk.se";
       mounts = {
-        alex = "stationary.km:/mnt/t1/alex";
-        johanna = "stationary.km:/mnt/t1/johanna";
-        chris = "stationary.km:/mnt/t1/chris";
-        john = "stationary.km:/mnt/t1/john";
+        #alex = "stationary.km:/mnt/t1/alex";
+        #johanna = "stationary.km:/mnt/t1/johanna";
+        #chris = "stationary.km:/mnt/t1/chris";
+        #john = "stationary.km:/mnt/t1/john";
         #petra = "stationary.ahbk:/mnt/t1/petra";
         #rigmor = "stationary.ahbk:/mnt/t1/rigmor";
       };
@@ -172,8 +139,6 @@ in
       allowedHosts = [ ];
     };
 
-    wireguard.wg0.enable = true;
-
     nginx = {
       enable = true;
       email = users.alex.email;
@@ -181,16 +146,13 @@ in
 
     mailserver = {
       enable = true;
+      domain = "ahbk.se";
       users = {
-        "admin" = { };
-        "alex" = { };
+        admin = { };
+        alex = { };
       };
       domains = {
         "ahbk.se".mailbox = true;
-        "chatddx.com".mailbox = true;
-        "sverigesval.org".mailbox = true;
-        "kompismoln.se".mailbox = true;
-        "esse.nu".mailbox = false;
         "klimatkalendern.nu".mailbox = false;
       };
     };

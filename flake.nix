@@ -50,6 +50,9 @@
     klimatkalendern.url = "github:Kompismoln/klimatkalendern";
     klimatkalendern.inputs.nixpkgs.follows = "nixpkgs";
 
+    klimatkalendern1.url = "github:Kompismoln/klimatkalendern";
+    klimatkalendern1.inputs.nixpkgs.follows = "nixpkgs";
+
     klimatkalendern-dev.url = "github:Kompismoln/klimatkalendern/dev";
     klimatkalendern-dev.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -65,6 +68,7 @@
       ids = import ./ids.nix;
       users = import ./users.nix;
       hosts = import ./hosts.nix;
+      sites = import ./sites.nix;
       lib' = (import ./lib.nix) {
         inherit pkgs;
         lib = nixpkgs.lib;
@@ -95,6 +99,7 @@
               ids
               users
               hosts
+              sites
               lib'
               ;
             host = cfg;

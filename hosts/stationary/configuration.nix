@@ -92,6 +92,7 @@
   users.groups.jellyfin.gid = 970;
 
   my-nixos = {
+    users.admin = users.admin;
     sysadm.rescueMode = true;
     ssh.enable = true;
     sops.enable = true;
@@ -99,8 +100,8 @@
     nix.serveStore = true;
 
     locksmith = {
-      luksDevice = "/dev/null";
       enable = true;
+      luksDevice = "/dev/null";
     };
 
     wireguard.wg0.enable = true;
@@ -110,10 +111,6 @@
     backup.km = {
       enable = true;
       target = "backup.km";
-    };
-
-    users = with users; {
-      inherit admin;
     };
 
     tls-certs = [ "km" ];

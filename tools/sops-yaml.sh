@@ -4,7 +4,6 @@
 # SC2016: Yes, we know expressions wont expand in single quotes.
 
 create-sops-yaml() {
-    [[ -f .sops.yaml ]]
     cat >.sops.yaml <<'EOF'
 fqdn: $entity.local
 backend: enc/$class-$entity.yaml
@@ -57,10 +56,8 @@ get-ops() {
 }
 
 search-setting() {
-    local result
     for item; do
-        result=$(read-setting "$item" 2>/dev/null) || continue
-        echo "$result"
+        read-setting "$item" 2>/dev/null || continue
         return 0
     done
 }
@@ -81,7 +78,7 @@ autocomplete-identity() {
 }
 
 get-identity-by-age-key() {
-    age_key=$(cat) try yq-sops-e '(
+    age_key=$(cat) yq-sops-e '(
         .identities
             | to_entries
             | .[]

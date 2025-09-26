@@ -108,8 +108,8 @@ try() {
     fi
 }
 
-fn-match() {
-    declare -F | awk '{print $3}' | grep -E "$1" >/dev/null
+links-by-prefix() {
+    declare -F | awk '{print $3}' | grep -E "$1"
 }
 
 trailing-newline() {

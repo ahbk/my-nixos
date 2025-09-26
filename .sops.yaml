@@ -36,6 +36,8 @@ ops:
     domain:
       - verify:tls-cert
 grants:
+  service-sysctl-user-portal:
+    - host-glesys
   domain-km:
     - host-adele
     - host-lenovo
@@ -81,6 +83,7 @@ identities:
   service-nixbuilder: &service-nixbuilder age1n0fhevjp69cwpfpzv5q29jduzhgq6egc59fqfyr40ajfesxhsfqq5x2kcj
   service-nixswitcher: &service-nixswitcher age1e5y0hdv08h7yawmla3vtenska9p49nswjhqckap87glm8j99y9fq4kqj2c
   service-rescue: &service-rescue age1sh573xzcwpylxe6ymzpd4m80favtavvgsv6dezaq755px67s6aws5q9l3z
+  service-sysctl-user-portal: &service-sysctl-user-portal age1vxjx29dzzf7cxcfttw96wcgw9tr94dlawynd9xjn27l5ve3wdvzs6v7ss3
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -191,3 +194,9 @@ creation_rules:
       - age:
           - *root-1
           - *service-rescue
+  - path_regex: enc/service-sysctl-user-portal
+    key_groups:
+      - age:
+          - *root-1
+          - *service-sysctl-user-portal
+          - *host-glesys

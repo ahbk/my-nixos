@@ -20,7 +20,7 @@ apply() {
 
 declare -g build
 build() {
-    "$here/as.sh" nixbuilder ssh nixbuilder@$build_host.km "build $target"
+    "$here/build.sh" "$@"
 }
 
 apply "$@"

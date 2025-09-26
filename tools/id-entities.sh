@@ -7,14 +7,13 @@
 # - variables are modified in subshells intentionally
 
 set -euo pipefail
-
 declare -x doas entity prefix class key
 declare -g slot
 
-declare -A allowed_keys=(
+declare -rA allowed_keys=(
     ["root"]="age-key"
     ["host"]="age-key ssh-key wg-key luks-key nix-cache-key"
-    ["service"]="age-key ssh-key passwd"
+    ["service"]="age-key ssh-key passwd secret-key"
     ["user"]="age-key ssh-key passwd mail"
     ["domain"]="age-key tls-cert"
 )
@@ -96,7 +95,7 @@ setup() {
 }
 
 preflight-input() {
-    fn-match "$prefix" ||
+    links-by-prefix "$prefix" >/dev/null ||
         die 1 "no link matches prefix '$prefix'"
 
     [[ " ${allowed_keys[$class]} " == *" $key "* ]] ||
@@ -148,7 +147,7 @@ init:root:() {
 }
 
 # non-root entities require a little dance to insert themselves in .sops.yaml
-# before backend is created (the age-key is encrypted by the age-key)
+# before backend is created (the age-key has to encrypt itself)
 init:() {
     with id backend_path secret_path secret_seed
 
@@ -308,6 +307,10 @@ create-secret:passwd() {
     try passphrase 8
 }
 
+create-secret:secret-key() {
+    try passphrase 40
+}
+
 # nixos-mailserver has unix-like user management, so mail will piggyback
 # on passwd for all ops
 create-secret:mail() {
@@ -326,6 +329,10 @@ validate:luks-key() {
 }
 
 validate:passwd() {
+    validate-passphrase
+}
+
+validate:secret-key() {
     validate-passphrase
 }
 
@@ -374,8 +381,12 @@ derive-artifact:mail:() {
     derive-artifact:passwd:
 }
 
-# luks-keys have no public artifact
+# luks-keys and secret-keys have no public artifact
 derive-artifact:luks-key:() {
+    :
+}
+
+derive-artifact:secret-key:() {
     :
 }
 
@@ -439,6 +450,10 @@ get-artifact:luks-key:() {
     echo /dev/null
 }
 
+get-artifact:secret-key:() {
+    echo /dev/null
+}
+
 # --- set-artifact:*
 
 set-artifact:() {
@@ -455,6 +470,9 @@ set-artifact:luks-key:() {
     cat >/dev/null
 }
 
+set-artifact:secret-key:() {
+    cat >/dev/null
+}
 set-artifact:passwd:() {
     key=$key-sha512 run encrypt
 }
@@ -552,7 +570,7 @@ sha512-secret:() {
 
 # === section 2: lazy variables (idempotent functions)
 
-# with
+# declarations to keep shellcheck happy
 declare -g \
     artifact_path \
     backend_component \
@@ -695,7 +713,7 @@ locksmith() {
         key=ssh-key
         slot=0
         run cat-secret
-    ) | ssh-add - 2>/dev/null
+    ) | try ssh-add -
 
     # shellcheck disable=SC2029
     # - "$key" expands client side

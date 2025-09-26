@@ -557,6 +557,29 @@ EOF
   expect 1 "> MCow"
 }
 
+@test "entities with hyphens in their name" {
+  run "$test_cmd" -s sysctl-user-portal init
+  expect 0 "main"
+
+  run "$test_cmd" sysctl-user-portal new ssh-key
+  expect 0 "main"
+
+  run test -f "$testroot/artifacts/service-sysctl-user-portal-ssh-key.pub"
+  expect 0
+
+  run "$test_cmd" sysctl-user-portal new secret-key
+  expect 0 "main"
+
+  run "$test_cmd" sysctl-user-portal verify secret-key
+  expect 0 "main"
+
+  run "$test_cmd" sysctl-user-portal rebuild
+  expect 0 "main"
+
+  run "$test_cmd" sysctl-user-portal verify secret-key
+  expect 0 "main"
+}
+
 @test "misc madness" {
   run "$test_cmd" -d testdomain init
   expect 0 "main"
