@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # run-with.bash
 
+[[ ${_RUN_WITH_BASH_SOURCED:-0} -eq 1 ]] && return
+_RUN_WITH_BASH_SOURCED=1
+
 tmpdir=$(mktemp -d)
 declare -rx tmpdir
+
+here="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+declare -x km_root
+km_root="$(cd "$here/.." && pwd)"
 
 cleanup() {
     if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
@@ -11,18 +18,40 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# take a list of prefixes and run their callchains
+# implement a function that maps a prefix to a list of (potential) functions
+callchain() {
+    die 1 "callchain for prefix '$prefix' not implemented"
+}
+
+# implement a context
+context() {
+    die 1 "context for prefix '$prefix' not implemented"
+}
+
+# satisfy shellcheck
+declare -g callchain
+
+# for each prefix, run its' matching list of commands (call them links)
 run() {
     local link links prefix
 
     for prefix; do
-        links=$(for link in $(callchain | grep "^${prefix%:}"); do
-            declare -F "$link:" && break || declare -F "$link" || continue
+        # call callchain and bring it into scope as $callchain
+        with callchain
+
+        # call them links to distinguish from normal fns/cmds
+        links=$(for link in $callchain; do
+            # trailing colon terminates the callchain
+            declare -F "$link:" && break
+            # other matches are added in sequence
+            declare -F "$link" || continue
         done)
 
+        # life will be easier if we enforce this
         [[ -n $links ]] ||
             die 1 "'$prefix' didn't match any link in the callchain:"$'\n'"$(callchain)"
 
+        with context
         for link in $links; do
             log debug "run $link"
             "$link"
@@ -30,6 +59,7 @@ run() {
     done
 }
 
+# bring into scope the result of some-command as $some_command
 with() {
     local cmd out var
     for cmd; do
@@ -50,12 +80,13 @@ tlog() {
 }
 
 log() {
-    local label=$1
-    local level c1 c2 c3
-    IFS=' ' read -r level c1 c2 c3 <<<"${LOG_CONFIG[$label]}"
+    local label=${1:?"log needs a label"}
 
     local msg="${2:-$(cat)}"
     [[ -n "$msg" ]] || return 0
+
+    local level c1 c2 c3
+    IFS=' ' read -r level c1 c2 c3 <<<"${LOG_CONFIG[$label]}"
 
     [[ $level -ge ${LOG_CONFIG[${LOG_LEVEL:-info}]%% *} ]] ||
         return 0

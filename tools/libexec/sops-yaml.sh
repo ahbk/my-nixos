@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 # sops-yaml.sh
 # shellcheck disable=SC2016
-# SC2016: Yes, we know expressions wont expand in single quotes.
+# - Yes, we know expressions wont expand in single quotes.
+
+km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+# shellcheck source=../libexec/run-with.bash
+. "$km_root/libexec/run-with.bash"
+
+declare -g sops_config
 
 create-sops-yaml() {
-    cat >.sops.yaml <<'EOF'
+    cat >"$1" <<'EOF'
 fqdn: $entity.local
 backend: enc/$class-$entity.yaml
 backend:root: keys/$class-$entity
@@ -55,6 +61,13 @@ get-ops() {
         ) | [.all[], .$class[], .$class-$entity[] ][]'
 }
 
+sops_config() {
+    with repo_root
+    [[ -f $repo_root/.sops.yaml ]] ||
+        die 1 "$repo_root/.sops.yaml not found"
+    echo "$repo_root/.sops.yaml"
+}
+
 search-setting() {
     for item; do
         read-setting "$item" 2>/dev/null || continue
@@ -92,7 +105,8 @@ get-identity() {
 }
 
 all-identities() {
-    yq '.identities | keys | .[]' .sops.yaml
+    with sops_config
+    yq '.identities | keys | .[]' "$sops_config"
 }
 
 upsert-identity() {
@@ -105,6 +119,7 @@ upsert-identity() {
 }
 
 rebuild-creation-rules() {
+    with sops_config
     local query='(
         . as $d
             |
@@ -123,13 +138,21 @@ rebuild-creation-rules() {
         })
     ) as $generated_rules | .creation_rules = $generated_rules'
 
-    yq -i "$query" .sops.yaml
+    yq -i "$query" "$sops_config"
 }
 
 yq-sops-i() {
-    yq -i "$(echo "$1" | envsubst)" .sops.yaml
+    with sops_config
+    yq -i "$(echo "$1" | envsubst)" "$sops_config"
 }
 
 yq-sops-e() {
-    yq -e "$(echo "$1" | envsubst)" .sops.yaml | envsubst
+    with sops_config
+    yq -e "$(echo "$1" | envsubst)" "$sops_config" | envsubst
+}
+
+repo_root() {
+    local repo_root=${REPO_ROOT:-$(pwd)}
+    [[ -d $repo_root ]] || die 1 "$repo_root is not a directory"
+    echo "$repo_root"
 }

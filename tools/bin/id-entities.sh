@@ -18,14 +18,15 @@ declare -rA allowed_keys=(
     ["domain"]="age-key tls-cert"
 )
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-declare -r here
+km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 
 # import run, with, log/try/die etc.
-. "$here/run-with.bash"
+# shellcheck source=../libexec/run-with.bash
+. "$km_root/libexec/run-with.bash"
 
 # import upsert-identity, read-setting etc.
-. "$here/sops-yaml.sh"
+# shellcheck source=../libexec/sops-yaml.sh
+. "$km_root/libexec/sops-yaml.sh"
 
 main() {
     # setup prefix, class, key etc.
@@ -34,7 +35,7 @@ main() {
     # 'with id' runs id() and brings the result into scope as $id,
     # like a lazy variable.
     with id
-    log info "$prefix $key for $id ready."
+    log info "$id wants to $prefix $key"
 
     # map command to a callchain and invoke its functions, e.g.
     # id-entities.sh -u alex verify ssh-key ->
@@ -48,10 +49,14 @@ main() {
     sync && log success "$prefix $key for $id completed."
 }
 
+context() {
+    :
+}
+
 callchain() {
     # strip everything from the first colon
     local pfix=${prefix%%:*}
-    cat <<EOF
+    grep "^${prefix%:}" <<EOF
 $pfix:$class:$key
 $pfix:$class
 $pfix:$key
@@ -69,7 +74,7 @@ setup() {
     -d | --domain) class="domain" ;;
     -s | --service) class="service" ;;
     -H | --help)
-        less "$here/id-entities-usage.txt"
+        less "$km_root/share/doc/id-entities-usage.txt"
         exit 0
         ;;
     *)
@@ -103,13 +108,14 @@ preflight-input() {
 }
 
 preflight-sops-yaml() {
-    with id
-    [[ "$prefix-$id" == "init-root-1" && ! -f ".sops.yaml" ]] && {
-        log important "bootstrap conditions, creating .sops.yaml."
-        create-sops-yaml
+    with id repo_root
+    [[ "$prefix-$id" == "init-root-1" && ! -f "$repo_root/.sops.yaml" ]] && {
+        log important "bootstrap conditions, creating $repo_root/.sops.yaml."
+        create-sops-yaml "$repo_root/.sops.yaml"
     }
 
-    [[ -f ".sops.yaml" ]] || die 1 "needs .sops.yaml in working directory"
+    with sops_config
+    [[ -f "$sops_config" ]] || die 1 "no sops-config at $sops_config"
 }
 
 preflight-backend() {
@@ -276,7 +282,7 @@ push:host:age-key() {
 # --- create-secret:*:*
 
 create-secret:age-key() {
-    try age-keygen 2> >(log info) | tail -1
+    try age-keygen | tail -1
 }
 
 create-secret:ssh-key() {
@@ -572,6 +578,10 @@ sha512-secret:() {
 
 # declarations to keep shellcheck happy
 declare -g \
+    repo_root \
+    sops_config
+
+declare -g \
     artifact_path \
     backend_component \
     backend_enabled \
@@ -624,6 +634,8 @@ backend_file() {
 }
 
 backend_path() {
+    with repo_root
+    echo -n "$repo_root/"
     search-setting "backend:$class" "backend"
 }
 
@@ -684,7 +696,7 @@ tmp_path() {
 # === misc helpers
 
 usage() {
-    sed -n '/^USAGE$/,/^$/p' "$here/id-entities-usage.txt"
+    sed -n '/^USAGE$/,/^$/p' "$km_root/share/doc/id-entities-usage.txt"
 }
 
 locksmith() {

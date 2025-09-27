@@ -51,6 +51,10 @@ in
 
     home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.shell.enable = true; }) eachHMUser;
 
+    environment.sessionVariables = {
+      SOPS_AGE_KEY_FILE = "/keys/user-$USER";
+    };
+
     # This takes too long time to be worth it
     # enable only when needed or update manually
     #documentation.man.generateCaches = true;
@@ -58,7 +62,7 @@ in
     services.nixos-cli = {
       enable = true;
     };
-    programs.bash.promptInit = builtins.readFile ../tools/prompt-init.sh;
+    programs.bash.promptInit = builtins.readFile ../tools/env/prompt-init.sh;
 
     environment.systemPackages = with pkgs; [
       inputs.agenix.packages.${host.system}.default

@@ -7,11 +7,11 @@ set -uo pipefail
 
 declare -x session class entity action key
 
-declare -x here
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-. "$here/sops-yaml.sh"
-. "$here/run-with.bash"
+km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+# shellcheck source=../libexec/run-with.bash
+. "$km_root/libexec/run-with.bash"
+# shellcheck source=../libexec/sops-yaml.sh
+. "$km_root/libexec/sops-yaml.sh"
 
 for-all-identities() {
     all-identities | while IFS="-" read -r class entity; do

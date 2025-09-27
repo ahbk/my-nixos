@@ -12,6 +12,7 @@ rec {
 
   peer = [
     ./sops.nix
+    ./km-tools.nix
     ./ssh.nix
     ./wireguard.nix
     ./users.nix

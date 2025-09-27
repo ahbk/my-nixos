@@ -2,20 +2,22 @@
 set -eu
 
 setup() {
-  here="$(cd "$(dirname "$BATS_TEST_FILENAME")" >/dev/null 2>&1 && pwd)"
-  testroot=$BATS_TEST_TMPDIR/testroot
-  test_cmd=$here/id-entities.sh
+  here="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
+  export testroot=$BATS_TEST_TMPDIR/testroot
+  test_cmd=id-entities.sh
   export LOG_LEVEL=debug
   export SOPS_AGE_KEY_FILE="keys/root-1"
 
   echo "=== BEGIN SETUP ===" >&2
 
   mkdir -p "$testroot"
-  cp -a "$here" "$testroot"
+  cp -a "$here/../." "$testroot"
+  tree "$testroot"
+
   cd "$testroot"
   mkdir "enc" "keys" "artifacts"
 
-  export PATH="$testroot/tools/dry-bin:$PATH"
+  export PATH="$testroot/bin:$testroot/test/bin:$PATH"
 
   # init root 1 (bootstrap)
   SECRET_SEED=<(echo "$test_identity_root_1") "$test_cmd" -r 1 init age-key

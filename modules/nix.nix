@@ -18,7 +18,7 @@ let
       }
       ''
         mkdir -p $out/bin
-        cp ${../tools/nixservice.sh} $out/bin/nixservice-unwrapped
+        cp ${../tools/remote/nixservice.sh} $out/bin/nixservice-unwrapped
         chmod +x $out/bin/nixservice-unwrapped
 
         makeWrapper $out/bin/nixservice-unwrapped $out/bin/nixservice \

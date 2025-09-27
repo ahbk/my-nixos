@@ -5,5 +5,4 @@ shift
 
 export LUKS_DEVICE="/dev/null"
 export KEY_FILE=$BATS_TEST_TMPDIR/$fqdn/age-key
-
-./tools/locksmith.sh "$@"
+"$testroot/remote/locksmith.sh" "$@"

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# id-entities.sh
+# id-entities-wrapper.sh
+# shellcheck disable=all
+# - just a draft
+
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 declare -r here
