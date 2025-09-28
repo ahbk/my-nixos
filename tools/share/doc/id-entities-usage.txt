@@ -85,11 +85,15 @@ ENVIRONMENT VARIABLES
         REQUIRED. Path to the private age key file of the identity authorized to
         perform the requested action (e.g., a root key).
 
+    REPO_ROOT=<path>
+        The location of the repo to be managed, defaults to pwd if not set.
+        A .sops.yaml is expected directly under this path.
+
     SECRET_SEED=<path>
         If this file path is set during 'init', 'new', or 'push' operations, its
         contents will be used as the secret instead of generating a new one.
 
-    LOG_LEVEL=[debug|info|important|warning|error|off]
+    LOG_LEVEL=[trace|debug|info|important|warning|success|error|off]
         Sets the logging verbosity for troubleshooting. Defaults to 'info'
 
 EXAMPLES

@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # infra.sh
-# shellcheck disable=SC2317,SC2030,SC2031,SC2016
-# SC2016: Yes, we know expressions wont expand in single quotes.
 
 set -uo pipefail
 
 declare -x session class entity action key
 
-km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 # shellcheck source=../libexec/run-with.bash
 . "$km_root/libexec/run-with.bash"
 # shellcheck source=../libexec/sops-yaml.sh
@@ -15,6 +13,7 @@ km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 
 for-all-identities() {
     all-identities | while IFS="-" read -r class entity; do
+        [[ "$class" != "root" ]] || continue
 
         get-ops "$1" 2>/dev/null | while IFS= read -r ak; do
             if [[ $ak == *" "* ]]; then
@@ -22,7 +21,7 @@ for-all-identities() {
             else
                 IFS=':' read -r prefix key <<<"$ak"
             fi
-            ./tools/id-entities.sh --"$class" "$entity" "$prefix" "$key"
+            "$km_root/bin/id-entities.sh" --"$class" "$entity" "$prefix" "$key"
 
         done
     done

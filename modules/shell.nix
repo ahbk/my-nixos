@@ -1,6 +1,5 @@
 {
   config,
-  host,
   inputs,
   lib,
   pkgs,
@@ -65,9 +64,6 @@ in
     programs.bash.promptInit = builtins.readFile ../tools/env/prompt-init.sh;
 
     environment.systemPackages = with pkgs; [
-      inputs.agenix.packages.${host.system}.default
-      inputs.nixos-anywhere.packages.${host.system}.default
-      inputs.nixos-generators.packages.${host.system}.default
       envsubst
       jq
       yq-go
@@ -79,6 +75,7 @@ in
       vim
       tree
       nixos-facter
+      km-tools
     ];
   };
 }

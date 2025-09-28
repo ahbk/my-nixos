@@ -116,7 +116,7 @@ die() {
     [[ -z "$fn" ]] || "$fn"
 
     case $exit_code in
-    0) log info "$msg" ;;
+    0) log success "$msg" ;;
     *) log error "$msg (exit $exit_code)" ;;
     esac
 
@@ -125,6 +125,9 @@ die() {
 
 try() {
     local std=$tmpdir/std.$$.$BASHPID
+    touch "$std.out"
+    chmod 600 "$std.out"
+
     local exit_code=0
 
     "$@" >"$std.out" 2>"$std.err" || exit_code=$?
@@ -169,7 +172,7 @@ declare -A LOG_CONFIG=(
     [info]="2 $NC $BB $BN"
     [warning]="3 $NC $YB $YN"
     [important]="3 $NC $YN $YB"
-    [success]="3 $NC $GB $GN"
+    [success]="4 $NC $GB $GN"
     [error]="4 $NC $RB $RN"
     [focus]="98 $MB $MB $MN"
     [off]="99"
