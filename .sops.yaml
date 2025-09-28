@@ -44,18 +44,31 @@ grants:
     - host-helsinki
     - host-laptop
     - host-stationary
+    - host-glesys
   user-admin:
     - host-adele
     - host-lenovo
     - host-helsinki
     - host-laptop
     - host-stationary
+    - host-glesys
+  service-nextcloud-kompismoln:
+    - host-helsinki
+    - host-glesys
+  service-backup:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+    - host-glesys
   service-locksmith:
     - host-adele
     - host-lenovo
     - host-helsinki
     - host-laptop
     - host-stationary
+    - host-glesys
   service-tunnelservice:
     - host-helsinki
   user-ami:
@@ -84,6 +97,9 @@ identities:
   service-nixswitcher: &service-nixswitcher age1e5y0hdv08h7yawmla3vtenska9p49nswjhqckap87glm8j99y9fq4kqj2c
   service-rescue: &service-rescue age1sh573xzcwpylxe6ymzpd4m80favtavvgsv6dezaq755px67s6aws5q9l3z
   service-sysctl-user-portal: &service-sysctl-user-portal age1vxjx29dzzf7cxcfttw96wcgw9tr94dlawynd9xjn27l5ve3wdvzs6v7ss3
+  service-chatddx: &service-chatddx age1mh2urcf7ke0wg4w7x8jxsey3xdkel08jmzr90ex0sgexnuhr9g9stmslju
+  service-backup: &service-backup age15zp6xa8xx4geegs5vkj8nuzhmwlcmxr3edvsvd5we6wrh50ep3rq7qfnxl
+  service-nextcloud-kompismoln: &service-nextcloud-kompismoln age19zqkrl5r5aat79tallyqclpv02venk7c4nw0xfvtqx8mdxxp6dnsdkj9zv
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -120,6 +136,7 @@ creation_rules:
           - *host-helsinki
           - *host-laptop
           - *host-stationary
+          - *host-glesys
   - path_regex: enc/user-alex
     key_groups:
       - age:
@@ -143,6 +160,7 @@ creation_rules:
           - *host-helsinki
           - *host-laptop
           - *host-stationary
+          - *host-glesys
   - path_regex: enc/host-laptop
     key_groups:
       - age:
@@ -164,6 +182,7 @@ creation_rules:
           - *host-helsinki
           - *host-laptop
           - *host-stationary
+          - *host-glesys
   - path_regex: enc/host-friday
     key_groups:
       - age:
@@ -199,4 +218,27 @@ creation_rules:
       - age:
           - *root-1
           - *service-sysctl-user-portal
+          - *host-glesys
+  - path_regex: enc/service-chatddx
+    key_groups:
+      - age:
+          - *root-1
+          - *service-chatddx
+  - path_regex: enc/service-backup
+    key_groups:
+      - age:
+          - *root-1
+          - *service-backup
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+          - *host-glesys
+  - path_regex: enc/service-nextcloud-kompismoln
+    key_groups:
+      - age:
+          - *root-1
+          - *service-nextcloud-kompismoln
+          - *host-helsinki
           - *host-glesys
