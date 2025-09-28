@@ -119,11 +119,8 @@ in
     );
 
     sops.secrets = lib'.mergeAttrs (name: cfg: {
-      "${cfg.appname}/admin-password" = {
-        owner = cfg.appname;
-        group = cfg.appname;
-      };
-      "${cfg.appname}/db-password" = {
+      "${cfg.appname}/secret-key" = {
+        sopsFile = ../enc/service-${cfg.appname}.yaml;
         owner = cfg.appname;
         group = cfg.appname;
       };
@@ -171,8 +168,8 @@ in
       name: cfg:
       nameValuePair cfg.hostname {
         forceSSL = cfg.ssl;
-        sslCertificate = mkIf cfg.subnet config.sops.secrets.ahbk-cert.path;
-        sslCertificateKey = mkIf cfg.subnet config.sops.secrets.ahbk-cert-key.path;
+        sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+        sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
         enableACME = !cfg.subnet;
         extraConfig = ''
           client_max_body_size 1G;
@@ -205,11 +202,11 @@ in
           };
           "/run/secrets/db-password" = {
             isReadOnly = true;
-            hostPath = config.sops.secrets."${cfg.appname}/db-password".path;
+            hostPath = config.sops.secrets."${cfg.appname}/secret-key".path;
           };
           "/run/secrets/admin-password" = {
             isReadOnly = true;
-            hostPath = config.sops.secrets."${cfg.appname}/admin-password".path;
+            hostPath = config.sops.secrets."${cfg.appname}/secret-key".path;
           };
         };
 

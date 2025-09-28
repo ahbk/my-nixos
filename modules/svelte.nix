@@ -59,17 +59,14 @@ let
     };
   };
 
-  sveltePkgs = appname: inputs.${appname}.packages.${host.system}.svelte;
+  sveltePkgs = appname: inputs.${appname}.packages.${host.system}.svelte-app;
 
-  envs = mapAttrs (
-    name: cfg:
-    (lib'.mkEnv cfg.appname {
-      ORIGIN = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}";
-      PUBLIC_API = cfg.api;
-      PUBLIC_API_SSR = cfg.api_ssr;
-      PORT = toString cfg.port;
-    })
-  ) eachSite;
+  envs = mapAttrs (name: cfg: {
+    ORIGIN = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}";
+    PUBLIC_API = cfg.api;
+    PUBLIC_API_SSR = cfg.api_ssr;
+    PORT = toString cfg.port;
+  }) eachSite;
 in
 {
 
@@ -110,11 +107,12 @@ in
         description = "serve ${cfg.appname}-svelte";
         serviceConfig = {
           ExecStart = "${pkgs.nodejs_20}/bin/node ${
-            (sveltePkgs cfg.appname).overrideAttrs { env = envs.${cfg.appname}; }
+            (sveltePkgs cfg.appname).overrideAttrs {
+              env = envs.${cfg.appname};
+            }
           }/build";
           User = cfg.appname;
           Group = cfg.appname;
-          EnvironmentFile = "${envs.${cfg.appname}}";
         };
         wantedBy = [ "multi-user.target" ];
       })

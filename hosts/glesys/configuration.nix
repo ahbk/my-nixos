@@ -147,6 +147,7 @@
     mailserver = {
       enable = true;
       domain = "ahbk.se";
+      dkimSelector = "ahbk";
       users = {
         admin = { };
         alex = { };

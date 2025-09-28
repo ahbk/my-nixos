@@ -3,7 +3,6 @@
   host,
   inputs,
   lib,
-  pkgs,
   ...
 }:
 
@@ -19,7 +18,6 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.react;
 
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
@@ -51,9 +49,16 @@ let
     };
   };
 
-  reactPkgs = appname: inputs.${appname}.packages.${host.system}.react;
+  reactPkgs' = appname: inputs.${appname}.packages.${host.system}.vite-static;
 
-  envs = mapAttrs (name: cfg: (lib'.mkEnv cfg.appname { VITE_API_ENDPOINT = cfg.api; })) eachSite;
+  reactPkgs = mapAttrs (
+    name: cfg:
+    (reactPkgs' cfg.appname).overrideAttrs {
+      env = {
+        VITE_API_ENDPOINT = cfg.api;
+      };
+    }
+  ) cfg.sites;
 in
 {
 
@@ -73,7 +78,7 @@ in
       nameValuePair cfg.hostname {
         forceSSL = cfg.ssl;
         enableACME = cfg.ssl;
-        root = "${(reactPkgs cfg.appname).overrideAttrs { env = envs.${cfg.appname}; }}/dist";
+        root = "${reactPkgs.${cfg.appname}}/dist";
         locations."${cfg.location}" = {
           index = "index.html";
           extraConfig = ''

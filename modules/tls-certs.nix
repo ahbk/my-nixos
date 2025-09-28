@@ -28,9 +28,9 @@ in
 
     sops.secrets = builtins.listToAttrs (
       builtins.map (name: {
-        name = "cert-${name}";
+        name = "${name}/tls-cert";
         value = {
-          sopsFile = ../enc/domain-km.yaml;
+          sopsFile = ../enc/domain-${name}.yaml;
         };
       }) tls-certs
     );

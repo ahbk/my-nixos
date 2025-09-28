@@ -74,7 +74,7 @@
         lib = nixpkgs.lib;
       };
     in
-    rec {
+    {
       homeConfigurations = mapAttrs (
         target: cfg:
         homeManagerConfiguration {
@@ -91,23 +91,23 @@
       ) (import ./hm-hosts.nix);
 
       nixosConfigurations = mapAttrs (
-        name: cfg:
+        name: host:
         nixosSystem {
           specialArgs = {
             inherit
               inputs
+              host
+              hosts
               ids
               users
-              hosts
               sites
               lib'
               ;
-            host = cfg;
           };
           modules = [
-            ./hosts/${cfg.name}/configuration.nix
-          ]
-          ++ (import ./modules/index.nix).${cfg.class};
+            ./modules/index.nix
+            ./hosts/${host.name}/configuration.nix
+          ];
         }
       ) hosts;
 
@@ -117,13 +117,5 @@
         '';
       };
 
-      packages.${system} = {
-        default = nixosConfigurations.laptop.config.system.build.nixos-rebuild;
-        options-doc =
-          let
-            pkgs' = import ./packages/all.nix { pkgs = nixpkgs.legacyPackages.${system}; };
-          in
-          pkgs'.options-doc;
-      };
     };
 }

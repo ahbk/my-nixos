@@ -50,11 +50,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1759010682,
-        "narHash": "sha256-y4NV6FBKcvrpTaXSE1IY6T5b/963w/3KX1jk0uB2AuU=",
+        "lastModified": 1759055560,
+        "narHash": "sha256-L6EOx1+MkB12A+Y2udWndbCm3KOMc+4fWypL3lWs4a0=",
         "ref": "refs/heads/main",
-        "rev": "1d4af086dbbb6534ab6ada08c32f078e72914288",
-        "revCount": 125,
+        "rev": "e57db48b2a2d190d6edc614ea804584ec40d5d33",
+        "revCount": 126,
         "type": "git",
         "url": "ssh://git@github.com/LigninDDX/chatddx"
       },
@@ -1036,11 +1036,11 @@
         "uv2nix": "uv2nix_3"
       },
       "locked": {
-        "lastModified": 1758977668,
-        "narHash": "sha256-Ry7JNuzKmXsdTyJkCN0mQ8LgkS9MHi2RyI2FBxx2SUg=",
+        "lastModified": 1759055000,
+        "narHash": "sha256-J2AzyP8kFoknyqQDIOnqLDJIz8Vsf5wwS7vpKuOrtKU=",
         "ref": "refs/heads/main",
-        "rev": "8d4df41eb96978b767fba012f742beabe4f7a33b",
-        "revCount": 65,
+        "rev": "2fcc6d7bcf5c1434fb9b479e46d5bd870019e6b6",
+        "revCount": 66,
         "type": "git",
         "url": "ssh://git@github.com/PelleHanspers/sysctl_userportal"
       },
