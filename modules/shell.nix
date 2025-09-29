@@ -61,7 +61,7 @@ in
     services.nixos-cli = {
       enable = true;
     };
-    programs.bash.promptInit = builtins.readFile ../tools/env/prompt-init.sh;
+    programs.bash.promptInit = builtins.readFile ../tools/session/prompt-init.sh;
 
     environment.systemPackages = with pkgs; [
       envsubst
