@@ -38,6 +38,8 @@ ops:
 grants:
   service-sysctl-user-portal:
     - host-glesys
+  service-chatddx:
+    - host-glesys
   domain-km:
     - host-adele
     - host-lenovo
@@ -76,6 +78,7 @@ grants:
   user-alex:
     - host-lenovo
     - host-helsinki
+    - host-glesys
 identities:
   root-1: &root-1 age1cavc8kaykuqxk9xk6ca78fea73ym32ugxvhq9ek0xgg0aar23qpqg5psm3
   host-adele: &host-adele age19qc5cv0sutfd5r2ygpl2vwy2cf6che0zhkpz2vthjmt7qljrk47qgn46vy
@@ -144,6 +147,7 @@ creation_rules:
           - *user-alex
           - *host-lenovo
           - *host-helsinki
+          - *host-glesys
   - path_regex: enc/user-ami
     key_groups:
       - age:
@@ -224,6 +228,7 @@ creation_rules:
       - age:
           - *root-1
           - *service-chatddx
+          - *host-glesys
   - path_regex: enc/service-backup
     key_groups:
       - age:
