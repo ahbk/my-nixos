@@ -5,21 +5,21 @@ let
     ];
 
     base = [
-      ./system.nix
-      ./nix.nix
       ./locksmith.nix
+      ./nix.nix
       ./preserve.nix
+      ./system.nix
     ];
 
     peer = [
-      ./sops.nix
-      ./ssh.nix
-      ./wireguard.nix
-      ./users.nix
-      ./fail2ban.nix
       ./backup.nix
       ./backup-server.nix
+      ./fail2ban.nix
       ./sendmail.nix
+      ./sops.nix
+      ./ssh.nix
+      ./users.nix
+      ./wireguard.nix
     ]
     ++ base;
 
@@ -29,48 +29,38 @@ let
           (import ../overlays/workstation.nix { inherit inputs; })
         ];
       }
-      ./hm.nix
       ./desktop-env.nix
-      ./vd.nix
+      ./hm.nix
       ./ide.nix
-      ./sendmail.nix
-      ./shell.nix
       ./mysql.nix
       ./postgresql.nix
+      ./sendmail.nix
+      ./shell.nix
+      ./vd.nix
     ]
     ++ peer;
 
     webserver = [
-      ./tls-certs.nix
+      ./collabora.nix
       ./django-react.nix
       ./django-svelte.nix
       ./django.nix
-      ./mysql.nix
-      ./nginx.nix
-      ./svelte.nix
       ./fastapi-svelte.nix
       ./fastapi.nix
-      ./postgresql.nix
-      ./wordpress.nix
-      ./react.nix
-      ./collabora.nix
+      ./mailserver.nix
+      ./mobilizon.nix
+      ./mysql.nix
       ./nextcloud.nix
       ./nextcloud-rolf.nix
-      ./mobilizon.nix
-      ./mailserver.nix
+      ./nginx.nix
+      ./postgresql.nix
+      ./react.nix
+      ./svelte.nix
+      ./tls-certs.nix
       ./tunnelservice.nix
+      ./wordpress.nix
     ]
     ++ peer;
-
-    #extensions = [
-    #  ../preserve.nix
-    #]
-    #+ base;
-    #imports = [
-    #../glesys-updaterecord.nix
-    #../debug.nix
-    #../monitor.nix
-    #];
   };
 in
 {

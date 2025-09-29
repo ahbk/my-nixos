@@ -19,7 +19,7 @@ apply() {
 
 declare -g build
 build() {
-    "$km_root/bin/build.sh" "$@"
+    "$km_root/bin/build.sh" "$target"
 }
 
 apply "$@"

@@ -7,9 +7,6 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    agenix.url = "github:ryantm/agenix";
-    agenix.inputs.nixpkgs.follows = "nixpkgs";
-
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -21,14 +18,8 @@
     nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixos-generators.url = "github:nix-community/nixos-generators";
-    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
-
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixos-anywhere.url = "github:nix-community/nixos-anywhere";
-    nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
 
     preservation.url = "github:nix-community/preservation";
 
