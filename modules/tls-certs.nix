@@ -21,7 +21,7 @@ in
     description = "List of self signed certificates to accept and expose";
   };
 
-  config = mkIf (tls-certs == [ ]) {
+  config = mkIf (tls-certs != [ ]) {
     security.pki.certificates = builtins.map (
       name: (builtins.readFile ../public-keys/domain-${name}-tls-cert.pem)
     ) tls-certs;

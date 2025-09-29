@@ -111,6 +111,12 @@ in
       };
     }) eachSite;
 
+    my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
+      directory = stateDir cfg.appname;
+      user = cfg.appname;
+      group = cfg.appname;
+    }) eachSite;
+
     systemd.tmpfiles.rules = flatten (
       mapAttrsToList (name: cfg: [
         "d '${stateDir cfg.appname}' 0750 ${cfg.appname} ${cfg.appname} - -"

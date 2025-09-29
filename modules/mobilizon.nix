@@ -140,6 +140,14 @@ in
 
   config = mkIf (eachSite != { }) {
 
+    my-nixos.tls-certs = [ "km" ];
+
+    my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
+      directory = stateDir cfg.appname;
+      user = cfg.appname;
+      group = cfg.appname;
+    }) eachSite;
+
     users = lib'.mergeAttrs (name: cfg: {
       users.${cfg.appname} = {
         name = cfg.appname;
@@ -208,12 +216,14 @@ in
         inherit (cfg.containerConf.services.mobilizon) package;
         proxyPass = "http://localhost:${toString cfg.port}";
         serverName = if cfg.www == "yes" then "www.${cfg.hostname}" else cfg.hostname;
-        serverNameRedirect = if cfg.www != "no" then cfg.hostname else "www.${cfg.hostname}";
+        serverNameRedirect = if cfg.www == "yes" then cfg.hostname else "www.${cfg.hostname}";
       in
       {
         ${serverNameRedirect} = mkIf (cfg.www != "no") {
           forceSSL = cfg.ssl;
-          enableACME = cfg.ssl;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          enableACME = cfg.ssl && !cfg.subnet;
           extraConfig = ''
             return 301 $scheme://${serverName}$request_uri;
           '';
@@ -221,9 +231,9 @@ in
 
         ${serverName} = {
           forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet config.sops.secrets.ahbk-cert.path;
-          sslCertificateKey = mkIf cfg.subnet config.sops.secrets.ahbk-cert-key.path;
-          enableACME = !cfg.subnet;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          enableACME = cfg.ssl && !cfg.subnet;
 
           locations = {
             "/" = {

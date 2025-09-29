@@ -95,14 +95,14 @@
       target = "backup.km";
     };
 
-    mobilizon.sites."klimatkalendern1" = {
-      enable = true;
-      hostname = "klimatkalendern.nu";
-      appname = "klimatkalendern1";
-      www = "yes";
-      port = ids.klimatkalendern.port;
-      uid = ids.klimatkalendern.uid;
-    };
+    #mobilizon.sites."klimatkalendern1" = {
+    #  enable = true;
+    #  hostname = "klimatkalendern.nu";
+    #  appname = "klimatkalendern1";
+    #  www = "no";
+    #  port = ids.klimatkalendern.port;
+    #  uid = ids.klimatkalendern.uid;
+    #};
 
     nextcloud-rolf.sites."sverigesval-sync" = {
       enable = true;

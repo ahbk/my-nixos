@@ -12,12 +12,16 @@ let
     ];
 
     peer = [
+      {
+        my-nixos.tls-certs = [ "km" ];
+      }
       ./backup.nix
       ./backup-server.nix
       ./fail2ban.nix
       ./sendmail.nix
       ./sops.nix
       ./ssh.nix
+      ./tls-certs.nix
       ./users.nix
       ./wireguard.nix
     ]

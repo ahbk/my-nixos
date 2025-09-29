@@ -7,6 +7,10 @@
     uid = 701;
     port = 2701;
   };
+  nextcloud-kompismoln = {
+    uid = 702;
+    port = 2702;
+  };
   loki = {
     uid = 310;
     port = 3100;

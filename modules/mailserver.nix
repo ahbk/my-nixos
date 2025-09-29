@@ -73,11 +73,11 @@ in
         dkimKeyDirectory
         mailDirectory
         sieveDirectory
-        "/var/lib/redis-rspamd"
-      ];
-
-      systemd.tmpfiles.rules = [
-        "d /var/lib/redis-rspamd 0750 redis-rspamd redis-rspamd -"
+        {
+          directory = "/var/lib/redis-rspamd";
+          user = "redis-rspamd";
+          group = "redis-rspamd";
+        }
       ];
 
       sops.secrets = lib'.mergeAttrs (user: _: {

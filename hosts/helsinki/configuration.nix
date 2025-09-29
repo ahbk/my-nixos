@@ -1,5 +1,6 @@
 {
   config,
+  ids,
   users,
   hosts,
   lib,
@@ -126,6 +127,34 @@
         "esse.nu".mailbox = false;
         "klimatkalendern.nu".mailbox = false;
       };
+    };
+
+    mobilizon.sites."klimatkalendern" = {
+      enable = true;
+      hostname = "klimatkalendern.nu";
+      appname = "klimatkalendern";
+      www = "redirect";
+      subnet = true;
+      port = ids.klimatkalendern.port;
+      uid = ids.klimatkalendern.uid;
+    };
+
+    nextcloud.sites."nextcloud-kompismoln" = {
+      enable = true;
+      hostname = "nextcloud.kompismoln.se";
+      ssl = true;
+      subnet = false;
+      uid = ids.nextcloud-kompismoln.uid;
+      port = ids.nextcloud-kompismoln.port;
+      collaboraHost = "collabora.kompismoln.se";
+      mounts = { };
+    };
+
+    collabora = {
+      enable = true;
+      subnet = false;
+      host = "collabora.kompismoln.se";
+      allowedHosts = [ ];
     };
   };
 }
