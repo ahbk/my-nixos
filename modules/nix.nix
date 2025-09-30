@@ -27,7 +27,8 @@ let
               pkgs.lix
             ]
           } \
-          --set REPO "${cfg.repo}"
+          --set REPO "${cfg.repo}" \
+          --set BUILD_HOST "${cfg.buildHost}"
       '';
 in
 {
@@ -37,6 +38,11 @@ in
       description = "repo for this config";
       type = lib.types.str;
       default = "github:ahbk/my-nixos/add-host-helsinki";
+    };
+    buildHost = lib.mkOption {
+      description = "default BUILD_HOST";
+      type = lib.types.str;
+      default = "stationary.km";
     };
   };
   config = lib.mkMerge [

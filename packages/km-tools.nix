@@ -10,6 +10,7 @@
   wireguard-tools,
   jq,
   yq-go,
+  nix-serve-ng,
   inputs,
   ...
 }:
@@ -50,6 +51,7 @@ stdenv.mkDerivation {
             wireguard-tools
             jq
             yq-go
+            nix-serve-ng
           ]
         }
     done

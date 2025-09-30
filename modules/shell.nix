@@ -76,6 +76,7 @@ in
       tree
       nixos-facter
       km-tools
+      nix-serve-ng
     ];
   };
 }
