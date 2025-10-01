@@ -86,7 +86,10 @@ in
             "https://cache.nixos.org"
             "https://cache.lix.systems"
           ];
-          trusted-users = [ "@wheel" ];
+          trusted-users = [
+            "@wheel"
+            "nix-push"
+          ];
           trusted-public-keys = [
             "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
             "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
@@ -100,51 +103,69 @@ in
         "nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
       };
 
-      users.users.nixbuilder = {
+      users.users.nix-build = {
         isSystemUser = true;
         shell = pkgs.bash;
-        home = "/var/lib/nixbuilder";
+        home = "/var/lib/nix-build";
         createHome = true;
 
         openssh.authorizedKeys.keyFiles = [
-          ../public-keys/service-nixbuilder-ssh-key.pub
+          ../public-keys/service-nix-build-ssh-key.pub
         ];
-        uid = ids.nixbuilder.uid;
-        group = "nixbuilder";
+        uid = ids.nix-build.uid;
+        group = "nix-build";
       };
 
-      users.groups.nixbuilder = {
-        gid = ids.nixbuilder.uid;
+      users.groups.nix-build = {
+        gid = ids.nix-build.uid;
       };
 
-      users.users.nixswitcher = {
+      users.users.nix-switch = {
         isSystemUser = true;
         shell = pkgs.bash;
 
         openssh.authorizedKeys.keyFiles = [
-          ../public-keys/service-nixswitcher-ssh-key.pub
+          ../public-keys/service-nix-switch-ssh-key.pub
         ];
-        uid = ids.nixswitcher.uid;
-        group = "nixswitcher";
+        uid = ids.nix-switch.uid;
+        group = "nix-switch";
       };
 
-      users.groups.nixswitcher = {
-        gid = ids.nixswitcher.uid;
+      users.groups.nix-switch = {
+        gid = ids.nix-switch.uid;
+      };
+
+      users.users.nix-push = {
+        isSystemUser = true;
+        shell = pkgs.bash;
+
+        openssh.authorizedKeys.keyFiles = [
+          ../public-keys/service-nix-push-ssh-key.pub
+        ];
+        uid = ids.nix-push.uid;
+        group = "nix-push";
+      };
+
+      users.groups.nix-push = {
+        gid = ids.nix-push.uid;
       };
 
       services.openssh = {
         extraConfig = ''
-          Match User nixbuilder
+          Match User nix-build
             ForceCommand ${nixservicePkg}/bin/nixservice \$SSH_ORIGINAL_COMMAND
 
-          Match User nixswitcher
+          Match User nix-switch
             ForceCommand sudo ${nixservicePkg}/bin/nixservice switch \$SSH_ORIGINAL_COMMAND
+
+          Match User nix-push
+            ForceCommand ${pkgs.nix}/bin/nix-store --serve --write
         '';
       };
 
       security.sudo.extraRules = [
         {
-          users = [ "nixswitcher" ];
+          users = [ "nix-switch" ];
           commands = [
             {
               command = "${nixservicePkg}/bin/nixservice switch *";

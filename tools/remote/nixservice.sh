@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# nixservice.sh
+# remote/nixservice.sh
 
 main() {
     case $1 in
     build)
         local host=$2
         ;;
-    copy)
-        local from=$2
+    pull)
+        local build_host=$2
         local closure=$3
         ;;
     switch)
-        local build=$2
+        local closure=$2
         ;;
     *) exit 1 ;;
     esac
@@ -23,13 +23,13 @@ build() {
         --print-out-paths --no-link --refresh
 }
 
-copy() {
-    nix copy --from "http://$from.km:5000" "$closure"
+pull() {
+    nix copy --from "http://$build_host.km:5000" "$closure"
 }
 
 switch() {
-    sudo nix-env -p /nix/var/nix/profiles/system --set "$build"
-    sudo "$build/bin/switch-to-configuration" switch
+    sudo nix-env -p /nix/var/nix/profiles/system --set "$closure"
+    sudo "$closure/bin/switch-to-configuration" switch
 }
 
 main "$@"

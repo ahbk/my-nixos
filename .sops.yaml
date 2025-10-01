@@ -22,7 +22,7 @@ ops:
       - check:ssh-key
   verify:
     all:
-      - "verify:age-key"
+      - verify:age-key
     user:
       - verify:ssh-key
       - verify:passwd
@@ -30,7 +30,7 @@ ops:
     host-stationary:
       - verify:nix-cache-key
     host:
-      - "verify:wg-key"
+      - verify:wg-key
     service:
       - verify:ssh-key
     domain:
@@ -96,13 +96,14 @@ identities:
   host-friday: &host-friday age15g32dcyjsr579ylcfpxnlemje3ythy30yl5q94j6kh7nlz2guynqxk8mw2
   host-glesys: &host-glesys age1tas34sz7hcqc5exu2l39dcxcfr8cuqgcgfmwcsd39t75mvprlprqznuhlr
   host-phone: &host-phone age1stgu2kujac8h0fucntv6r6fwua8rfu0sz8mq9ld5fmxxq2q2ua3s04ah39
-  service-nixbuilder: &service-nixbuilder age1n0fhevjp69cwpfpzv5q29jduzhgq6egc59fqfyr40ajfesxhsfqq5x2kcj
-  service-nixswitcher: &service-nixswitcher age1e5y0hdv08h7yawmla3vtenska9p49nswjhqckap87glm8j99y9fq4kqj2c
+  service-nix-build: &service-nix-build age1n0fhevjp69cwpfpzv5q29jduzhgq6egc59fqfyr40ajfesxhsfqq5x2kcj
+  service-nix-switch: &service-nix-switch age1e5y0hdv08h7yawmla3vtenska9p49nswjhqckap87glm8j99y9fq4kqj2c
   service-rescue: &service-rescue age1sh573xzcwpylxe6ymzpd4m80favtavvgsv6dezaq755px67s6aws5q9l3z
   service-sysctl-user-portal: &service-sysctl-user-portal age1vxjx29dzzf7cxcfttw96wcgw9tr94dlawynd9xjn27l5ve3wdvzs6v7ss3
   service-chatddx: &service-chatddx age1mh2urcf7ke0wg4w7x8jxsey3xdkel08jmzr90ex0sgexnuhr9g9stmslju
   service-backup: &service-backup age15zp6xa8xx4geegs5vkj8nuzhmwlcmxr3edvsvd5we6wrh50ep3rq7qfnxl
   service-nextcloud-kompismoln: &service-nextcloud-kompismoln age19zqkrl5r5aat79tallyqclpv02venk7c4nw0xfvtqx8mdxxp6dnsdkj9zv
+  service-nix-push: &service-nix-push age1mk0jc0en2lf92hsujl8pz48yrr9a62c6wk87um6g6c3d9e0aj53q7p4lhy
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -202,16 +203,16 @@ creation_rules:
       - age:
           - *root-1
           - *host-phone
-  - path_regex: enc/service-nixbuilder
+  - path_regex: enc/service-nix-build
     key_groups:
       - age:
           - *root-1
-          - *service-nixbuilder
-  - path_regex: enc/service-nixswitcher
+          - *service-nix-build
+  - path_regex: enc/service-nix-switch
     key_groups:
       - age:
           - *root-1
-          - *service-nixswitcher
+          - *service-nix-switch
   - path_regex: enc/service-rescue
     key_groups:
       - age:
@@ -247,3 +248,8 @@ creation_rules:
           - *service-nextcloud-kompismoln
           - *host-helsinki
           - *host-glesys
+  - path_regex: enc/service-nix-push
+    key_groups:
+      - age:
+          - *root-1
+          - *service-nix-push
