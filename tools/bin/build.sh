@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# build.sh
+# bin/build.sh
 
 set -euo pipefail
 
@@ -7,11 +7,13 @@ km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 # shellcheck source=../libexec/run-with.bash
 . "$km_root/libexec/run-with.bash"
 
-declare -x build_host="stationary"
-
 build() {
     local target=$1
-    "$km_root/bin/as.sh" nixbuilder ssh nixbuilder@$build_host.km "build $target"
+    if [[ -e $BUILD_HOST ]]; then
+        REPO=$BUILD_HOST "$km_root/remote/nixservice.sh" build "$target"
+    else
+        "$km_root/bin/as.sh" nix-build ssh "nix-build@$BUILD_HOST.km" "build $target"
+    fi
 }
 
 build "$@"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run-with.bash
+# libexec/run-with.bash
 
 [[ ${_RUN_WITH_BASH_SOURCED:-0} -eq 1 ]] && return
 _RUN_WITH_BASH_SOURCED=1

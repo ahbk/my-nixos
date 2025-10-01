@@ -104,6 +104,7 @@
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         shellHook = ''
+          export BUILD_HOST=./
           PATH=$(pwd)/tools/bin:$PATH
         '';
       };
