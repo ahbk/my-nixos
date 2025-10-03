@@ -140,8 +140,6 @@ in
 
   config = mkIf (eachSite != { }) {
 
-    my-nixos.tls-certs = [ "km" ];
-
     my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
       directory = stateDir cfg.appname;
       user = cfg.appname;
@@ -181,10 +179,9 @@ in
         description = "dump a snapshot of the postgresql database";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -h localhost -U ${cfg.appname} ${cfg.appname} > ${stateDir cfg.appname}/dbdump.sql'";
+          ExecStart = "${pkgs.pgsql-dump}/bin/pgsql-dump ${cfg.appname} ${stateDir cfg.appname}";
           User = cfg.appname;
           Group = cfg.appname;
-          Environment = "PGPASSWORD=${cfg.appname}";
         };
       };
 
@@ -192,7 +189,7 @@ in
         description = "restore postgresql database from snapshot";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${cfg.appname} ${cfg.appname} < ${stateDir cfg.appname}/dbdump.sql'";
+          ExecStart = "${pkgs.pgsql-restore}/bin/pgsql-restore ${cfg.appname} ${stateDir cfg.appname}";
           User = cfg.appname;
           Group = cfg.appname;
         };

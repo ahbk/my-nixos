@@ -45,6 +45,11 @@ let
     ++ peer;
 
     webserver = [
+      {
+        nixpkgs.overlays = [
+          (import ../overlays/webserver.nix { inherit inputs; })
+        ];
+      }
       ./collabora.nix
       ./django-react.nix
       ./django-svelte.nix
