@@ -98,7 +98,7 @@ in
         fqdn = "mail.${cfg.domain}";
         dkimSelector = cfg.dkimSelector;
         domains = mapAttrsToList (domain: _: domain) mailboxDomains;
-        relayDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
+        domainsWithoutMailbox = mapAttrsToList (domain: _: domain) relayDomains;
         enableSubmissionSsl = false;
         mailboxes = {
           Drafts = {
