@@ -32,14 +32,18 @@
   };
   nix-build = {
     uid = 603;
-    port = 2603;
+    #port = 2603;
   };
   nix-switch = {
     uid = 604;
-    port = 2604;
+    #port = 2604;
   };
   nix-push = {
     uid = 605;
-    port = 2605;
+    #port = 2605;
+  };
+  tls-cert = {
+    uid = 606;
+    #port = 2606;
   };
 }

@@ -26,11 +26,21 @@ in
       name: (builtins.readFile ../public-keys/domain-${name}-tls-cert.pem)
     ) tls-certs;
 
+    users.groups.tls-cert = {
+      members = [
+        "nginx"
+        #"zitadel"
+      ];
+    };
+
     sops.secrets = builtins.listToAttrs (
       builtins.map (name: {
         name = "${name}/tls-cert";
         value = {
           sopsFile = ../enc/domain-${name}.yaml;
+          owner = "root";
+          group = "tls-cert";
+          mode = "0440";
         };
       }) tls-certs
     );
