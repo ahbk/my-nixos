@@ -6,17 +6,13 @@ _RUN_WITH_BASH_SOURCED=1
 
 tmpdir=$(mktemp -d)
 declare -rx tmpdir
+# shellcheck disable=SC2064
+# - expanding $tmpdir immediately is the point
+trap "rm -rf '$tmpdir'" EXIT
 
 here="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 declare -x km_root
 km_root="$(cd "$here/.." && pwd)"
-
-cleanup() {
-    if [[ -n "$tmpdir" && -d "$tmpdir" ]]; then
-        rm -fR "$tmpdir"
-    fi
-}
-trap cleanup EXIT
 
 # implement a function that maps a prefix to a list of (potential) functions
 callchain() {
@@ -39,7 +35,7 @@ run() {
         # call callchain and bring it into scope as $callchain
         with callchain
 
-        # call them links to distinguish from normal fns/cmds
+        # call them "links" to distinguish from normal fns/cmds
         links=$(for link in $callchain; do
             # trailing colon terminates the callchain
             declare -F "$link:" && break
