@@ -148,13 +148,11 @@ in
 
     users = lib'.mergeAttrs (name: cfg: {
       users.${cfg.appname} = {
-        name = cfg.appname;
         uid = cfg.uid;
         isSystemUser = true;
         group = cfg.appname;
       };
       groups.${cfg.appname} = {
-        name = cfg.appname;
         gid = cfg.uid;
         members = [
           cfg.appname
