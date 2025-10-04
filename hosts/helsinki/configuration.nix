@@ -4,7 +4,6 @@
   users,
   hosts,
   lib,
-  sites,
   ...
 }:
 {
@@ -130,7 +129,12 @@
       };
     };
 
-    #wordpress.sites."esse" = sites."esse";
+    wordpress.sites."esse" = {
+      enable = false;
+      appname = "esse";
+      hostname = "esse.nu";
+      www = "yes";
+    };
 
     mobilizon.sites."klimatkalendern" = {
       enable = true;
@@ -144,8 +148,6 @@
     nextcloud.sites."nextcloud-kompismoln" = {
       enable = true;
       hostname = "nextcloud.kompismoln.se";
-      ssl = true;
-      subnet = false;
       uid = ids.nextcloud-kompismoln.uid;
       port = ids.nextcloud-kompismoln.port;
       collaboraHost = "collabora.kompismoln.se";
@@ -154,19 +156,17 @@
 
     collabora = {
       enable = true;
-      subnet = false;
       host = "collabora.kompismoln.se";
       allowedHosts = [ ];
     };
 
     nextcloud-rolf.sites."sverigesval-sync" = {
       enable = true;
-      siteRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub/_site";
-      sourceRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub";
       hostname = "sverigesval.org";
       username = "nextcloud-kompismoln";
-      subnet = false;
-      ssl = true;
+      www = "redirect";
+      siteRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub/_site";
+      sourceRoot = "/var/lib/nextcloud-kompismoln/nextcloud/data/rolf/files/+pub";
     };
   };
 

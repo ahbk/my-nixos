@@ -64,6 +64,7 @@ let
       ./nginx.nix
       ./postgresql.nix
       ./react.nix
+      ./redis.nix
       ./svelte.nix
       ./tls-certs.nix
       ./tunnelservice.nix

@@ -1,4 +1,9 @@
-{ lib, config, ... }:
+{
+  lib,
+  config,
+  ids,
+  ...
+}:
 let
   inherit (lib)
     mkEnableOption
@@ -14,6 +19,7 @@ in
       enable = mkEnableOption "collabora-online on this server";
       subnet = mkOption {
         description = "Use self-signed certificates";
+        default = false;
         type = types.bool;
       };
       host = mkOption {
@@ -30,64 +36,69 @@ in
   config = mkIf cfg.enable {
     my-nixos.tls-certs = [ "km" ];
 
-    services.nginx.virtualHosts.${cfg.host} = {
-      forceSSL = true;
-      sslCertificate = mkIf cfg.subnet ../domains/km-tls-cert.pem;
-      sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+    services.nginx.virtualHosts.${cfg.host} =
+      let
+        proxyPass = "http://127.0.0.1:${builtins.toString ids.collabora.port}";
+      in
+      {
+        forceSSL = true;
+        sslCertificate = mkIf cfg.subnet ../domains/km-tls-cert.pem;
+        sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
 
-      enableACME = !cfg.subnet;
+        enableACME = !cfg.subnet;
 
-      locations = {
-        "^~ /browser" = {
-          proxyPass = "http://127.0.0.1:9980";
-          extraConfig = ''
-            proxy_set_header Host $host;
-          '';
-        };
-        "^~ /hosting/discovery" = {
-          proxyPass = "http://127.0.0.1:9980";
-          extraConfig = ''
-            proxy_set_header Host $host;
-          '';
-        };
-        "^~ /hosting/capabilities" = {
-          proxyPass = "http://127.0.0.1:9980";
-          extraConfig = ''
-            proxy_set_header Host $host;
-          '';
-        };
-        "~ ^/(c|l)ool" = {
-          proxyPass = "http://127.0.0.1:9980";
-          extraConfig = ''
-            proxy_set_header Host $host;
-          '';
-        };
+        locations = {
+          "^~ /browser" = {
+            inherit proxyPass;
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
+          "^~ /hosting/discovery" = {
+            inherit proxyPass;
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
+          "^~ /hosting/capabilities" = {
+            inherit proxyPass;
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
+          "~ ^/(c|l)ool" = {
+            inherit proxyPass;
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
 
-        "~ ^/cool/(.*)/ws$" = {
-          priority = 1;
-          proxyPass = "http://127.0.0.1:9980";
-          extraConfig = ''
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "Upgrade";
-            proxy_set_header Host $host;
-            proxy_read_timeout 36000s;
-          '';
-        };
+          "~ ^/cool/(.*)/ws$" = {
+            priority = 1;
+            inherit proxyPass;
+            extraConfig = ''
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+              proxy_set_header Host $host;
+              proxy_read_timeout 36000s;
+            '';
+          };
 
-        "^~ /cool/adminws" = {
-          proxyPass = "http://127.0.0.1:9980";
-          extraConfig = ''
-            proxy_set_header Host $host;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "Upgrade";
-            proxy_read_timeout 36000s;
-          '';
+          "^~ /cool/adminws" = {
+            inherit proxyPass;
+            extraConfig = ''
+              proxy_set_header Host $host;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+              proxy_read_timeout 36000s;
+            '';
+          };
         };
       };
-    };
 
     services.collabora-online = {
       enable = true;
+      port = ids.collabora.port;
       aliasGroups = map (host: {
         host = "https://nextcloud.km";
       }) cfg.allowedHosts;

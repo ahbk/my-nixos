@@ -46,4 +46,15 @@
     uid = 606;
     #port = 2606;
   };
+  esse = {
+    uid = 607;
+    #port = 2607;
+  };
+  redis-wordpress = {
+    uid = 608;
+    port = 2608;
+  };
+  collabora = {
+    port = 9980;
+  };
 }

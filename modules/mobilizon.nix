@@ -12,7 +12,6 @@ let
   inherit (lib)
     filterAttrs
     flatten
-    getExe
     mapAttrs'
     mapAttrsToList
     mkDefault
@@ -97,7 +96,7 @@ let
         };
         www = mkOption {
           description = "Prefix the url with www.";
-          default = false;
+          default = "no";
           type = types.enum [
             "no"
             "yes"

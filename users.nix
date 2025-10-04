@@ -25,7 +25,7 @@
       "info@ahbk.se"
       "hej@kompismoln.se"
       "alex@kompismoln.se"
-      "noreply@klimatkalendern.nu"
+      "no-reply@klimatkalendern.nu"
       "admin@kompismoln.se"
       "alex@klimatkalendern.nu"
     ];

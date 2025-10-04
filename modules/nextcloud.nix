@@ -36,10 +36,12 @@ let
         enable = mkEnableOption "nextcloud on this host.";
         ssl = mkOption {
           description = "Enable HTTPS";
+          default = true;
           type = types.bool;
         };
         subnet = mkOption {
           description = "Use self-signed certificates";
+          default = false;
           type = types.bool;
         };
         port = mkOption {
