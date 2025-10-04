@@ -132,6 +132,15 @@
                     "space_cache=v2"
                   ];
                 };
+                "@database" = {
+                  mountpoint = "/srv/database";
+                  mountOptions = [
+                    "compress=no"
+                    "noatime"
+                    "space_cache=v2"
+                    "nodatacow"
+                  ];
+                };
                 "@backup" = {
                   mountpoint = "/srv/backup";
                   mountOptions = [
