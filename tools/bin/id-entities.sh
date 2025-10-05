@@ -13,7 +13,7 @@ declare -g slot
 declare -rA allowed_keys=(
     ["root"]="age-key"
     ["host"]="age-key ssh-key wg-key luks-key nix-cache-key"
-    ["service"]="age-key ssh-key passwd secret-key"
+    ["service"]="age-key ssh-key mail passwd secret-key"
     ["user"]="age-key ssh-key passwd mail"
     ["domain"]="age-key tls-cert"
 )

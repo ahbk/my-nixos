@@ -80,17 +80,27 @@ in
         }
       ];
 
-      sops.secrets = lib'.mergeAttrs (user: _: {
-        "${user}/mail-sha512" = {
-          sopsFile = ../enc/user-${user}.yaml;
-          owner = user;
-          group = user;
-          restartUnits = [
-            "dovecot2.service"
-            "postfix.service"
-          ];
+      sops.secrets =
+        lib'.mergeAttrs (user: _: {
+          "${user}/mail-sha512" = {
+            sopsFile = ../enc/user-${user}.yaml;
+            owner = user;
+            group = user;
+            restartUnits = [
+              "dovecot2.service"
+              "postfix.service"
+            ];
+          };
+        }) cfg.users
+        // {
+          "dmarc-reports/mail-sha512" = {
+            sopsFile = ../enc/service-dmarc-reports.yaml;
+            restartUnits = [
+              "dovecot2.service"
+              "postfix.service"
+            ];
+          };
         };
-      }) cfg.users;
 
       mailserver = {
         enable = true;
@@ -119,14 +129,23 @@ in
           };
         };
 
-        loginAccounts = mapAttrs' (user: userCfg: {
-          name = config.my-nixos.users.${user}.email;
-          value = {
-            inherit (userCfg) catchAll;
-            hashedPasswordFile = config.sops.secrets."${user}/mail-sha512".path;
-            aliases = config.my-nixos.users.${user}.aliases;
-          };
-        }) cfg.users;
+        loginAccounts = mkMerge [
+          (mapAttrs' (user: userCfg: {
+            name = config.my-nixos.users.${user}.email;
+            value = {
+              inherit (userCfg) catchAll;
+              hashedPasswordFile = config.sops.secrets."${user}/mail-sha512".path;
+              aliases = config.my-nixos.users.${user}.aliases;
+            };
+          }) cfg.users)
+          {
+            "dmarc-reports@${cfg.domain}" = {
+              hashedPasswordFile = config.sops.secrets."dmarc-reports/mail-sha512".path;
+              catchAll = [ ];
+              aliases = [ ];
+            };
+          }
+        ];
 
         certificateScheme = "acme-nginx";
       };

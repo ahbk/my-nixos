@@ -120,12 +120,6 @@ in
       };
     }) eachSite;
 
-    systemd.tmpfiles.rules = flatten (
-      mapAttrsToList (name: cfg: [
-        "d '${stateDir cfg.appname}' 0750 ${cfg.appname} ${webserver.group} - -"
-      ]) eachSite
-    );
-
     services.nginx.virtualHosts = lib'.mergeAttrs (
       name: cfg:
       let
@@ -228,7 +222,7 @@ in
       name: cfg:
       nameValuePair cfg.appname {
         user = cfg.appname;
-        group = webserver.group;
+        group = cfg.appname;
         phpPackage = wpPhp;
         phpOptions = ''
           upload_max_filesize = 16M;

@@ -130,7 +130,7 @@
     };
 
     wordpress.sites."esse" = {
-      enable = false;
+      enable = true;
       appname = "esse";
       hostname = "esse.nu";
       www = "yes";

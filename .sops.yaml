@@ -40,6 +40,8 @@ grants:
     - host-glesys
   service-chatddx:
     - host-glesys
+  service-dmarc-reports:
+    - host-helsinki
   domain-km:
     - host-adele
     - host-lenovo
@@ -104,6 +106,7 @@ identities:
   service-backup: &service-backup age15zp6xa8xx4geegs5vkj8nuzhmwlcmxr3edvsvd5we6wrh50ep3rq7qfnxl
   service-nextcloud-kompismoln: &service-nextcloud-kompismoln age19zqkrl5r5aat79tallyqclpv02venk7c4nw0xfvtqx8mdxxp6dnsdkj9zv
   service-nix-push: &service-nix-push age1mk0jc0en2lf92hsujl8pz48yrr9a62c6wk87um6g6c3d9e0aj53q7p4lhy
+  service-dmarc-reports: &service-dmarc-reports age15mtx205sfcn93qcqnxlcpq2tdfaxmhsu97qfpcesw4zaq3x3a5wq77vn58
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -253,3 +256,9 @@ creation_rules:
       - age:
           - *root-1
           - *service-nix-push
+  - path_regex: enc/service-dmarc-reports
+    key_groups:
+      - age:
+          - *root-1
+          - *service-dmarc-reports
+          - *host-helsinki
