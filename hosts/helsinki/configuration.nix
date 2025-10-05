@@ -129,6 +129,24 @@
       };
     };
 
+    svelte.sites."chatddx" = rec {
+      enable = true;
+      appname = "chatddx";
+      hostname = "chatddx.com";
+      ssl = true;
+      api = "${if ssl then "https" else "http"}://${hostname}";
+      api_ssr = "http://localhost:${toString ids."${appname}-django".port}";
+    };
+
+    django.sites."chatddx" = {
+      enable = true;
+      appname = "chatddx";
+      hostname = "chatddx.com";
+      packagename = "chatddx_backend";
+      celery.enable = true;
+      locationProxy = "/admin";
+    };
+
     wordpress.sites."esse" = {
       enable = true;
       appname = "esse";

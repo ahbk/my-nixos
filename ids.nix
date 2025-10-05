@@ -50,11 +50,27 @@
     uid = 607;
     #port = 2607;
   };
-  redis-wordpress = {
+  esse-redis = {
     uid = 608;
     port = 2608;
   };
   collabora = {
     port = 9980;
+  };
+  chatddx-django = {
+    uid = 609;
+    port = 2609;
+  };
+  chatddx-redis = {
+    uid = 610;
+    port = 2610;
+  };
+  chatddx-svelte = {
+    uid = 611;
+    port = 2611;
+  };
+  rspamd-redis = {
+    uid = 612;
+    port = 2612;
   };
 }

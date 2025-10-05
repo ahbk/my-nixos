@@ -69,15 +69,12 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
 
+      my-nixos.redis.servers.rspamd.enable = true;
+
       my-nixos.preserve.directories = with config.mailserver; [
         dkimKeyDirectory
         mailDirectory
         sieveDirectory
-        {
-          directory = "/var/lib/redis-rspamd";
-          user = "redis-rspamd";
-          group = "redis-rspamd";
-        }
       ];
 
       sops.secrets =
@@ -110,6 +107,7 @@ in
         domains = mapAttrsToList (domain: _: domain) mailboxDomains;
         domainsWithoutMailbox = mapAttrsToList (domain: _: domain) relayDomains;
         enableSubmissionSsl = false;
+        redis.configureLocally = false;
         mailboxes = {
           Drafts = {
             auto = "subscribe";
@@ -175,15 +173,6 @@ in
             in
             transportsCfg;
         };
-
-        # nixos-mailserver configures this redis instance,
-        # we just add a log identity
-        redis.servers.rspamd = {
-          settings = {
-            syslog-ident = "redis-rspamd";
-          };
-        };
-
       };
     })
   ];

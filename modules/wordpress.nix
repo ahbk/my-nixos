@@ -103,7 +103,9 @@ in
       group = cfg.appname;
     }) eachSite;
 
-    my-nixos.redis-servers = [ "wordpress" ];
+    my-nixos.redis.servers = lib.mapAttrs (name: cfg: {
+      enable = true;
+    }) eachSite;
 
     users = lib'.mergeAttrs (name: cfg: {
       users.${cfg.appname} = {

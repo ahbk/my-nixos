@@ -52,7 +52,6 @@ let
       }
       ./collabora.nix
       ./django-react.nix
-      ./django-svelte.nix
       ./django.nix
       ./fastapi-svelte.nix
       ./fastapi.nix
