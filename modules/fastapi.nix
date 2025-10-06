@@ -13,12 +13,10 @@ let
     flatten
     getExe
     mapAttrs
-    mapAttrs'
     mapAttrsToList
     mkEnableOption
     mkIf
     mkOption
-    nameValuePair
     types
     ;
 
@@ -63,7 +61,7 @@ let
       ENV = "production";
       HOSTNAME = cfg.hostname;
       LOG_LEVEL = "error";
-      SECRETS_DIR = builtins.dirOf config.age.secrets."${cfg.appname}/secret_key".path;
+      SECRETS_DIR = builtins.dirOf config.sops.secrets."${cfg.appname}/secret_key".path;
       SSL = if cfg.ssl then "true" else "false";
       STATE_DIR = stateDir cfg.appname;
       ALEMBIC_CONFIG = "${(fastapiPkgs cfg.appname).alembic}/alembic.ini";
@@ -92,14 +90,12 @@ in
 
     environment.systemPackages = mapAttrsToList (name: bin: bin) bins;
 
-    age.secrets = mapAttrs' (
-      name: cfg:
-      (nameValuePair "${cfg.appname}/secret_key" {
-        file = ../secrets/webapp-key-${cfg.appname}.age;
+    sops.secrets = lib'.mergeAttrs (name: cfg: {
+      "${cfg.appname}/secret_key" = {
         owner = cfg.appname;
         group = cfg.appname;
-      })
-    ) eachSite;
+      };
+    }) eachSite;
 
     users = lib'.mergeAttrs (name: cfg: {
       users.${cfg.appname} = {
@@ -183,7 +179,7 @@ in
       };
     }) eachSite;
 
-    services.restic.backups.local.paths = flatten (
+    my-nixos.backup.km.local.paths = flatten (
       mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
 

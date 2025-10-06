@@ -51,7 +51,7 @@ in
       ];
     }) eachUser;
 
-    my-nixos.backup.local.paths = flatten (
+    my-nixos.backup.km.paths = flatten (
       mapAttrsToList (user: cfg: [ "/home/${user}/.local/share/qutebrowser/history.sqlite" ]) eachUser
     );
 
@@ -77,6 +77,26 @@ in
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
+      extraConfig = {
+        pipewire."99-aec" = {
+          "context.modules" = [
+            {
+              name = "libpipewire-module-echo-cancel";
+              "args" = {
+                "source.name" = "alsa_input.pci-0000_00_1f.3.analog-stereo";
+                "sink.name" = "alsa_output.pci-0000_00_1f.3.analog-stereo";
+                "aec.method" = "webrtc";
+                "source.props" = {
+                  "node.description" = "Echo Cancelled Microphone";
+                };
+                "sink.props" = {
+                  "node.description" = "Echo Cancelled Speakers";
+                };
+              };
+            }
+          ];
+        };
+      };
     };
 
     environment.systemPackages = with pkgs; [

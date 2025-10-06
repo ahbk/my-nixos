@@ -44,6 +44,11 @@ in
       (sqlite.override { interactive = true; })
       uv
       xh
+      shellcheck
+      shellharden
+      shfmt
+      bash-language-server
+      bats
     ];
 
     programs.git = {
@@ -185,6 +190,11 @@ in
           autoLoad = true;
           settings = {
             formatters_by_ft = {
+              bash = [
+                "shellcheck"
+                "shellharden"
+                "shfmt"
+              ];
               javascript = [
                 "prettier"
               ];
@@ -237,6 +247,7 @@ in
             basedpyright.enable = true;
             nixd.enable = true;
             eslint.enable = true;
+            bashls.enable = true;
           };
           keymaps = {
             lspBuf = {

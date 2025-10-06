@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+connection_string=$1
+fqdn="${connection_string#*@}"
+shift
+
+export LUKS_DEVICE="/dev/null"
+export KEY_FILE=$BATS_TEST_TMPDIR/$fqdn/age-key
+"$testroot/remote/locksmith.sh" "$@"

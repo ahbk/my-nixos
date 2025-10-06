@@ -1,31 +1,12 @@
 {
   "esse_test" = {
+    enable = true;
     appname = "esse_test";
     hostname = "test.esse.nu";
-    enable = true;
-    ssl = true;
+    www = "yes";
     basicAuth = {
       "test" = "test";
     };
-  };
-
-  "esse" = {
-    appname = "esse";
-    hostname = "esse.nu";
-    enable = true;
-    ssl = true;
-    www = true;
-  };
-
-  "sverigesval" = {
-    enable = true;
-    hostname = "sverigesval.org";
-    appname = "sverigesval";
-    ssl = true;
-    ports = [
-      2000
-      2001
-    ];
   };
 
   "chatddx" = {

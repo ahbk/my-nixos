@@ -4,6 +4,7 @@
   inputs,
   lib,
   pkgs,
+  ids,
   ...
 }:
 
@@ -23,53 +24,60 @@ let
   cfg = config.my-nixos.svelte;
 
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
+  envToList = env: lib.mapAttrsToList (name: value: "${name}=${toString value}") env;
 
-  siteOpts = {
-    options = with types; {
-      enable = mkEnableOption "svelte-app for this host.";
-      location = mkOption {
-        description = "URL path to serve the application.";
-        default = "/";
-        type = str;
-      };
-      port = mkOption {
-        description = "Port to serve the application.";
-        type = port;
-      };
-      ssl = mkOption {
-        description = "Whether the svelte-app can assume https or not.";
-        type = bool;
-      };
-      api = mkOption {
-        description = "URL for the API endpoint";
-        type = str;
-      };
-      api_ssr = mkOption {
-        description = "Server side URL for the API endpoint";
-        type = str;
-      };
-      appname = mkOption {
-        description = "Internal namespace";
-        type = str;
-      };
-      hostname = mkOption {
-        description = "Network namespace";
-        type = str;
+  siteOpts =
+    { name, config, ... }:
+    {
+      options = with types; {
+        enable = mkEnableOption "svelte-app for this host.";
+        location = mkOption {
+          description = "URL path to serve the application.";
+          default = "/";
+          type = str;
+        };
+        port = mkOption {
+          description = "Port to serve the application.";
+          default = ids."${config.appname}-svelte".port;
+          type = port;
+        };
+        ssl = mkOption {
+          description = "Whether the svelte-app can assume https or not.";
+          default = true;
+          type = bool;
+        };
+        api = mkOption {
+          description = "URL for the API endpoint";
+          type = str;
+        };
+        api_ssr = mkOption {
+          description = "Server side URL for the API endpoint";
+          type = str;
+        };
+        appname = mkOption {
+          description = "Internal namespace";
+          default = name;
+          type = str;
+        };
+        hostname = mkOption {
+          description = "Network namespace";
+          type = str;
+        };
       };
     };
-  };
 
-  sveltePkgs = appname: inputs.${appname}.packages.${host.system}.svelte;
+  sveltePkgs =
+    appname:
+    inputs.${appname}.packages.${host.system}.svelte-app.overrideAttrs {
+      env = envs.${appname};
+    };
 
-  envs = mapAttrs (
-    name: cfg:
-    (lib'.mkEnv cfg.appname {
-      ORIGIN = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}";
-      PUBLIC_API = cfg.api;
-      PUBLIC_API_SSR = cfg.api_ssr;
-      PORT = toString cfg.port;
-    })
-  ) eachSite;
+  envs = mapAttrs (name: cfg: {
+    ORIGIN = "${if cfg.ssl then "https" else "http"}://${cfg.hostname}";
+    PUBLIC_API = cfg.api;
+    PUBLIC_API_SSR = cfg.api_ssr;
+    PORT = toString cfg.port;
+  }) eachSite;
 in
 {
 
@@ -85,11 +93,14 @@ in
 
   config = mkIf (eachSite != { }) {
     users = lib'.mergeAttrs (name: cfg: {
-      users.${cfg.appname} = {
+      users."${cfg.appname}-svelte" = {
         isSystemUser = true;
-        group = cfg.appname;
+        uid = ids."${cfg.appname}-svelte".uid;
+        group = "${cfg.appname}-svelte";
       };
-      groups.${cfg.appname} = { };
+      groups."${cfg.appname}-svelte" = {
+        gid = ids."${cfg.appname}-svelte".uid;
+      };
     }) eachSite;
 
     services.nginx.virtualHosts = mapAttrs' (
@@ -109,12 +120,10 @@ in
       (nameValuePair "${cfg.appname}-svelte" {
         description = "serve ${cfg.appname}-svelte";
         serviceConfig = {
-          ExecStart = "${pkgs.nodejs_20}/bin/node ${
-            (sveltePkgs cfg.appname).overrideAttrs { env = envs.${cfg.appname}; }
-          }/build";
-          User = cfg.appname;
-          Group = cfg.appname;
-          EnvironmentFile = "${envs.${cfg.appname}}";
+          ExecStart = "${pkgs.nodejs_20}/bin/node ${sveltePkgs cfg.appname}/build";
+          Environment = envToList envs.${cfg.appname};
+          User = "${cfg.appname}-svelte";
+          Group = "${cfg.appname}-svelte";
         };
         wantedBy = [ "multi-user.target" ];
       })

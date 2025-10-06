@@ -3,6 +3,7 @@
   host,
   inputs,
   lib,
+  lib',
   pkgs,
   ...
 }:
@@ -11,7 +12,6 @@ let
   inherit (lib)
     filterAttrs
     flatten
-    getExe
     mapAttrs'
     mapAttrsToList
     mkDefault
@@ -23,9 +23,9 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.mobilizon;
   webserver = config.services.nginx;
+  settingsFormat = pkgs.formats.elixirConf { elixir = cfg.package.elixirPackage; };
 
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
   stateDir = appname: "/var/lib/${appname}/mobilizon";
@@ -48,10 +48,18 @@ let
           };
           services.mobilizon = {
             enable = true;
-            package = inputs.klimatkalendern.packages.${host.system}.default;
+            package = inputs.${config.appname}.packages.${host.system}.default;
             nginx.enable = false;
             settings.":mobilizon" = {
-              "Mobilizon.Web.Endpoint".http.port = mkForce config.port;
+              "Mobilizon.Web.Endpoint".http = {
+                port = mkForce config.port;
+                ip = settingsFormat.lib.mkTuple [
+                  0
+                  0
+                  0
+                  0
+                ];
+              };
               "Mobilizon.Storage.Repo" = {
                 hostname = mkForce "127.0.0.1";
                 database = config.appname;
@@ -59,9 +67,14 @@ let
                 password = config.appname;
                 socket_dir = null;
               };
+              "Mobilizon.Web.Email.Mailer" = {
+                relay = "helsinki.km";
+              };
               ":instance" = {
                 name = mkForce config.appname;
                 hostname = mkForce config.hostname;
+                email_reply_to = "no-reply@${config.hostname}";
+                email_reply_from = "no-reply@${config.hostname}";
               };
             };
 
@@ -73,16 +86,22 @@ let
         enable = mkEnableOption "mobilizon on this host";
         ssl = mkOption {
           description = "Enable HTTPS";
+          default = true;
           type = types.bool;
         };
         subnet = mkOption {
           description = "Use self-signed certificates";
+          default = false;
           type = types.bool;
         };
         www = mkOption {
           description = "Prefix the url with www.";
-          default = false;
-          type = types.bool;
+          default = "no";
+          type = types.enum [
+            "no"
+            "yes"
+            "redirect"
+          ];
         };
         port = mkOption {
           description = "Port to serve on";
@@ -120,15 +139,19 @@ in
 
   config = mkIf (eachSite != { }) {
 
+    my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
+      directory = stateDir cfg.appname;
+      user = cfg.appname;
+      group = cfg.appname;
+    }) eachSite;
+
     users = lib'.mergeAttrs (name: cfg: {
       users.${cfg.appname} = {
-        name = cfg.appname;
         uid = cfg.uid;
         isSystemUser = true;
         group = cfg.appname;
       };
       groups.${cfg.appname} = {
-        name = cfg.appname;
         gid = cfg.uid;
         members = [
           cfg.appname
@@ -144,16 +167,7 @@ in
       ]) eachSite
     );
 
-    age.secrets = mapAttrs' (
-      name: cfg:
-      (nameValuePair "${cfg.appname}-mobilizon" {
-        file = ../secrets/${cfg.appname}-mobilizon.age;
-        owner = cfg.appname;
-        group = cfg.appname;
-      })
-    ) eachSite;
-
-    services.restic.backups.local.paths = flatten (
+    services.restic.backups.km.paths = flatten (
       mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
 
@@ -162,10 +176,9 @@ in
         description = "dump a snapshot of the postgresql database";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -h localhost -U ${cfg.appname} ${cfg.appname} > ${stateDir cfg.appname}/dbdump.sql'";
+          ExecStart = "${pkgs.pgsql-dump}/bin/pgsql-dump ${cfg.appname} ${stateDir cfg.appname}";
           User = cfg.appname;
           Group = cfg.appname;
-          Environment = "PGPASSWORD=${cfg.appname}";
         };
       };
 
@@ -173,7 +186,7 @@ in
         description = "restore postgresql database from snapshot";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${cfg.appname} ${cfg.appname} < ${stateDir cfg.appname}/dbdump.sql'";
+          ExecStart = "${pkgs.pgsql-restore}/bin/pgsql-restore ${cfg.appname} ${stateDir cfg.appname}";
           User = cfg.appname;
           Group = cfg.appname;
         };
@@ -195,14 +208,16 @@ in
       name: cfg:
       let
         inherit (cfg.containerConf.services.mobilizon) package;
-        proxyPass = "http://[::1]:${toString cfg.port}";
-        serverName = if cfg.www then "www.${cfg.hostname}" else cfg.hostname;
-        serverNameRedirect = if cfg.www then cfg.hostname else "www.${cfg.hostname}";
+        proxyPass = "http://localhost:${toString cfg.port}";
+        serverName = if cfg.www == "yes" then "www.${cfg.hostname}" else cfg.hostname;
+        serverNameRedirect = if cfg.www == "yes" then cfg.hostname else "www.${cfg.hostname}";
       in
       {
-        ${serverNameRedirect} = {
+        ${serverNameRedirect} = mkIf (cfg.www != "no") {
           forceSSL = cfg.ssl;
-          enableACME = cfg.ssl;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          enableACME = cfg.ssl && !cfg.subnet;
           extraConfig = ''
             return 301 $scheme://${serverName}$request_uri;
           '';
@@ -210,9 +225,9 @@ in
 
         ${serverName} = {
           forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
-          sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
-          enableACME = !cfg.subnet;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          enableACME = cfg.ssl && !cfg.subnet;
 
           locations = {
             "/" = {
@@ -254,10 +269,6 @@ in
           "/var/lib/mobilizon" = {
             isReadOnly = false;
             hostPath = stateDir cfg.appname;
-          };
-          "/run/secrets/mobilizon" = {
-            isReadOnly = true;
-            hostPath = config.age.secrets."${cfg.appname}-mobilizon".path;
           };
         };
 

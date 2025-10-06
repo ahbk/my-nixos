@@ -2,19 +2,29 @@
   description = "my nixos";
 
   inputs = {
-    nixpkgs.url = "github:Kompismoln/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:kompismoln/nixpkgs/nixos-unstable";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    agenix.url = "github:ryantm/agenix";
-    agenix.inputs.nixpkgs.follows = "nixpkgs";
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-facter-modules.url = "github:numtide/nixos-facter-modules";
 
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-mailserver.url = "gitlab:ahbk/nixos-mailserver/relay";
     nixos-mailserver.inputs.nixpkgs.follows = "nixpkgs";
+
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
+    preservation.url = "github:nix-community/preservation";
+
+    nixos-cli.url = "github:nix-community/nixos-cli";
+    nixos-cli.inputs.nixpkgs.follows = "nixpkgs";
 
     sverigesval-sync.url = "git+ssh://git@github.com/ahbk/sverigesval.org";
     sverigesval-sync.inputs.nixpkgs.follows = "nixpkgs";
@@ -30,6 +40,12 @@
 
     klimatkalendern.url = "github:Kompismoln/klimatkalendern";
     klimatkalendern.inputs.nixpkgs.follows = "nixpkgs";
+
+    klimatkalendern1.url = "github:Kompismoln/klimatkalendern";
+    klimatkalendern1.inputs.nixpkgs.follows = "nixpkgs";
+
+    klimatkalendern-dev.url = "github:Kompismoln/klimatkalendern/dev";
+    klimatkalendern-dev.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -39,10 +55,17 @@
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      ids = import ./ids.nix;
 
+      ids = import ./ids.nix;
+      users = import ./users.nix;
+      hosts = import ./hosts.nix;
+      sites = import ./sites.nix;
+      lib' = (import ./lib.nix) {
+        inherit pkgs;
+        lib = nixpkgs.lib;
+      };
     in
-    rec {
+    {
       homeConfigurations = mapAttrs (
         target: cfg:
         homeManagerConfiguration {
@@ -59,41 +82,32 @@
       ) (import ./hm-hosts.nix);
 
       nixosConfigurations = mapAttrs (
-        name: cfg:
+        name: host:
         nixosSystem {
           specialArgs = {
-            inherit inputs ids;
-            host = cfg;
+            inherit
+              inputs
+              host
+              hosts
+              ids
+              users
+              sites
+              lib'
+              ;
           };
           modules = [
-            ./configurations/${cfg.name}-hardware.nix
-            ./modules/all.nix
-            ./configurations/${cfg.name}.nix
+            ./modules/index.nix
+            ./hosts/${host.name}/configuration.nix
           ];
         }
-      ) (import ./hosts.nix);
+      ) hosts;
 
       devShells.${system}.default = pkgs.mkShellNoCC {
-        packages = [
-          (pkgs.writeShellScriptBin "deploy" ''
-            #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --flake ./ --build-host $1 --target-host $1
-          '')
-          (pkgs.writeShellScriptBin "switch" ''
-            #!/usr/bin/env bash
-            nixos-rebuild switch --use-remote-sudo --show-trace --verbose;
-          '')
-        ];
+        shellHook = ''
+          export BUILD_HOST=./
+          PATH=$(pwd)/tools/bin:$PATH
+        '';
       };
 
-      packages.${system} = {
-        default = nixosConfigurations.laptop.config.system.build.nixos-rebuild;
-
-        options-doc =
-          let
-            pkgs' = import ./packages/all.nix { pkgs = nixpkgs.legacyPackages.${system}; };
-          in
-          pkgs'.options-doc;
-      };
     };
 }

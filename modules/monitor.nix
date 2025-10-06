@@ -92,7 +92,7 @@ in
               targets = [
                 "glesys.ahbk:${toString restic.port}"
                 "stationary.ahbk:${toString restic.port}"
-                "backup.ahbk:${toString config.my-nixos.backup.local.port}"
+                "backup.ahbk:${toString restic.port}"
                 "laptop.ahbk:${toString restic.port}"
               ];
               labels = {

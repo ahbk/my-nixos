@@ -1,15 +1,13 @@
 {
   config,
   lib,
-  pkgs,
+  lib',
   ...
 }:
 
 let
   inherit (lib)
     filterAttrs
-    hasAttr
-    mapAttrs
     mapAttrs'
     mkEnableOption
     mkIf
@@ -18,7 +16,6 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.users;
   eachUser = filterAttrs (user: cfg: cfg.enable) cfg;
 
@@ -58,7 +55,6 @@ let
   };
 in
 {
-
   options.my-nixos.users =
     with types;
     mkOption {
@@ -68,28 +64,12 @@ in
     };
 
   config = mkIf (cfg != { }) {
-    home-manager.users =
-      mapAttrs
-        (user: cfg: {
-          my-nixos-hm.user = {
-            enable = true;
-            name = user;
-            uid = cfg.uid;
-          };
-        })
-        (
-          filterAttrs (
-            user: cfg: hasAttr user config.my-nixos.hm && config.my-nixos.hm.${user}.enable
-          ) eachUser
-        );
-
-    age.secrets = mapAttrs' (
+    sops.secrets = mapAttrs' (
       user: cfg:
-      (nameValuePair "linux-passwd-hashed-${user}" {
-        file = ../secrets/linux-passwd-hashed-${user}.age;
-        owner = user;
-        group = user;
-      })
+      (nameValuePair "${user}/passwd-sha512") {
+        neededForUsers = true;
+        sopsFile = ../enc/user-${user}.yaml;
+      }
     ) eachUser;
 
     users =
@@ -99,7 +79,7 @@ in
           isNormalUser = true;
           group = user;
           extraGroups = cfg.groups;
-          hashedPasswordFile = config.age.secrets."linux-passwd-hashed-${user}".path;
+          hashedPasswordFile = config.sops.secrets."${user}/passwd-sha512".path;
           openssh.authorizedKeys.keyFiles = cfg.keys;
         };
         groups.${user}.gid = config.users.users.${user}.uid;
@@ -110,15 +90,19 @@ in
 
     services.openssh = {
       enable = true;
-      settings = {
-        PasswordAuthentication = false;
-        KbdInteractiveAuthentication = false;
-      };
+      extraConfig = lib.concatStrings (
+        lib.mapAttrsToList (user: cfg: ''
+          Match User ${user}
+            PasswordAuthentication no
+            ChallengeResponseAuthentication no
+            KbdInteractiveAuthentication no
+        '') eachUser
+      );
     };
 
     services.fail2ban.jails = {
       sshd.settings = {
-        filter = "sshd[mode=aggressive]";
+        filter = "sshd[mode=normal]";
       };
     };
   };

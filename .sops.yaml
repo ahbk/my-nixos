@@ -1,0 +1,268 @@
+fqdn: $entity.km
+backend: enc/$class-$entity.yaml
+backend:root: keys/$class-$entity
+artifact:ssh-key: public-keys/$class-$entity-$key.pub
+artifact:wg-key: public-keys/$class-$entity-$key.pub
+artifact:nix-cache-key: public-keys/$class-$entity-$key.pub
+artifact:tls-cert: public-keys/$class-$entity-$key.pem
+ops:
+  rebuild:
+    all:
+      - rebuild:age-key
+  check:
+    host-helsinki:
+      - check:age-key
+      - check:ssh-key
+      - check:luks-key
+    host-lenovo:
+      - check:age-key
+      - check:ssh-key
+    host-stationary:
+      - check:age-key
+      - check:ssh-key
+  verify:
+    all:
+      - verify:age-key
+    user:
+      - verify:ssh-key
+      - verify:passwd
+      - verify:mail
+    host-stationary:
+      - verify:nix-cache-key
+    host:
+      - verify:wg-key
+    service:
+      - verify:ssh-key
+    domain:
+      - verify:tls-cert
+grants:
+  service-sysctl-user-portal:
+    - host-glesys
+    - host-helsinki
+  service-chatddx-django:
+    - host-glesys
+    - host-helsinki
+  service-dmarc-reports:
+    - host-helsinki
+  domain-km:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+    - host-glesys
+  user-admin:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+    - host-glesys
+  service-nextcloud-kompismoln:
+    - host-helsinki
+    - host-glesys
+  service-backup:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+    - host-glesys
+  service-locksmith:
+    - host-adele
+    - host-lenovo
+    - host-helsinki
+    - host-laptop
+    - host-stationary
+    - host-glesys
+  service-tunnelservice:
+    - host-helsinki
+  user-ami:
+    - host-adele
+  user-alex:
+    - host-lenovo
+    - host-helsinki
+    - host-glesys
+identities:
+  root-1: &root-1 age1cavc8kaykuqxk9xk6ca78fea73ym32ugxvhq9ek0xgg0aar23qpqg5psm3
+  host-adele: &host-adele age19qc5cv0sutfd5r2ygpl2vwy2cf6che0zhkpz2vthjmt7qljrk47qgn46vy
+  host-helsinki: &host-helsinki age1hltf2fu8kllnvvt768h8tmn57l3ac6nuj7cyrk4s2fhlknqmqy2sssqhr6
+  host-bootstrap: &host-bootstrap age1dr88a544hn400m9euguppp92w56l59t5xtysr29lnu8wljtftqusd38sdt
+  host-lenovo: &host-lenovo age14exhy3ck8m795zsm2mcck03d65w6xhryectwgxtj8w78re8lcuasrztl6y
+  host-stationary: &host-stationary age15pv6x0rjv5x92daey2c0yg3lk926h8zprtku32uzp0a3fqskqa0q2wq8z6
+  user-admin: &user-admin age190l6kpf9l5dlmcgh6wjvn24cr7qazgrykjr653j2k6kuxma4w5mqf94qym
+  user-alex: &user-alex age18hl27m8zv5lclv2r89ltv5n0mpk5sr8s23fec3ve9sj0qufh2uqq4ccstz
+  user-ami: &user-ami age1avku5tyyvu9ndlqfcvd7r4nme84alce4f3shpqrxr93e8a747amskte558
+  service-locksmith: &service-locksmith age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2
+  host-laptop: &host-laptop age17f2stt0f6yrunz0pfu3hf6rr5fcasgt7g2wyv3sq8a6a28j4jgwq2lywpy
+  service-tunnelservice: &service-tunnelservice age1z44ue69etcfw69ryc7mndtepgxt65ulwndrrlqjvc5nz29fzgs0sut3agn
+  domain-km: &domain-km age1y5k2wqd0au34lecrt53xpwdtm0rwkvpkulgmwqrhz2p8a9zn8gxqvgts9g
+  host-friday: &host-friday age15g32dcyjsr579ylcfpxnlemje3ythy30yl5q94j6kh7nlz2guynqxk8mw2
+  host-glesys: &host-glesys age1tas34sz7hcqc5exu2l39dcxcfr8cuqgcgfmwcsd39t75mvprlprqznuhlr
+  host-phone: &host-phone age1stgu2kujac8h0fucntv6r6fwua8rfu0sz8mq9ld5fmxxq2q2ua3s04ah39
+  service-nix-build: &service-nix-build age1n0fhevjp69cwpfpzv5q29jduzhgq6egc59fqfyr40ajfesxhsfqq5x2kcj
+  service-nix-switch: &service-nix-switch age1e5y0hdv08h7yawmla3vtenska9p49nswjhqckap87glm8j99y9fq4kqj2c
+  service-rescue: &service-rescue age1sh573xzcwpylxe6ymzpd4m80favtavvgsv6dezaq755px67s6aws5q9l3z
+  service-sysctl-user-portal: &service-sysctl-user-portal age1vxjx29dzzf7cxcfttw96wcgw9tr94dlawynd9xjn27l5ve3wdvzs6v7ss3
+  service-chatddx-django: &service-chatddx-django age1mh2urcf7ke0wg4w7x8jxsey3xdkel08jmzr90ex0sgexnuhr9g9stmslju
+  service-backup: &service-backup age15zp6xa8xx4geegs5vkj8nuzhmwlcmxr3edvsvd5we6wrh50ep3rq7qfnxl
+  service-nextcloud-kompismoln: &service-nextcloud-kompismoln age19zqkrl5r5aat79tallyqclpv02venk7c4nw0xfvtqx8mdxxp6dnsdkj9zv
+  service-nix-push: &service-nix-push age1mk0jc0en2lf92hsujl8pz48yrr9a62c6wk87um6g6c3d9e0aj53q7p4lhy
+  service-dmarc-reports: &service-dmarc-reports age15mtx205sfcn93qcqnxlcpq2tdfaxmhsu97qfpcesw4zaq3x3a5wq77vn58
+creation_rules:
+  - path_regex: enc/host-adele
+    key_groups:
+      - age:
+          - *root-1
+          - *host-adele
+  - path_regex: enc/host-helsinki
+    key_groups:
+      - age:
+          - *root-1
+          - *host-helsinki
+  - path_regex: enc/host-bootstrap
+    key_groups:
+      - age:
+          - *root-1
+          - *host-bootstrap
+  - path_regex: enc/host-lenovo
+    key_groups:
+      - age:
+          - *root-1
+          - *host-lenovo
+  - path_regex: enc/host-stationary
+    key_groups:
+      - age:
+          - *root-1
+          - *host-stationary
+  - path_regex: enc/user-admin
+    key_groups:
+      - age:
+          - *root-1
+          - *user-admin
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+          - *host-glesys
+  - path_regex: enc/user-alex
+    key_groups:
+      - age:
+          - *root-1
+          - *user-alex
+          - *host-lenovo
+          - *host-helsinki
+          - *host-glesys
+  - path_regex: enc/user-ami
+    key_groups:
+      - age:
+          - *root-1
+          - *user-ami
+          - *host-adele
+  - path_regex: enc/service-locksmith
+    key_groups:
+      - age:
+          - *root-1
+          - *service-locksmith
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+          - *host-glesys
+  - path_regex: enc/host-laptop
+    key_groups:
+      - age:
+          - *root-1
+          - *host-laptop
+  - path_regex: enc/service-tunnelservice
+    key_groups:
+      - age:
+          - *root-1
+          - *service-tunnelservice
+          - *host-helsinki
+  - path_regex: enc/domain-km
+    key_groups:
+      - age:
+          - *root-1
+          - *domain-km
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+          - *host-glesys
+  - path_regex: enc/host-friday
+    key_groups:
+      - age:
+          - *root-1
+          - *host-friday
+  - path_regex: enc/host-glesys
+    key_groups:
+      - age:
+          - *root-1
+          - *host-glesys
+  - path_regex: enc/host-phone
+    key_groups:
+      - age:
+          - *root-1
+          - *host-phone
+  - path_regex: enc/service-nix-build
+    key_groups:
+      - age:
+          - *root-1
+          - *service-nix-build
+  - path_regex: enc/service-nix-switch
+    key_groups:
+      - age:
+          - *root-1
+          - *service-nix-switch
+  - path_regex: enc/service-rescue
+    key_groups:
+      - age:
+          - *root-1
+          - *service-rescue
+  - path_regex: enc/service-sysctl-user-portal
+    key_groups:
+      - age:
+          - *root-1
+          - *service-sysctl-user-portal
+          - *host-glesys
+          - *host-helsinki
+  - path_regex: enc/service-chatddx-django
+    key_groups:
+      - age:
+          - *root-1
+          - *service-chatddx-django
+          - *host-glesys
+          - *host-helsinki
+  - path_regex: enc/service-backup
+    key_groups:
+      - age:
+          - *root-1
+          - *service-backup
+          - *host-adele
+          - *host-lenovo
+          - *host-helsinki
+          - *host-laptop
+          - *host-stationary
+          - *host-glesys
+  - path_regex: enc/service-nextcloud-kompismoln
+    key_groups:
+      - age:
+          - *root-1
+          - *service-nextcloud-kompismoln
+          - *host-helsinki
+          - *host-glesys
+  - path_regex: enc/service-nix-push
+    key_groups:
+      - age:
+          - *root-1
+          - *service-nix-push
+  - path_regex: enc/service-dmarc-reports
+    key_groups:
+      - age:
+          - *root-1
+          - *service-dmarc-reports
+          - *host-helsinki

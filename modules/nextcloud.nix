@@ -36,10 +36,12 @@ let
         enable = mkEnableOption "nextcloud on this host.";
         ssl = mkOption {
           description = "Enable HTTPS";
+          default = true;
           type = types.bool;
         };
         subnet = mkOption {
           description = "Use self-signed certificates";
+          default = false;
           type = types.bool;
         };
         port = mkOption {
@@ -111,6 +113,12 @@ in
       };
     }) eachSite;
 
+    my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
+      directory = stateDir cfg.appname;
+      user = cfg.appname;
+      group = cfg.appname;
+    }) eachSite;
+
     systemd.tmpfiles.rules = flatten (
       mapAttrsToList (name: cfg: [
         "d '${stateDir cfg.appname}' 0750 ${cfg.appname} ${cfg.appname} - -"
@@ -118,14 +126,13 @@ in
       ]) eachSite
     );
 
-    age.secrets = mapAttrs' (
-      name: cfg:
-      (nameValuePair "${cfg.appname}-root" {
-        file = ../secrets/${cfg.appname}-root.age;
+    sops.secrets = lib'.mergeAttrs (name: cfg: {
+      "${cfg.appname}/secret-key" = {
+        sopsFile = ../enc/service-${cfg.appname}.yaml;
         owner = cfg.appname;
         group = cfg.appname;
-      })
-    ) eachSite;
+      };
+    }) eachSite;
 
     my-nixos.postgresql = mapAttrs (name: cfg: {
       ensure = true;
@@ -169,8 +176,8 @@ in
       name: cfg:
       nameValuePair cfg.hostname {
         forceSSL = cfg.ssl;
-        sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
-        sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
+        sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+        sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
         enableACME = !cfg.subnet;
         extraConfig = ''
           client_max_body_size 1G;
@@ -201,9 +208,13 @@ in
             isReadOnly = false;
             hostPath = stateDir cfg.appname;
           };
-          "/run/secrets/nextcloud-root" = {
+          "/run/secrets/db-password" = {
             isReadOnly = true;
-            hostPath = config.age.secrets."${cfg.appname}-root".path;
+            hostPath = config.sops.secrets."${cfg.appname}/secret-key".path;
+          };
+          "/run/secrets/admin-password" = {
+            isReadOnly = true;
+            hostPath = config.sops.secrets."${cfg.appname}/secret-key".path;
           };
         };
 
@@ -273,10 +284,10 @@ in
             config = {
               dbtype = "pgsql";
               dbhost = "localhost";
-              dbpassFile = "/run/secrets/nextcloud-root";
+              dbpassFile = "/run/secrets/db-password";
               dbuser = cfg.appname;
               dbname = cfg.appname;
-              adminpassFile = "/run/secrets/nextcloud-root";
+              adminpassFile = "/run/secrets/admin-password";
             };
           };
         };

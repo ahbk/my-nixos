@@ -39,10 +39,10 @@ in
 
   config = mkIf (eachUser != { }) {
 
-    age.secrets = mapAttrs' (
+    sops.secrets = mapAttrs' (
       user: cfg:
-      (nameValuePair "mail-plain-${user}" {
-        file = ../secrets/mail-plain-${user}.age;
+      (nameValuePair "${user}/mail" {
+        sopsFile = ../enc/user-${user}.yaml;
         owner = user;
         group = user;
       })
@@ -52,15 +52,16 @@ in
       enable = true;
       defaults = {
         port = 587;
+        host = "helsinki.km";
         tls = true;
         logfile = "~/.msmtp.log";
       };
       accounts = mapAttrs (user: cfg: {
-        host = "mail.ahbk.se";
+        host = "mail.kompismoln.se";
         auth = true;
-        user = "${user}@ahbk.se";
-        from = "${user}@ahbk.se";
-        passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets."mail-plain-${user}".path}";
+        user = "${user}@kompismoln.se";
+        from = "${user}@kompismoln.se";
+        passwordeval = "${pkgs.coreutils}/bin/cat ${config.sops.secrets."${user}/mail".path}";
       }) eachUser;
     };
   };

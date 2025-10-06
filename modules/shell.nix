@@ -1,6 +1,5 @@
 {
   config,
-  host,
   inputs,
   lib,
   pkgs,
@@ -31,6 +30,10 @@ let
   };
 in
 {
+  imports = [
+    inputs.nixos-cli.nixosModules.nixos-cli
+  ];
+
   options.my-nixos.shell =
     with types;
     mkOption {
@@ -38,21 +41,42 @@ in
       type = attrsOf (submodule userOpts);
       default = { };
     };
+
   config = mkIf (eachUser != { }) {
 
-    my-nixos.backup.local.paths = flatten (
+    my-nixos.backup.km.paths = flatten (
       mapAttrsToList (user: cfg: [ "/home/${user}/.bash_history" ]) eachUser
     );
 
     home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.shell.enable = true; }) eachHMUser;
 
-    documentation.man.generateCaches = true;
+    environment.sessionVariables = {
+      SOPS_AGE_KEY_FILE = "/keys/user-$USER";
+    };
+
+    # This takes too long time to be worth it
+    # enable only when needed or update manually
+    #documentation.man.generateCaches = true;
+
+    services.nixos-cli = {
+      enable = true;
+    };
+    programs.bash.promptInit = builtins.readFile ../tools/session/prompt-init.sh;
 
     environment.systemPackages = with pkgs; [
-      inputs.agenix.packages.${host.system}.default
+      envsubst
+      jq
+      yq-go
+      ssh-to-age
+      sops
+      age
       w3m
       git
       vim
+      tree
+      nixos-facter
+      km-tools
+      nix-serve-ng
     ];
   };
 }

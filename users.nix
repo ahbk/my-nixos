@@ -4,8 +4,8 @@
     uid = 1000;
     name = "Administrator";
     groups = [ "wheel" ];
-    keys = [ ./keys/ssh-user-alex.pub ];
-    email = "admin@ahbk.se";
+    keys = [ ./public-keys/user-admin-ssh-key.pub ];
+    email = "admin@kompismoln.se";
   };
 
   alex = {
@@ -16,8 +16,8 @@
       "wheel"
       "nginx"
     ];
-    keys = [ ./keys/ssh-user-alex.pub ];
-    email = "alex@ahbk.se";
+    keys = [ ./public-keys/user-alex-ssh-key.pub ];
+    email = "alex@kompismoln.se";
     aliases = [
       "dmarc-reports@ahbk.se"
       "postmaster@ahbk.se"
@@ -27,16 +27,7 @@
       "alex@kompismoln.se"
       "no-reply@klimatkalendern.nu"
       "admin@kompismoln.se"
-    ];
-  };
-
-  backup = {
-    enable = true;
-    uid = 2001;
-    name = "Mr. Backup";
-    keys = [
-      ./keys/ssh-user-backup.pub
-      ./keys/ssh-user-alex.pub
+      "alex@klimatkalendern.nu"
     ];
   };
 
@@ -54,6 +45,13 @@
     uid = 1103;
     name = "ludvig";
     email = "ludvig.janiuk@proton.me";
-    keys = [ ./keys/ssh-user-ludvig.pub ];
+  };
+
+  ami = {
+    enable = true;
+    groups = [ ];
+    uid = 1104;
+    name = "ami";
+    email = "gunami59@gmail.com";
   };
 }

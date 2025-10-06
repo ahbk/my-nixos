@@ -27,6 +27,9 @@ let
 
   lib' = (import ../lib.nix) { inherit lib pkgs; };
 
+  serverName = cfg: if cfg.www == "yes" then "www.${cfg.hostname}" else cfg.hostname;
+  serverNameRedirect = cfg: if cfg.www == "yes" then cfg.hostname else "www.${cfg.hostname}";
+
   siteOpts =
     { name, ... }:
     {
@@ -36,15 +39,13 @@ let
         enable = mkEnableOption "nextcloud-rolf on this host.";
         ssl = mkOption {
           description = "Enable HTTPS";
+          default = true;
           type = types.bool;
         };
         subnet = mkOption {
           description = "Use self-signed certificates";
+          default = false;
           type = types.bool;
-        };
-        port = mkOption {
-          description = "Port to serve on";
-          type = types.port;
         };
         hostname = mkOption {
           description = "Namespace identifying the service externally on the network.";
@@ -68,8 +69,12 @@ let
         };
         www = mkOption {
           description = "Prefix the url with www.";
-          default = false;
-          type = types.bool;
+          default = "no";
+          type = types.enum [
+            "no"
+            "yes"
+            "redirect"
+          ];
         };
       };
     };
@@ -111,34 +116,37 @@ in
 
       environment.systemPackages = mapAttrsToList (name: pkg: pkg) sync-commands;
 
-      services.nginx.virtualHosts = lib'.mergeAttrs (
-        name: cfg:
-        let
-          serverName = if cfg.www then "www.${cfg.hostname}" else cfg.hostname;
-          serverNameRedirect = if cfg.www then cfg.hostname else "www.${cfg.hostname}";
-        in
-        {
-          ${serverNameRedirect} = {
-            forceSSL = cfg.ssl;
-            enableACME = cfg.ssl;
-            extraConfig = ''
-              return 301 $scheme://${serverName}$request_uri;
-            '';
-          };
-          ${serverName} = {
-            forceSSL = cfg.ssl;
-            sslCertificate = mkIf cfg.subnet config.age.secrets.ahbk-cert.path;
-            sslCertificateKey = mkIf cfg.subnet config.age.secrets.ahbk-cert-key.path;
-            enableACME = !cfg.subnet;
+      security.acme.certs = lib.mapAttrs' (name: cfg: {
+        name = serverName cfg;
+        value = mkIf (cfg.ssl && !cfg.subnet) {
+          extraDomainNames = [ (serverNameRedirect cfg) ];
+        };
+      }) eachSite;
 
-            root = cfg.siteRoot;
-            locations."/" = {
-              index = "index.html";
-              tryFiles = "$uri $uri/ /404.html";
-            };
+      services.nginx.virtualHosts = lib'.mergeAttrs (name: cfg: {
+        ${serverNameRedirect cfg} = {
+          forceSSL = cfg.ssl;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          useACMEHost = mkIf (cfg.ssl && !cfg.subnet) (serverName cfg);
+          extraConfig = ''
+            return 301 $scheme://${serverName cfg}$request_uri;
+          '';
+        };
+
+        ${serverName cfg} = {
+          forceSSL = cfg.ssl;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          enableACME = cfg.ssl && !cfg.subnet;
+
+          root = cfg.siteRoot;
+          locations."/" = {
+            index = "index.html";
+            tryFiles = "$uri $uri/ /404.html";
           };
-        }
-      ) eachSite;
+        };
+      }) eachSite;
 
       systemd.timers = mapAttrs' (
         name: cfg:
@@ -152,7 +160,7 @@ in
         }
       ) eachSite;
 
-      my-nixos.backup.local.paths = flatten (mapAttrsToList (name: cfg: [ cfg.sourceRoot ]) eachSite);
+      my-nixos.backup.km.paths = flatten (mapAttrsToList (name: cfg: [ cfg.sourceRoot ]) eachSite);
 
       systemd.services = lib'.mergeAttrs (name: cfg: {
         "${cfg.appname}-build" = {

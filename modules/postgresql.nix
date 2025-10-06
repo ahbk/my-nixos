@@ -47,6 +47,15 @@ in
   };
 
   config = mkIf (eachCfg != { }) {
+    preservation.preserveAt."/srv/database" = {
+      directories = [
+        {
+          directory = "/var/lib/postgresql";
+          user = "postgres";
+          group = "postgres";
+        }
+      ];
+    };
     services = {
       postgresql = {
         extensions =

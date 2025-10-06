@@ -4,6 +4,7 @@
   inputs,
   lib,
   pkgs,
+  ids,
   ...
 }:
 
@@ -31,6 +32,7 @@ let
   eachCelery = filterAttrs (name: cfg: cfg.celery.enable) eachSite;
 
   stateDir = appname: "/var/lib/${appname}/django";
+  envToList = env: lib.mapAttrsToList (name: value: "${name}=${toString value}") env;
 
   siteOpts =
     { name, ... }:
@@ -45,6 +47,7 @@ let
         };
         ssl = mkOption {
           description = "Whether to enable SSL (https) support.";
+          default = true;
           type = types.bool;
         };
         hostname = mkOption {
@@ -82,36 +85,31 @@ let
       };
     };
 
-  djangoPkgs = appname: inputs.${appname}.djangoPkgs.${host.system};
-
   envs = mapAttrs (
     name: cfg:
-    (lib'.mkEnv cfg.appname (
-      {
-        DB_NAME = cfg.appname;
-        DB_USER = cfg.appname;
-        DB_HOST = "/run/postgresql";
-        DEBUG = "false";
-        DJANGO_SETTINGS_MODULE = "${cfg.packagename}.settings";
-        HOST = cfg.hostname;
-        LOG_LEVEL = "WARNING";
-        SCHEME = if cfg.ssl then "https" else "http";
-        SECRET_KEY_FILE = config.age.secrets."${cfg.appname}/secret-key".path;
-        STATE_DIR = stateDir cfg.appname;
-      }
-      // (optionalAttrs cfg.celery.enable {
-        CELERY_BROKER_URL = "redis://127.0.0.1:${toString cfg.celery.port}/0";
-        FLOWER_URL_PREFIX = "/flower";
-      })
-    ))
+    {
+      DB_NAME = "${cfg.appname}-django";
+      DB_USER = "${cfg.appname}-django";
+      DB_HOST = "/run/postgresql";
+      DEBUG = "false";
+      DJANGO_SETTINGS_MODULE = "${cfg.packagename}.settings";
+      HOST = cfg.hostname;
+      LOG_LEVEL = "WARNING";
+      SCHEME = if cfg.ssl then "https" else "http";
+      SECRET_KEY_FILE = config.sops.secrets."${cfg.appname}-django/secret-key".path;
+      STATE_DIR = stateDir cfg.appname;
+    }
+    // (optionalAttrs cfg.celery.enable {
+      CELERY_BROKER_URL = "redis://127.0.0.1:${toString ids."${cfg.appname}-redis".port}/0";
+      FLOWER_URL_PREFIX = "/flower";
+    })
   ) eachSite;
 
   bins = mapAttrs (
     name: cfg:
-    ((djangoPkgs cfg.appname).bin.overrideAttrs {
-      django_env = envs.${cfg.appname};
-      name = "${cfg.appname}-manage";
-    })
+    inputs.${cfg.appname}.lib.${host.system}.mkDjangoManage {
+      runtimeEnv = envs.${cfg.appname};
+    }
   ) eachSite;
 in
 {
@@ -128,39 +126,38 @@ in
 
     environment.systemPackages = mapAttrsToList (name: bin: bin) bins;
 
-    age.secrets = mapAttrs' (
+    my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
+      directory = stateDir cfg.appname;
+      how = "symlink";
+      user = "${cfg.appname}-django";
+      group = "${cfg.appname}-django";
+    }) eachSite;
+
+    sops.secrets = mapAttrs' (
       name: cfg:
-      (nameValuePair "${cfg.appname}/secret-key" {
-        file = ../secrets/webapp-key-${cfg.appname}.age;
-        owner = cfg.appname;
-        group = cfg.appname;
-      })
+      nameValuePair "${cfg.appname}-django/secret-key" {
+        sopsFile = ../enc/service-${cfg.appname}-django.yaml;
+        owner = "${cfg.appname}-django";
+        group = "${cfg.appname}-django";
+      }
     ) eachSite;
 
-    services.redis.servers = mapAttrs (name: cfg: {
+    my-nixos.redis.servers = lib.mapAttrs (name: cfg: {
       enable = true;
-      port = cfg.celery.port;
-      settings = {
-        syslog-ident = "${cfg.appname}-redis";
-      };
     }) eachCelery;
 
     users = lib'.mergeAttrs (name: cfg: {
-      users.${cfg.appname} = {
+      users."${cfg.appname}-django" = {
         isSystemUser = true;
-        group = cfg.appname;
+        uid = ids."${cfg.appname}-django".uid;
+        group = "${cfg.appname}-django";
       };
-      groups.${cfg.appname} = { };
+      groups."${cfg.appname}-django".gid = ids."${cfg.appname}-django".uid;
     }) eachSite;
 
-    my-nixos.postgresql = mapAttrs (name: cfg: { ensure = true; }) eachSite;
-
-    systemd.tmpfiles.rules = flatten (
-      mapAttrsToList (name: cfg: [
-        "d '${stateDir cfg.appname}' 0750 ${cfg.appname} ${cfg.appname} - -"
-        "Z '${stateDir cfg.appname}' 0750 ${cfg.appname} ${cfg.appname} - -"
-      ]) eachSite
-    );
+    my-nixos.postgresql = mapAttrs' (
+      name: cfg: nameValuePair "${name}-django" { ensure = true; }
+    ) eachSite;
 
     services.nginx.virtualHosts = mapAttrs' (
       name: cfg:
@@ -171,18 +168,18 @@ in
           optionalAttrs (cfg.locationProxy != "") {
             ${cfg.locationProxy} = {
               recommendedProxySettings = true;
-              proxyPass = "http://localhost:${toString cfg.port}";
+              proxyPass = "http://localhost:${toString ids."${cfg.appname}-django".port}";
             };
           }
           // optionalAttrs (cfg.locationStatic != "") {
             ${cfg.locationStatic} = {
-              alias = "${(djangoPkgs cfg.appname).static}/";
+              alias = "${inputs.${cfg.appname}.packages.${host.system}.django-static}/";
             };
           }
           // optionalAttrs (cfg.celery.enable) {
             "/auth" = {
               recommendedProxySettings = true;
-              proxyPass = "http://localhost:${toString cfg.port}";
+              proxyPass = "http://localhost:${toString ids."${cfg.appname}-django".port}";
             };
             "/flower/" = {
               proxyPass = "http://localhost:5555";
@@ -198,10 +195,14 @@ in
       "${cfg.appname}-django" = {
         description = "serve ${cfg.appname}-django";
         serviceConfig = {
-          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/gunicorn ${cfg.packagename}.wsgi:application --bind localhost:${toString cfg.port}";
-          User = cfg.appname;
-          Group = cfg.appname;
-          EnvironmentFile = envs.${cfg.appname};
+          ExecStart = "${
+            inputs.${cfg.appname}.packages.${host.system}.django-app
+          }/bin/gunicorn ${cfg.packagename}.wsgi:application --bind localhost:${
+            toString ids."${cfg.appname}-django".port
+          }";
+          User = "${cfg.appname}-django";
+          Group = "${cfg.appname}-django";
+          Environment = envToList envs.${cfg.appname};
         };
         wantedBy = [ "multi-user.target" ];
       };
@@ -209,10 +210,12 @@ in
       "${cfg.appname}-celery" = mkIf cfg.celery.enable {
         description = "start ${cfg.appname}-celery";
         serviceConfig = {
-          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/celery -A ${cfg.packagename} worker -l warning";
-          User = cfg.appname;
-          Group = cfg.appname;
-          EnvironmentFile = envs.${cfg.appname};
+          ExecStart = "${
+            inputs.${cfg.appname}.packages.${host.system}.django-app
+          }/bin/celery -A ${cfg.packagename} worker -l warning";
+          User = "${cfg.appname}-django";
+          Group = "${cfg.appname}-django";
+          Environment = envToList envs.${cfg.appname};
         };
         wantedBy = [ "multi-user.target" ];
       };
@@ -220,10 +223,12 @@ in
       "${cfg.appname}-flower" = mkIf cfg.celery.enable {
         description = "start ${cfg.appname}-flower";
         serviceConfig = {
-          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/celery -A ${cfg.packagename} flower --port=5555";
-          User = cfg.appname;
-          Group = cfg.appname;
-          EnvironmentFile = envs.${cfg.appname};
+          ExecStart = "${
+            inputs.${cfg.appname}.packages.${host.system}.django-app
+          }/bin/celery -A ${cfg.packagename} flower --port=5555";
+          User = "${cfg.appname}-django";
+          Group = "${cfg.appname}-django";
+          Environment = envToList envs.${cfg.appname};
         };
         wantedBy = [ "multi-user.target" ];
       };
@@ -232,28 +237,28 @@ in
         description = "migrate ${cfg.appname}-django";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${(djangoPkgs cfg.appname).app}/bin/django-admin migrate";
-          User = cfg.appname;
-          Group = cfg.appname;
-          EnvironmentFile = envs.${cfg.appname};
+          ExecStart = "${inputs.${cfg.appname}.packages.${host.system}.django-app}/bin/django-admin migrate";
+          User = "${cfg.appname}-django";
+          Group = "${cfg.appname}-django";
+          Environment = envToList envs.${cfg.appname};
         };
       };
       "${cfg.appname}-pgsql-dump" = {
         description = "dump a snapshot of the postgresql database";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/pg_dump -U ${cfg.appname} ${cfg.appname} > ${stateDir cfg.appname}/dbdump.sql'";
-          User = cfg.appname;
-          Group = cfg.appname;
+          ExecStart = "${pkgs.pgsql-dump}/bin/pgsql-dump ${cfg.appname}-django ${stateDir cfg.appname}";
+          User = "${cfg.appname}-django";
+          Group = "${cfg.appname}-django";
         };
       };
       "${cfg.appname}-pgsql-restore" = {
         description = "restore postgresql database from snapshot";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${getExe pkgs.bash} -c '${pkgs.postgresql}/bin/psql -U ${cfg.appname} ${cfg.appname} < ${stateDir cfg.appname}/dbdump.sql'";
-          User = cfg.appname;
-          Group = cfg.appname;
+          ExecStart = "${pkgs.pgsql-restore}/bin/pgsql-restore ${cfg.appname}-django ${stateDir cfg.appname}";
+          User = "${cfg.appname}-django";
+          Group = "${cfg.appname}-django";
         };
       };
     }) eachSite;
@@ -269,14 +274,11 @@ in
       };
     }) eachSite;
 
-    services.restic.backups.local.paths = flatten (
-      mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
-    );
-
-    system.activationScripts = mapAttrs (name: cfg: {
-      text = ''
-        ${pkgs.systemd}/bin/systemctl start ${cfg.appname}-django-migrate
-      '';
-    }) eachSite;
+    # maybe gate this? maybe offer restore as well, probably none though.
+    #system.activationScripts = mapAttrs (name: cfg: {
+    #  text = ''
+    #    ${pkgs.systemd}/bin/systemctl start ${cfg.appname}-django-migrate
+    #  '';
+    #}) eachSite;
   };
 }

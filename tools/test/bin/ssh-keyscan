@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+export KEY_FILE=$BATS_TEST_TMPDIR/${!#}/ssh-key
+echo "${!#} $(ssh-keygen -y -f "$KEY_FILE")"

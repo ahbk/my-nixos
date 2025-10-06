@@ -36,6 +36,15 @@ in
     };
 
   config = mkIf (eachCfg != { }) {
+    preservation.preserveAt."/srv/database" = {
+      directories = [
+        {
+          directory = "/var/lib/mysql";
+          user = "mysql";
+          group = "mysql";
+        }
+      ];
+    };
     services.mysql = {
       enable = true;
       package = pkgs.mariadb;

@@ -1,74 +1,84 @@
-let
-  key = protocol: name: builtins.readFile ./keys/${protocol}-${name}.pub;
-in
 {
-
-  stationary = rec {
+  stationary = {
     name = "stationary";
-    hostname = "stationary.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
+    class = "webserver";
+    hostname = "stationary.km";
+    publicAddress = "stationary.kompismoln.se";
     address = "10.0.0.1";
-    publicAddress = "stationary.ahbk.se";
     system = "x86_64-linux";
     stateVersion = "20.03";
   };
 
-  laptop = rec {
+  laptop = {
     name = "laptop";
-    hostname = "laptop.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
+    class = "peer";
+    hostname = "laptop.km";
     address = "10.0.0.2";
     system = "x86_64-linux";
     stateVersion = "23.11";
   };
 
-  glesys = rec {
+  glesys = {
     name = "glesys";
-    hostname = "glesys.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
+    class = "webserver";
+    hostname = "glesys.km";
     address = "10.0.0.3";
     publicAddress = "ahbk.se";
     system = "x86_64-linux";
     stateVersion = "23.11";
   };
 
-  friday = rec {
+  phone = {
+    name = "phone";
+    class = "null";
+    hostname = "phone.km";
+    system = "aarch64-linux";
+    address = "10.0.0.4";
+  };
+
+  helsinki = {
+    name = "helsinki";
+    class = "webserver";
+    hostname = "helsinki.km";
+    address = "10.0.0.5";
+    publicAddress = "helsinki.kompismoln.se";
+    system = "x86_64-linux";
+    stateVersion = "25.05";
+  };
+
+  friday = {
     name = "friday";
+    class = "peer";
     hostname = "friday.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
     address = "10.0.0.6";
     system = "x86_64-linux";
     stateVersion = "20.03";
   };
 
-  lenovo = rec {
+  lenovo = {
     name = "lenovo";
+    class = "workstation";
     hostname = "lenovo.ahbk";
-    wgKey = key "wg" name;
-    sshKey = key "ssh-host" name;
     address = "10.0.0.7";
     system = "x86_64-linux";
     stateVersion = "24.11";
   };
 
-  phone = rec {
-    name = "phone";
-    hostname = "phone.ahbk";
-    wgKey = key "wg" name;
-    system = "aarch64-linux";
-    address = "10.0.0.4";
-  };
-
-  container = rec {
-    name = "container";
-    sshKey = key "ssh-host" name;
-    address = "10.0.0.5";
+  adele = {
+    name = "adele";
+    class = "workstation";
+    hostname = "adele.km";
+    address = "10.0.0.8";
     system = "x86_64-linux";
-    stateVersion = "24.05";
+    stateVersion = "25.11";
   };
 
+  bootstrap = {
+    name = "bootstrap";
+    class = "null";
+    hostname = "bootstrap.km";
+    system = "x86_64-linux";
+    stateVersion = "25.11";
+    address = "10.0.0.254";
+  };
 }

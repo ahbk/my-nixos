@@ -1,4 +1,10 @@
-{ config, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  lib',
+  ...
+}:
 
 let
   inherit (lib)
@@ -18,9 +24,20 @@ let
   mailboxDomains = filterAttrs (domain: cfg: cfg.mailbox) cfg.domains;
 in
 {
+  imports = [
+    inputs.nixos-mailserver.nixosModules.default
+  ];
 
   options.my-nixos.mailserver = with types; {
-    enable = mkEnableOption "mail server";
+    enable = mkEnableOption "mailserver on this host";
+    domain = mkOption {
+      description = "The domain name of this mailserver.";
+      type = str;
+    };
+    dkimSelector = mkOption {
+      description = "Label for the DKIM key currently in use.";
+      type = str;
+    };
     users = mkOption {
       description = "Configure user accounts.";
       type = attrsOf (submodule {
@@ -52,55 +69,102 @@ in
   config = mkMerge [
     (mkIf cfg.enable {
 
-      age.secrets = mapAttrs' (user: _: {
-        name = "mail-hashed-${user}";
-        value = {
-          file = ../secrets/mail-hashed-${user}.age;
-          owner = user;
-          group = user;
+      my-nixos.redis.servers.rspamd.enable = true;
+
+      my-nixos.preserve.directories = with config.mailserver; [
+        dkimKeyDirectory
+        mailDirectory
+        sieveDirectory
+      ];
+
+      sops.secrets =
+        lib'.mergeAttrs (user: _: {
+          "${user}/mail-sha512" = {
+            sopsFile = ../enc/user-${user}.yaml;
+            owner = user;
+            group = user;
+            restartUnits = [
+              "dovecot2.service"
+              "postfix.service"
+            ];
+          };
+        }) cfg.users
+        // {
+          "dmarc-reports/mail-sha512" = {
+            sopsFile = ../enc/service-dmarc-reports.yaml;
+            restartUnits = [
+              "dovecot2.service"
+              "postfix.service"
+            ];
+          };
         };
-      }) cfg.users;
 
       mailserver = {
         enable = true;
-        fqdn = "mail.ahbk.se";
-        dkimSelector = "ahbk";
+        stateVersion = 3;
+        fqdn = "mail.${cfg.domain}";
+        dkimSelector = cfg.dkimSelector;
         domains = mapAttrsToList (domain: _: domain) mailboxDomains;
-        relayDomains = mapAttrsToList (domain: cfg: domain) relayDomains;
+        domainsWithoutMailbox = mapAttrsToList (domain: _: domain) relayDomains;
         enableSubmissionSsl = false;
-
-        loginAccounts = mapAttrs' (user: userCfg: {
-          name = config.my-nixos.users.${user}.email;
-          value = {
-            inherit (userCfg) catchAll;
-            hashedPasswordFile = config.age.secrets."mail-hashed-${user}".path;
-            aliases = config.my-nixos.users.${user}.aliases;
+        redis.configureLocally = false;
+        mailboxes = {
+          Drafts = {
+            auto = "subscribe";
+            specialUse = "Drafts";
           };
-        }) cfg.users;
+          Junk = {
+            auto = "subscribe";
+            specialUse = "Junk";
+          };
+          Sent = {
+            auto = "subscribe";
+            specialUse = "Sent";
+          };
+          Trash = {
+            auto = "subscribe";
+            specialUse = "Trash";
+          };
+        };
+
+        loginAccounts = mkMerge [
+          (mapAttrs' (user: userCfg: {
+            name = config.my-nixos.users.${user}.email;
+            value = {
+              inherit (userCfg) catchAll;
+              hashedPasswordFile = config.sops.secrets."${user}/mail-sha512".path;
+              aliases = config.my-nixos.users.${user}.aliases;
+            };
+          }) cfg.users)
+          {
+            "dmarc-reports@${cfg.domain}" = {
+              hashedPasswordFile = config.sops.secrets."dmarc-reports/mail-sha512".path;
+              catchAll = [ ];
+              aliases = [ ];
+            };
+          }
+        ];
 
         certificateScheme = "acme-nginx";
       };
 
       services = {
 
-        fail2ban.jails = {
-          postfix.settings = {
-            filter = "postfix[mode=aggressive]";
-          };
-          dovecot.settings = {
-            filter = "dovecot[mode=aggressive]";
-          };
-        };
+        #fail2ban.jails = {
+        #  postfix.settings = {
+        #    filter = "postfix[mode=aggressive]";
+        #  };
+        #  dovecot.settings = {
+        #    filter = "dovecot[mode=aggressive]";
+        #  };
+        #};
 
         postfix = {
-          origin = "ahbk.se";
+          origin = cfg.domain;
           networks = [
             "10.0.0.0/24"
             "127.0.0.1/32"
-            "46.246.47.6/32"
             "[::1]/128"
-            "[2a02:752:0:18::37]/128"
-            "[fe80::10e0:d7ff:fe9c:3f01]/128"
           ];
           transport =
             let
@@ -108,64 +172,6 @@ in
               transportsCfg = concatStringsSep "\n" transportsList;
             in
             transportsCfg;
-        };
-
-        prometheus.exporters = {
-          postfix = {
-            enable = true;
-          };
-          rspamd = {
-            enable = true;
-          };
-        };
-
-        dovecot2.extraConfig = ''
-          service stats {
-            inet_listener http {
-              port = ${toString config.services.prometheus.exporters.dovecot.port}
-            }
-          }
-
-          metric auth_success {
-            filter = (event=auth_request_finished AND success=yes)
-          }
-
-          metric imap_command {
-            filter = event=imap_command_finished
-            group_by = cmd_name tagged_reply_state
-          }
-
-          metric smtp_command {
-            filter = event=smtp_server_command_finished
-            group_by = cmd_name status_code duration:exponential:1:5:10
-          }
-
-          metric mail_delivery {
-            filter = event=mail_delivery_finished
-            group_by = duration:exponential:1:5:10
-          }
-        '';
-
-        # nixos-mailserver configures this redis instance,
-        # we just add a log identity
-        redis.servers.rspamd = {
-          settings = {
-            syslog-ident = "redis-rspamd";
-          };
-        };
-
-        restic.backups.local.paths = with config.mailserver; [
-          dkimKeyDirectory
-          mailDirectory
-        ];
-
-        nginx.virtualHosts.rspamd = {
-          serverName = "glesys.ahbk";
-          locations = {
-            "/rspamd/" = {
-              proxyPass = "http://unix:/run/rspamd/worker-controller.sock:/";
-            };
-          };
         };
       };
     })

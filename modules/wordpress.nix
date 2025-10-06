@@ -1,5 +1,6 @@
 {
   config,
+  ids,
   lib,
   pkgs,
   ...
@@ -35,11 +36,21 @@ let
         ssl = mkOption {
           description = "Enable HTTPS.";
           type = types.bool;
+          default = true;
+        };
+        subnet = mkOption {
+          description = "Use self-signed certificates";
+          default = false;
+          type = types.bool;
         };
         www = mkOption {
           description = "Prefix the url with www.";
-          default = false;
-          type = types.bool;
+          default = "no";
+          type = types.enum [
+            "no"
+            "yes"
+            "redirect"
+          ];
         };
         basicAuth = mkOption {
           description = "Protect the site with basic auth.";
@@ -86,72 +97,55 @@ in
 
   config = mkIf (eachSite != { }) {
 
-    services.redis.servers.wordpress = {
+    my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
+      directory = stateDir cfg.appname;
+      user = cfg.appname;
+      group = cfg.appname;
+    }) eachSite;
+
+    my-nixos.redis.servers = lib.mapAttrs (name: cfg: {
       enable = true;
-      port = 6381;
-      settings = {
-        syslog-ident = "redis-wordpress";
-      };
-    };
+    }) eachSite;
 
     users = lib'.mergeAttrs (name: cfg: {
       users.${cfg.appname} = {
+        uid = ids.${cfg.appname}.uid;
         isSystemUser = true;
-        home = "/var/lib/${cfg.appname}";
-        shell = pkgs.bashInteractive;
-        homeMode = "755";
-        createHome = true;
         group = cfg.appname;
-        packages = with pkgs; [
-          git
-          wp-cli
+      };
+      groups.${cfg.appname} = {
+        gid = ids.${cfg.appname}.uid;
+        members = [
+          cfg.appname
+          webserver.group
         ];
       };
-      groups.${cfg.appname}.members = [
-        cfg.appname
-        webserver.group
-      ];
     }) eachSite;
-
-    systemd.tmpfiles.rules = flatten (
-      mapAttrsToList (name: cfg: [
-        "d '${stateDir cfg.appname}' 0750 ${cfg.appname} ${webserver.group} - -"
-      ]) eachSite
-    );
-
-    environment.etc."fail2ban/filter.d/phpfpm-probe.local".text = ''
-      [Definition]
-      failregex = ^.*\[error\].*FastCGI sent in stderr: "Unable to open primary script:.*client: <HOST>.*index\.php.*$
-    '';
-
-    services.fail2ban.jails = {
-      phpfpm-probe.settings = {
-        filter = "phpfpm-probe";
-        backend = "systemd";
-        maxretry = 5;
-        findtime = 600;
-      };
-    };
 
     services.nginx.virtualHosts = lib'.mergeAttrs (
       name: cfg:
       let
-        serverName = if cfg.www then "www.${cfg.hostname}" else cfg.hostname;
-        serverNameRedirect = if cfg.www then cfg.hostname else "www.${cfg.hostname}";
+        serverName = if cfg.www == "yes" then "www.${cfg.hostname}" else cfg.hostname;
+        serverNameRedirect = if cfg.www == "yes" then cfg.hostname else "www.${cfg.hostname}";
       in
       {
-        ${serverNameRedirect} = {
+        ${serverNameRedirect} = mkIf (cfg.www != "no") {
           forceSSL = cfg.ssl;
-          enableACME = cfg.ssl;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          enableACME = cfg.ssl && !cfg.subnet;
           extraConfig = ''
             return 301 $scheme://${serverName}$request_uri;
           '';
         };
 
         ${serverName} = {
-          root = stateDir cfg.appname;
           forceSSL = cfg.ssl;
-          enableACME = cfg.ssl;
+          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
+          enableACME = cfg.ssl && !cfg.subnet;
+
+          root = stateDir cfg.appname;
           basicAuth = mkIf (cfg.basicAuth != { }) cfg.basicAuth;
 
           extraConfig = ''
@@ -230,7 +224,7 @@ in
       name: cfg:
       nameValuePair cfg.appname {
         user = cfg.appname;
-        group = webserver.group;
+        group = cfg.appname;
         phpPackage = wpPhp;
         phpOptions = ''
           upload_max_filesize = 16M;
@@ -275,14 +269,7 @@ in
       };
     }) eachSite;
 
-    services.prometheus.exporters = {
-      redis = {
-        enable = true;
-        extraFlags = [ "-redis.addr redis://localhost:6381" ];
-      };
-    };
-
-    services.restic.backups.local.paths = flatten (
+    services.restic.backups.km.paths = flatten (
       mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
     );
 

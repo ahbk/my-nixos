@@ -8,11 +8,9 @@
 
 let
   inherit (lib)
-    mkDefault
     mkEnableOption
     mkIf
     mkOption
-    optional
     optionalString
     types
     ;
@@ -101,21 +99,21 @@ in
       };
     };
 
-    services.alloy = {
-      enable = true;
-      extraFlags = [
-        "--server.http.listen-addr=0.0.0.0:${toString ids.alloy.port}"
-      ];
-    };
-    users.users.alloy = {
-      uid = ids.alloy.uid;
-      isSystemUser = true;
-      group = "alloy";
-      extraGroups = [ "nginx" ];
-    };
-    users.groups.alloy = {
-      gid = config.users.users.alloy.uid;
-    };
+    #services.alloy = {
+    #  enable = true;
+    #  extraFlags = [
+    #    "--server.http.listen-addr=0.0.0.0:${toString ids.alloy.port}"
+    #  ];
+    #};
+    #users.users.alloy = {
+    #  uid = ids.alloy.uid;
+    #  isSystemUser = true;
+    #  group = "alloy";
+    #  extraGroups = [ "nginx" ];
+    #};
+    #users.groups.alloy = {
+    #  gid = config.users.users.alloy.uid;
+    #};
 
     environment.etc."alloy/config.alloy".text = ''
       local.file_match "nginx_json_access_log" {
