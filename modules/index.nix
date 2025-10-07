@@ -62,6 +62,7 @@ let
       ./nextcloud-rolf.nix
       ./nginx.nix
       ./postgresql.nix
+      ./proxy.nix
       ./react.nix
       ./redis.nix
       ./svelte.nix

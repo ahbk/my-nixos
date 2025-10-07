@@ -36,8 +36,8 @@ ops:
     domain:
       - verify:tls-cert
 grants:
-  service-sysctl-user-portal:
-    - host-glesys
+  service-proxy:
+    - host-stationary
     - host-helsinki
   service-chatddx-django:
     - host-glesys
@@ -109,6 +109,7 @@ identities:
   service-nextcloud-kompismoln: &service-nextcloud-kompismoln age19zqkrl5r5aat79tallyqclpv02venk7c4nw0xfvtqx8mdxxp6dnsdkj9zv
   service-nix-push: &service-nix-push age1mk0jc0en2lf92hsujl8pz48yrr9a62c6wk87um6g6c3d9e0aj53q7p4lhy
   service-dmarc-reports: &service-dmarc-reports age15mtx205sfcn93qcqnxlcpq2tdfaxmhsu97qfpcesw4zaq3x3a5wq77vn58
+  service-proxy: &service-proxy age12tqq6pvrm0ucn4qwcg8geemst5xw539p88vf8w9l02rkedu32dfsknf56e
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -228,8 +229,6 @@ creation_rules:
       - age:
           - *root-1
           - *service-sysctl-user-portal
-          - *host-glesys
-          - *host-helsinki
   - path_regex: enc/service-chatddx-django
     key_groups:
       - age:
@@ -265,4 +264,11 @@ creation_rules:
       - age:
           - *root-1
           - *service-dmarc-reports
+          - *host-helsinki
+  - path_regex: enc/service-proxy
+    key_groups:
+      - age:
+          - *root-1
+          - *service-proxy
+          - *host-stationary
           - *host-helsinki
