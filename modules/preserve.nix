@@ -65,6 +65,12 @@ in
 
     systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
 
+    services.journald.extraConfig = ''
+      SystemMaxUse=100M
+      SystemKeepFree=200M
+      MaxRetentionSec=1week
+    '';
+
     boot.initrd.systemd = {
       enable = true;
       services."format-root" = {
