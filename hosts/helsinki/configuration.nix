@@ -88,11 +88,13 @@
       enable = true;
       luksDevice = "/dev/sda3";
     };
-    tunnelservice.enable = true;
     sops.enable = true;
     ssh.enable = true;
 
     preserve.enable = true;
+
+    tunnelservice.enable = true;
+    proxy.enable = true;
 
     users = with users; {
       inherit admin alex;
@@ -124,6 +126,7 @@
         "kompismoln.se".mailbox = true;
         "chatddx.com".mailbox = true;
         "sverigesval.org".mailbox = true;
+        "ahbk.se".mailbox = true;
         "esse.nu".mailbox = false;
         "klimatkalendern.nu".mailbox = false;
       };

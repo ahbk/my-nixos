@@ -67,14 +67,9 @@ let
                 password = config.appname;
                 socket_dir = null;
               };
-              "Mobilizon.Web.Email.Mailer" = {
-                relay = "helsinki.km";
-              };
               ":instance" = {
                 name = mkForce config.appname;
                 hostname = mkForce config.hostname;
-                email_reply_to = "no-reply@${config.hostname}";
-                email_reply_from = "no-reply@${config.hostname}";
               };
             };
 

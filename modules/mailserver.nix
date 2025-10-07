@@ -125,6 +125,10 @@ in
             auto = "subscribe";
             specialUse = "Trash";
           };
+          Archive = {
+            auto = "subscribe";
+            specialUse = "Archive";
+          };
         };
 
         loginAccounts = mkMerge [

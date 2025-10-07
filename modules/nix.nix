@@ -37,7 +37,7 @@ in
     repo = lib.mkOption {
       description = "repo for this config";
       type = lib.types.str;
-      default = "github:ahbk/my-nixos/add-host-helsinki";
+      default = "github:ahbk/my-nixos";
     };
     buildHost = lib.mkOption {
       description = "default BUILD_HOST";

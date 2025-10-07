@@ -6,6 +6,9 @@
     groups = [ "wheel" ];
     keys = [ ./public-keys/user-admin-ssh-key.pub ];
     email = "admin@kompismoln.se";
+    aliases = [
+      "postmaster@kompismoln.se"
+    ];
   };
 
   alex = {
@@ -19,14 +22,7 @@
     keys = [ ./public-keys/user-alex-ssh-key.pub ];
     email = "alex@kompismoln.se";
     aliases = [
-      "dmarc-reports@ahbk.se"
-      "postmaster@ahbk.se"
-      "abuse@ahbk.se"
-      "info@ahbk.se"
-      "hej@kompismoln.se"
-      "alex@kompismoln.se"
-      "no-reply@klimatkalendern.nu"
-      "admin@kompismoln.se"
+      "alex@ahbk.se"
       "alex@klimatkalendern.nu"
     ];
   };
