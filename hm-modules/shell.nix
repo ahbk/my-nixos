@@ -117,9 +117,7 @@ in
 
       ssh = {
         enable = true;
-        extraConfig = ''
-          StrictHostKeyChecking accept-new
-        '';
+        enableDefaultConfig = false;
       };
 
       tmux = {

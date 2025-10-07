@@ -42,6 +42,8 @@
   boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
   networking = {
     useDHCP = false;
+    dhcpcd.enable = false;
+    useNetworkd = true;
     firewall = {
       allowedTCPPorts = [ 53 ];
       allowedUDPPorts = [ 53 ];

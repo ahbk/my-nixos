@@ -25,6 +25,7 @@ let
           --prefix PATH : ${
             lib.makeBinPath [
               pkgs.lix
+              pkgs.git
             ]
           } \
           --set REPO "${cfg.repo}" \
@@ -55,6 +56,11 @@ in
       };
     })
     {
+      programs.ssh.knownHosts.github = {
+        hostNames = [ "github.com" ];
+        publicKeyFile = ../public-keys/ext-github-ssh-key.pub;
+      };
+
       nix = {
         package = mkDefault pkgs.lix;
         registry = {

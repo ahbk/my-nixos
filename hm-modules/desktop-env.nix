@@ -35,7 +35,6 @@ in
       mupdf
       nyxt
       pinta
-      shotcut
       signal-desktop-bin
       thunderbird
       wl-clipboard
@@ -448,10 +447,6 @@ in
         dwindle = {
           pseudotile = true;
           preserve_split = true;
-        };
-
-        gestures = {
-          workspace_swipe = true;
         };
 
         device = [

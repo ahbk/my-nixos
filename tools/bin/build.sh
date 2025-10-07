@@ -12,7 +12,7 @@ build() {
     if [[ -e $BUILD_HOST ]]; then
         REPO=$BUILD_HOST "$km_root/remote/nixservice.sh" build "$target"
     else
-        "$km_root/bin/as.sh" nix-build ssh "nix-build@$BUILD_HOST.km" "build $target"
+        "$km_root/bin/as.sh" nix-build ssh -A "nix-build@$BUILD_HOST.km" "build $target"
     fi
 }
 

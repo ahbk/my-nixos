@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   users,
   ...
 }:
@@ -42,16 +41,7 @@
   };
 
   networking = {
-    useDHCP = lib.mkDefault true;
-    nat = {
-      enable = true;
-      internalInterfaces = [ "ve-+" ];
-      externalInterface = "wlp1s0";
-    };
-    networkmanager = {
-      enable = true;
-      unmanaged = [ "interface-name:ve-*" ];
-    };
+    dhcpcd.enable = false;
     firewall.allowedTCPPorts = [
       3000
       5173

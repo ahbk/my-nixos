@@ -74,6 +74,7 @@ in
       git
       vim
       tree
+      neomutt
       nixos-facter
       km-tools
       nix-serve-ng

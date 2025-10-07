@@ -34,16 +34,6 @@
 
   boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
 
-  services.invoiceplane = {
-    webserver = "nginx";
-    sites."invoiceplane.km" = {
-      enable = true;
-      settings = {
-        DISABLE_SETUP = true;
-      };
-    };
-  };
-
   networking = {
     useDHCP = false;
     enableIPv6 = false;
@@ -115,7 +105,7 @@
 
     tls-certs = [ "km" ];
 
-    monitor.enable = true;
+    monitor.enable = false;
 
     glesys.updaterecord = {
       enable = true;
