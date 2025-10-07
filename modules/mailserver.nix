@@ -77,6 +77,16 @@ in
         sieveDirectory
       ];
 
+      preservation.preserveAt."/srv/database" = {
+        directories = [
+          {
+            directory = "/var/lib/rspamd";
+            user = "rspamd";
+            group = "rspamd";
+          }
+        ];
+      };
+
       sops.secrets =
         lib'.mergeAttrs (user: _: {
           "${user}/mail-sha512" = {
