@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bin/id-entities.sh
+# tools/bin/id-entities.sh
 
 # === section 0: setup
 

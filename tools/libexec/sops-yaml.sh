@@ -53,6 +53,38 @@ read-setting() {
     path=$1 yq-sops-e '.["$path"] // error("$path not found")' 2> >(log error)
 }
 
+find-route() {
+    local host=$1 port=${2:-22}
+
+    # Fast-path for IPs
+    if ip route get "$host" &>/dev/null; then
+        log success "$host:$port is up"
+        echo "$host"
+        return 0
+    fi
+
+    # Fast-path for dotted names (likely FQDNs)
+    if [[ "$host" == *.* ]] && ping-port "$host" "$port"; then
+        log success "$host:$port is up"
+        echo "$host"
+        return 0
+    fi
+
+    with sops_config
+    local fqdn
+    for namespace in $(yq -r '.namespaces[]' "$sops_config"); do
+        fqdn="$host.$namespace"
+        log info "trying $fqdn..."
+        if ping-port "$fqdn" "$port"; then
+            log success "$fqdn is up"
+            echo "$fqdn"
+            return 0
+        fi
+    done
+
+    die 1 "no contact with $host"
+}
+
 get-ops() {
     op=$1 yq-sops-e '.ops.$op
         | with_entries(select(

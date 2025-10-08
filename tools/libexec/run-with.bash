@@ -146,6 +146,10 @@ trailing-newline() {
     [[ $(tail -c1 "$1" | hexdump -C) == *"0a"* ]]
 }
 
+ping-port() {
+    nc -z -w2 "$1" "$2" &>/dev/null
+}
+
 RN='\033[0;31m'
 RB='\033[1;31m'
 GN='\033[0;32m'

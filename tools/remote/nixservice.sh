@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# remote/nixservice.sh
+# tools/remote/nixservice.sh
 
 main() {
     case $1 in
@@ -7,8 +7,8 @@ main() {
         local host=$2
         ;;
     pull)
-        local build_host=$2
-        local closure=$3
+        local closure=$2
+        local build_host=${3:-$BUILD_HOST}
         ;;
     switch)
         local closure=$2
@@ -24,7 +24,7 @@ build() {
 }
 
 pull() {
-    nix copy --from "http://$build_host.km:5000" "$closure"
+    nix copy --from "$build_host" "$closure"
 }
 
 switch() {

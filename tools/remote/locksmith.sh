@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# locksmith.sh
+# tools/remote/locksmith.sh
 
 set -euo pipefail
 

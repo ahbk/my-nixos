@@ -7,6 +7,11 @@ artifact:wg1-key: public-keys/$class-$entity-$key.pub
 artifact:wg2-key: public-keys/$class-$entity-$key.pub
 artifact:nix-cache-key: public-keys/$class-$entity-$key.pub
 artifact:tls-cert: public-keys/$class-$entity-$key.pem
+build-host: stationary
+namespaces:
+  - km
+  - km1
+  - kompismoln.se
 ops:
   rebuild:
     all:

@@ -43,7 +43,7 @@ in
     buildHost = lib.mkOption {
       description = "default BUILD_HOST";
       type = lib.types.str;
-      default = "stationary.km";
+      default = "http://stationary.km:5000";
     };
   };
   config = lib.mkMerge [

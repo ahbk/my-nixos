@@ -47,13 +47,6 @@ let
     lib.mapAttrsToList (iface: cfg: "${pkgs.iproute2}/bin/ip link delete ${iface}") (
       lib.filterAttrs (iface: cfg: cfg.resetOnRebuild) enabledSubnets
     );
-
-  allowedTCPPortRanges = [
-    {
-      from = 0;
-      to = 65535;
-    }
-  ];
 in
 {
 
@@ -64,7 +57,9 @@ in
   networking = {
     wireguard.enable = true;
     networkmanager.unmanaged = map (iface: "interface-name:${iface}") (lib.attrNames enabledSubnets);
-    firewall.interfaces = lib.mapAttrs (_: _: { inherit allowedTCPPortRanges; }) enabledSubnets;
+    firewall.interfaces = lib.mapAttrs (_: subnet: {
+      inherit (subnet) allowedTCPPortRanges;
+    }) enabledSubnets;
     firewall.allowedUDPPorts = lib.optionals (isServer host) (
       lib.mapAttrsToList (iface: cfg: cfg.port) enabledSubnets
     );

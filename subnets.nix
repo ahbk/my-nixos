@@ -11,6 +11,12 @@
     resetOnRebuild = true;
     peerAddress = host: "10.0.0.${toString host.id}";
     fqdn = hostname: "${hostname}.${namespace}";
+    allowedTCPPortRanges = [
+      {
+        from = 0;
+        to = 65535;
+      }
+    ];
   };
 
   wg1 = rec {
@@ -24,5 +30,11 @@
     resetOnRebuild = true;
     peerAddress = host: "10.0.1.${toString host.id}";
     fqdn = hostname: "${hostname}.${namespace}";
+    allowedTCPPortRanges = [
+      {
+        from = 0;
+        to = 65535;
+      }
+    ];
   };
 }
