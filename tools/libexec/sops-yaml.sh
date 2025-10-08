@@ -16,7 +16,9 @@ backend: enc/$class-$entity.yaml
 backend:root: keys/$class-$entity
 artifact:ssh-key: artifacts/$class-$entity-$key.pub
 artifact:nix-cache-key: artifacts/$class-$entity-$key.pub
-artifact:wg-key: artifacts/$class-$entity-$key.pub
+artifact:wg0-key: artifacts/$class-$entity-$key.pub
+artifact:wg1-key: artifacts/$class-$entity-$key.pub
+artifact:wg2-key: artifacts/$class-$entity-$key.pub
 artifact:tls-cert: artifacts/$class-$entity-$key.pem
 EOF
 }

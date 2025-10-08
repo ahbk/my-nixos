@@ -12,7 +12,7 @@ declare -g slot
 
 declare -rA allowed_keys=(
     ["root"]="age-key"
-    ["host"]="age-key ssh-key wg-key luks-key nix-cache-key"
+    ["host"]="age-key ssh-key wg0-key wg1-key wg2-key luks-key nix-cache-key"
     ["service"]="age-key ssh-key mail passwd secret-key"
     ["user"]="age-key ssh-key passwd mail"
     ["domain"]="age-key tls-cert"
@@ -300,7 +300,15 @@ create-secret:nix-cache-key() {
     cat "$tmp_path"
 }
 
-create-secret:wg-key() {
+create-secret:wg0-key() {
+    try wg genkey
+}
+
+create-secret:wg1-key() {
+    try wg genkey
+}
+
+create-secret:wg2-key() {
     try wg genkey
 }
 
@@ -399,7 +407,15 @@ derive-artifact:secret-key:() {
     :
 }
 
-derive-artifact:wg-key:() {
+derive-artifact:wg0-key:() {
+    cat-secret: | try wg pubkey
+}
+
+derive-artifact:wg1-key:() {
+    cat-secret: | try wg pubkey
+}
+
+derive-artifact:wg2-key:() {
     cat-secret: | try wg pubkey
 }
 

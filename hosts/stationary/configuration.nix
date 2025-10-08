@@ -94,8 +94,6 @@
       luksDevice = "/dev/null";
     };
 
-    wireguard.wg0.enable = true;
-
     backup-server.enable = true;
 
     backup.km = {

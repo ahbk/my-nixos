@@ -4,7 +4,11 @@
     class = "webserver";
     hostname = "stationary.km";
     publicAddress = "stationary.kompismoln.se";
-    address = "10.0.0.1";
+    subnets = [
+      "wg0"
+      "wg1"
+    ];
+    peerId = 1;
     system = "x86_64-linux";
     stateVersion = "20.03";
   };
@@ -13,7 +17,11 @@
     name = "laptop";
     class = "peer";
     hostname = "laptop.km";
-    address = "10.0.0.2";
+    subnets = [
+      "wg0"
+      "wg1"
+    ];
+    peerId = 2;
     system = "x86_64-linux";
     stateVersion = "23.11";
   };
@@ -22,7 +30,11 @@
     name = "glesys";
     class = "webserver";
     hostname = "glesys.km";
-    address = "10.0.0.3";
+    subnets = [
+      "wg0"
+      "wg1"
+    ];
+    peerId = 3;
     publicAddress = "ahbk.se";
     system = "x86_64-linux";
     stateVersion = "23.11";
@@ -33,14 +45,21 @@
     class = "null";
     hostname = "phone.km";
     system = "aarch64-linux";
-    address = "10.0.0.4";
+    subnets = [
+      "wg0"
+    ];
+    peerId = 4;
   };
 
   helsinki = {
     name = "helsinki";
     class = "webserver";
     hostname = "helsinki.km";
-    address = "10.0.0.5";
+    subnets = [
+      "wg0"
+      "wg1"
+    ];
+    peerId = 5;
     publicAddress = "helsinki.kompismoln.se";
     system = "x86_64-linux";
     stateVersion = "25.05";
@@ -50,7 +69,11 @@
     name = "friday";
     class = "peer";
     hostname = "friday.ahbk";
-    address = "10.0.0.6";
+    subnets = [
+      "wg0"
+      "wg1"
+    ];
+    peerId = 6;
     system = "x86_64-linux";
     stateVersion = "20.03";
   };
@@ -59,7 +82,11 @@
     name = "lenovo";
     class = "workstation";
     hostname = "lenovo.ahbk";
-    address = "10.0.0.7";
+    subnets = [
+      "wg0"
+      "wg1"
+    ];
+    peerId = 7;
     system = "x86_64-linux";
     stateVersion = "24.11";
   };
@@ -68,7 +95,11 @@
     name = "adele";
     class = "workstation";
     hostname = "adele.km";
-    address = "10.0.0.8";
+    subnets = [
+      "wg0"
+      "wg1"
+    ];
+    peerId = 8;
     system = "x86_64-linux";
     stateVersion = "25.11";
   };
@@ -79,6 +110,9 @@
     hostname = "bootstrap.km";
     system = "x86_64-linux";
     stateVersion = "25.11";
-    address = "10.0.0.254";
+    subnets = [
+      "wg0"
+    ];
+    peerId = 254;
   };
 }

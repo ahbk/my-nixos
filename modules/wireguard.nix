@@ -3,139 +3,112 @@
   host,
   hosts,
   lib,
+  lib',
   pkgs,
+  subnets,
   ...
 }:
 
 let
   inherit (lib)
     filterAttrs
-    hasAttr
     mapAttrsToList
-    mkEnableOption
-    mkIf
-    mkOption
-    optionalAttrs
-    types
     ;
 
-  cfg = config.my-nixos.wireguard;
-  isGateway = cfg: cfg.name == "stationary";
-  isServer = cfg: hasAttr "publicAddress" cfg;
-  isPeer = cfg: hasAttr "address" cfg;
+  enabledSubnets = filterAttrs (iface: cfg: cfg.enable) subnets;
+
+  isServer = hostCfg: lib.hasAttr "publicAddress" hostCfg;
+
+  createPeer =
+    iface: subnet: peerName: peerCfg:
+    {
+
+      PublicKey = builtins.readFile ../public-keys/host-${peerName}-${iface}-key.pub;
+      AllowedIPs = [
+        (if peerName == subnet.gateway then subnet.address else "${subnet.peerAddress peerCfg.peerId}/32")
+      ];
+    }
+    // (
+      if isServer peerCfg then
+        { Endpoint = "${peerCfg.publicAddress}:${toString subnet.port}"; }
+      else
+        { PersistentKeepalive = subnet.keepalive; }
+    );
+
+  peers =
+    iface:
+    filterAttrs (
+      _: otherHost: lib.elem iface otherHost.subnets && (isServer otherHost || isServer host)
+    ) hosts;
+
+  resetOnRebuilds =
+    subnets:
+    lib.mapAttrsToList (iface: cfg: "${pkgs.iproute2}/bin/ip link delete ${iface}") (
+      lib.filterAttrs (iface: cfg: cfg.resetOnRebuild) enabledSubnets
+    );
+
+  allowedTCPPortRanges = [
+    {
+      from = 0;
+      to = 65535;
+    }
+  ];
 in
 {
 
-  options.my-nixos.wireguard.wg0 = with types; {
-    enable = mkEnableOption "this host to be part of 10.0.0.0/24";
-    keepalive = mkOption {
-      description = "Keepalive interval.";
-      type = int;
-      default = 25;
-    };
-    port = mkOption {
-      description = "Listening port for establishing a connection.";
-      type = port;
-      default = 51820;
-    };
+  systemd.services."systemd-networkd".preStop = lib.concatStringsSep "\n" (
+    resetOnRebuilds enabledSubnets
+  );
+
+  networking = {
+    wireguard.enable = true;
+    networkmanager.unmanaged = map (iface: "interface-name:${iface}") (lib.attrNames enabledSubnets);
+    firewall.interfaces = lib.mapAttrs (_: _: { inherit allowedTCPPortRanges; }) enabledSubnets;
+    firewall.allowedUDPPorts =
+      if (isServer host) then lib.mapAttrsToList (iface: cfg: cfg.port) enabledSubnets else [ ];
+    interfaces = lib.mapAttrs (_: _: { useDHCP = false; }) enabledSubnets;
   };
 
-  config = (mkIf cfg.wg0.enable) {
-    services.prometheus = {
-      exporters.wireguard.enable = true;
-      scrapeConfigs = with config.services.prometheus.exporters; [
-        {
-          job_name = "wireguard";
-          static_configs = [
-            {
-              targets = [
-                "glesys.ahbk:${toString wireguard.port}"
-                "stationary.ahbk:${toString wireguard.port}"
-                "laptop.ahbk:${toString wireguard.port}"
-              ];
-            }
-          ];
-        }
-      ];
-    };
-
-    systemd.services."systemd-networkd".preStop = ''
-      # Force wireguard to restart when systemd-networkd restarts
-      # (old keys remain otherwise)
-      ${pkgs.iproute2}/bin/ip link delete wg0 || true
-    '';
-
-    networking = {
-      wireguard.enable = true;
-      networkmanager.unmanaged = [ "interface-name:wg0" ];
-      firewall = {
-        interfaces.wg0 = {
-          allowedTCPPortRanges = [
-            {
-              from = 0;
-              to = 65535;
-            }
-          ];
-        };
-      }
-      // (optionalAttrs (isServer host) { allowedUDPPorts = [ cfg.wg0.port ]; });
-      interfaces.wg0 = {
-        useDHCP = false;
-      };
-    };
-
-    sops.secrets.wg-key = {
+  sops.secrets = lib.mapAttrs' (
+    iface: cfg:
+    lib.nameValuePair "${iface}-key" {
       owner = "systemd-network";
       group = "systemd-network";
-    };
+    }
+  ) enabledSubnets;
 
-    systemd.network = {
-      enable = true;
-      netdevs = {
-
-        "10-wg0" = {
-          netdevConfig = {
-            Kind = "wireguard";
-            Name = "wg0";
-          };
-
-          wireguardConfig = (
-            {
-              PrivateKeyFile = config.sops.secrets.wg-key.path;
-            }
-            // (if isServer host then { ListenPort = cfg.wg0.port; } else { })
-          );
-
-          wireguardPeers = mapAttrsToList (
-            peerName: peerCfg:
-            {
-              PublicKey = builtins.readFile ../public-keys/host-${peerName}-wg-key.pub;
-              AllowedIPs = [ (if isGateway peerCfg then "10.0.0.0/24" else "${peerCfg.address}/32") ];
-            }
-            // (
-              if isServer peerCfg then
-                { Endpoint = "${peerCfg.publicAddress}:${toString cfg.wg0.port}"; }
-              else
-                { PersistentKeepalive = cfg.wg0.keepalive; }
-            )
-          ) (filterAttrs (_: cfg: (isPeer cfg) && ((isServer cfg) || (isServer host))) hosts);
+  systemd.network = {
+    enable = true;
+    netdevs = lib.mapAttrs' (
+      iface: cfg:
+      lib.nameValuePair "10-${iface}" {
+        netdevConfig = {
+          Kind = "wireguard";
+          Name = iface;
         };
+        wireguardConfig = {
+          PrivateKeyFile = config.sops.secrets."${iface}-key".path;
+          ListenPort = if isServer host then cfg.port else null;
+        };
+        wireguardPeers = mapAttrsToList (createPeer iface cfg) (peers iface);
+      }
+    ) enabledSubnets;
+
+    networks = lib'.mergeAttrs (iface: cfg: {
+      "10-${iface}" = {
+        matchConfig.Name = iface;
+        address = [ "${cfg.peerAddress host.peerId}/24" ];
+        dns = map (dns: cfg.peerAddress hosts.${dns}.peerId) cfg.dns;
       };
 
-      networks."10-wg0" = {
-        matchConfig.Name = "wg0";
-        address = [ "${host.address}/24" ];
-        dns = [ "10.0.0.5" ];
-      };
-
-      networks."40-wg0" = {
-        matchConfig.Name = "wg0";
+      "40-${iface}" = {
+        matchConfig.Name = iface;
         networkConfig = {
           Description = "snapshot from nixos-facter hardware detection";
-          # DHCP = "no";
-          # IPv6PrivacyExtensions = "kernel";
+          DHCP = "no";
+          IPv6PrivacyExtensions = "kernel";
         };
       };
-    };
+    }) enabledSubnets;
   };
 }

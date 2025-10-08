@@ -64,8 +64,6 @@
       luksDevice = "/dev/sda3";
     };
 
-    wireguard.wg0.enable = true;
-
     backup.km = {
       enable = true;
       target = "backup.km";

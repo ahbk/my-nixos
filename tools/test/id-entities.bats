@@ -361,13 +361,31 @@ EOF
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  run "$test_cmd" -h testhost new wg-key
+  run "$test_cmd" -h testhost new wg0-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify wg-key
+  run "$test_cmd" -h testhost new wg1-key
   expect 0 "main"
 
-  run test -f "$testroot/artifacts/host-testhost-wg-key.pub"
+  run "$test_cmd" -h testhost new wg2-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify wg0-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify wg1-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost verify wg2-key
+  expect 0 "main"
+
+  run test -f "$testroot/artifacts/host-testhost-wg0-key.pub"
+  expect 0
+
+  run test -f "$testroot/artifacts/host-testhost-wg1-key.pub"
+  expect 0
+
+  run test -f "$testroot/artifacts/host-testhost-wg2-key.pub"
   expect 0
 }
 
@@ -377,13 +395,13 @@ EOF
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  run "$test_cmd" -h testhost new wg-key
+  run "$test_cmd" -h testhost new wg0-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost new-secret wg-key
+  run "$test_cmd" -h testhost new-secret wg0-key
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify wg-key
+  run "$test_cmd" -h testhost verify wg0-key
   expect 1 " > "
 }
 

@@ -59,7 +59,7 @@
       ids = import ./ids.nix;
       users = import ./users.nix;
       hosts = import ./hosts.nix;
-      sites = import ./sites.nix;
+      subnets = import ./subnets.nix;
       lib' = (import ./lib.nix) {
         inherit pkgs;
         lib = nixpkgs.lib;
@@ -91,7 +91,7 @@
               hosts
               ids
               users
-              sites
+              subnets
               lib'
               ;
           };
