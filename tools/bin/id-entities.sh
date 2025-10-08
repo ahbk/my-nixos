@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# id-entities.sh
+# bin/id-entities.sh
 
 # === section 0: setup
 
@@ -7,7 +7,7 @@
 # - variables are modified in subshells intentionally
 
 set -euo pipefail
-declare -x doas entity prefix class key
+declare -x act_as entity prefix class key
 declare -g slot
 
 declare -rA allowed_keys=(
@@ -38,7 +38,7 @@ main() {
     log info "$id wants to $prefix $key"
 
     # map command to a callchain and invoke its functions, e.g.
-    # id-entities.sh -u alex verify ssh-key ->
+    # $ id-entities.sh -u alex verify ssh-key ->
     #     verify:user:ssh-key
     #     verify:user
     #     verify:ssh-key
@@ -49,18 +49,21 @@ main() {
     sync && log success "$prefix $key for $id completed."
 }
 
+# run-with.bash requires context() to be implemented,
+# but it is not used in this script, hence the no-op.
 context() {
     :
 }
 
+# generate a sequence of functions for `run` to try
 callchain() {
     # strip everything from the first colon
-    local pfix=${prefix%%:*}
+    local _prefix=${prefix%%:*}
     grep "^${prefix%:}" <<EOF
-$pfix:$class:$key
-$pfix:$class
-$pfix:$key
-$pfix:
+$_prefix:$class:$key
+$_prefix:$class
+$_prefix:$key
+$_prefix:
 EOF
 }
 
@@ -96,7 +99,7 @@ setup() {
     preflight-input
     preflight-sops-yaml
     preflight-backend
-    preflight-doas
+    preflight-act-as
 }
 
 preflight-input() {
@@ -129,15 +132,15 @@ preflight-backend() {
     log info "$backend_path"
 }
 
-preflight-doas() {
+preflight-act-as() {
     with id
     # bootstrap root-1 need not be checked, as it has nothing to be checked against
     [[ "$prefix-$id" != "init-root-1" ]] || return 0
 
-    doas=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | get-identity-by-age-key) ||
+    act_as=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | get-identity-by-age-key) ||
         die 1 "no identity found in '$SOPS_AGE_KEY_FILE'"
 
-    log important "$doas"
+    log important "$act_as"
 }
 
 # === section 1: links
@@ -177,7 +180,7 @@ new:() {
 # prevent identities from rotating themselves out of access
 new:age-key() {
     with id
-    [[ "$id" != "${doas:-}" ]] ||
+    [[ "$id" != "${act_as:-}" ]] ||
         die 1 "entities are not allowed to rotate their own identity"
 }
 
@@ -535,7 +538,7 @@ rebuild:() {
 
     case $rc in
     0 | 1) return ;;
-    *) die $rc "asdf" ;;
+    *) die $rc "sops updatekeys error" ;;
     esac
 }
 
@@ -577,9 +580,6 @@ sha512-secret:() {
 # === section 2: lazy variables (idempotent functions)
 
 # declarations to keep shellcheck happy
-declare -g \
-    repo_root \
-    sops_config
 
 declare -g \
     artifact_path \
@@ -621,16 +621,14 @@ backend_enabled() {
     case $rc in
     0) echo "$enabled" ;;
     100) die 1 "backend file missing for '$entity'" ;;
+    *) die $rc "sops could not decrypt '$backend_path'" ;;
     esac
 }
 
 backend_file() {
     with backend_path backend_enabled
-    if [[ "$backend_enabled" == "true" ]]; then
-        echo "$backend_path"
-    else
-        die 1 "backend for '$entity' disabled"
-    fi
+    [[ "$backend_enabled" == "true" ]] || die 1 "backend for '$entity' disabled"
+    echo "$backend_path"
 }
 
 backend_path() {
@@ -670,8 +668,7 @@ secret_path() {
     with exact_key
     local s=$tmpdir/$class.$entity.$exact_key.secret
     [[ -f "$s" ]] || {
-        touch "$s"
-        chmod 600 "$s"
+        (umask 077 && touch "$s")
     }
     echo "$s"
 }
@@ -728,7 +725,7 @@ locksmith() {
     ) | try ssh-add -
 
     # shellcheck disable=SC2029
-    # - "$key" expands client side
+    # - "$key" expands client side intentionally
     echo "$payload" | ssh "locksmith@$fqdn" "$key" \
         > >(log info) \
         2> >(log error) || die

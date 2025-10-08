@@ -1,4 +1,6 @@
 #!/usr/bin/env bats
+# tests/id-entities.bats
+
 set -eu
 
 setup() {
