@@ -1,7 +1,7 @@
 {
   config,
   host,
-  ids,
+  subnets,
   lib,
   ...
 }:
@@ -16,6 +16,9 @@ let
     ;
 
   cfg = config.my-nixos.nginx;
+  subnet = subnets.wg0;
+  hostname = subnet.fqdn host.name;
+  endpoint = subnet.fqdn config.my-nixos.monitor.endpoint;
 in
 {
   options.my-nixos.nginx = with types; {
@@ -77,7 +80,7 @@ in
 
     services.prometheus.exporters.nginx = {
       enable = true;
-      scrapeUri = "http://${host.hostname}/nginx_status";
+      scrapeUri = "http://${hostname}/nginx_status";
     };
     services.nginx.virtualHosts = {
       "_" = {
@@ -87,12 +90,12 @@ in
           return = "444";
         };
       };
-      "${host.hostname}".locations."/nginx_status" = {
+      "${hostname}".locations."/nginx_status" = {
         extraConfig = ''
           stub_status on;
           access_log off;
           allow 127.0.0.1;
-          allow 10.0.0.0/24;
+          allow ${subnet.address};
           ${optionalString config.networking.enableIPv6 "allow ::1;"}
           deny all;
         '';
@@ -121,7 +124,7 @@ in
               {
               "__path__" = "/var/log/nginx/access.log",
               "job" = "nginx",
-              "log_instance" = "${host.hostname}",
+              "log_instance" = "${hostname}",
               "log_type" = "access_json",
               },
           ]
@@ -132,7 +135,7 @@ in
               {
               "__path__" = "/var/log/nginx/error.log",
               "job" = "nginx",
-              "log_instance" = "${host.hostname}",
+              "log_instance" = "${hostname}",
               "log_type" = "error_plain",
               },
           ]
@@ -173,7 +176,7 @@ in
 
       loki.write "default" {
           endpoint {
-              url = "http://stationary.ahbk:3100/loki/api/v1/push"
+              url = "http://${endpoint}:3100/loki/api/v1/push"
           }
       }
     '';

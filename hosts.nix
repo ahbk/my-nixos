@@ -1,118 +1,90 @@
+# hosts.nix
 {
   stationary = {
-    name = "stationary";
+    id = 1;
     class = "webserver";
-    hostname = "stationary.km";
-    publicAddress = "stationary.kompismoln.se";
+    endpoint = "stationary.kompismoln.se";
     subnets = [
       "wg0"
       "wg1"
     ];
-    peerId = 1;
     system = "x86_64-linux";
     stateVersion = "20.03";
   };
 
   laptop = {
-    name = "laptop";
+    id = 2;
     class = "peer";
-    hostname = "laptop.km";
     subnets = [
       "wg0"
       "wg1"
     ];
-    peerId = 2;
-    system = "x86_64-linux";
-    stateVersion = "23.11";
-  };
-
-  glesys = {
-    name = "glesys";
-    class = "webserver";
-    hostname = "glesys.km";
-    subnets = [
-      "wg0"
-      "wg1"
-    ];
-    peerId = 3;
-    publicAddress = "ahbk.se";
     system = "x86_64-linux";
     stateVersion = "23.11";
   };
 
   phone = {
-    name = "phone";
+    id = 4;
     class = "null";
-    hostname = "phone.km";
-    system = "aarch64-linux";
     subnets = [
       "wg0"
     ];
-    peerId = 4;
+    system = "aarch64-linux";
+    stateVersion = null;
   };
 
   helsinki = {
-    name = "helsinki";
+    id = 5;
     class = "webserver";
-    hostname = "helsinki.km";
+    endpoint = "helsinki.kompismoln.se";
     subnets = [
       "wg0"
       "wg1"
     ];
-    peerId = 5;
-    publicAddress = "helsinki.kompismoln.se";
     system = "x86_64-linux";
     stateVersion = "25.05";
   };
 
   friday = {
-    name = "friday";
+    id = 6;
     class = "peer";
-    hostname = "friday.ahbk";
     subnets = [
       "wg0"
       "wg1"
     ];
-    peerId = 6;
     system = "x86_64-linux";
     stateVersion = "20.03";
   };
 
   lenovo = {
-    name = "lenovo";
+    id = 7;
     class = "workstation";
-    hostname = "lenovo.ahbk";
     subnets = [
       "wg0"
       "wg1"
     ];
-    peerId = 7;
     system = "x86_64-linux";
     stateVersion = "24.11";
   };
 
   adele = {
-    name = "adele";
+    id = 8;
     class = "workstation";
-    hostname = "adele.km";
     subnets = [
       "wg0"
       "wg1"
     ];
-    peerId = 8;
     system = "x86_64-linux";
     stateVersion = "25.11";
   };
 
   bootstrap = {
-    name = "bootstrap";
+    id = 254;
     class = "null";
-    hostname = "bootstrap.km";
-    system = "x86_64-linux";
-    stateVersion = "25.11";
     subnets = [
       "wg0"
     ];
-    peerId = 254;
+    system = "x86_64-linux";
+    stateVersion = "25.11";
   };
 }

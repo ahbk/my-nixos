@@ -21,25 +21,6 @@
     };
   };
 
-  services.kresd =
-    let
-      generateHints =
-        hosts:
-        lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (name: host: "hints['${host.name}.km'] = '${host.address}'") hosts
-        );
-    in
-    {
-      enable = true;
-      listenPlain = [ "10.0.0.5:53" ];
-      extraConfig = ''
-        modules = { 'hints > iterate' }
-        hints['invoiceplane.km'] = '10.0.0.1'
-        ${generateHints hosts}
-      '';
-    };
-
-  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
   networking = {
     useDHCP = false;
     dhcpcd.enable = false;
@@ -102,7 +83,10 @@
       inherit admin alex;
     };
 
-    wireguard.wg0.enable = true;
+    dns = {
+      enable = true;
+      subnet = "wg0";
+    };
 
     nginx = {
       enable = true;

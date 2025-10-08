@@ -58,6 +58,10 @@ in
 {
   options.my-nixos.monitor = {
     enable = mkEnableOption "gathering metrics";
+    endpoint = lib.mkOption {
+      type = lib.types.str;
+      default = "stationary";
+    };
   };
   config = mkIf (cfg.enable) {
     services.prometheus = {

@@ -1,3 +1,4 @@
+# modules/wireguard.nix
 {
   config,
   host,
@@ -17,7 +18,7 @@ let
 
   enabledSubnets = filterAttrs (iface: cfg: cfg.enable) subnets;
 
-  isServer = hostCfg: lib.hasAttr "publicAddress" hostCfg;
+  isServer = hostCfg: lib.hasAttr "endpoint" hostCfg;
 
   createPeer =
     iface: subnet: peerName: peerCfg:
@@ -25,12 +26,12 @@ let
 
       PublicKey = builtins.readFile ../public-keys/host-${peerName}-${iface}-key.pub;
       AllowedIPs = [
-        (if peerName == subnet.gateway then subnet.address else "${subnet.peerAddress peerCfg.peerId}/32")
+        (if peerName == subnet.gateway then subnet.address else "${subnet.peerAddress peerCfg}/32")
       ];
     }
     // (
       if isServer peerCfg then
-        { Endpoint = "${peerCfg.publicAddress}:${toString subnet.port}"; }
+        { Endpoint = "${peerCfg.endpoint}:${toString subnet.port}"; }
       else
         { PersistentKeepalive = subnet.keepalive; }
     );
@@ -64,8 +65,9 @@ in
     wireguard.enable = true;
     networkmanager.unmanaged = map (iface: "interface-name:${iface}") (lib.attrNames enabledSubnets);
     firewall.interfaces = lib.mapAttrs (_: _: { inherit allowedTCPPortRanges; }) enabledSubnets;
-    firewall.allowedUDPPorts =
-      if (isServer host) then lib.mapAttrsToList (iface: cfg: cfg.port) enabledSubnets else [ ];
+    firewall.allowedUDPPorts = lib.optionals (isServer host) (
+      lib.mapAttrsToList (iface: cfg: cfg.port) enabledSubnets
+    );
     interfaces = lib.mapAttrs (_: _: { useDHCP = false; }) enabledSubnets;
   };
 
@@ -76,6 +78,10 @@ in
       group = "systemd-network";
     }
   ) enabledSubnets;
+
+  boot.kernel.sysctl."net.ipv4.ip_forward" = lib.elem host.name (
+    mapAttrsToList (_: cfg: cfg.gateway) enabledSubnets
+  );
 
   systemd.network = {
     enable = true;
@@ -97,8 +103,8 @@ in
     networks = lib'.mergeAttrs (iface: cfg: {
       "10-${iface}" = {
         matchConfig.Name = iface;
-        address = [ "${cfg.peerAddress host.peerId}/24" ];
-        dns = map (dns: cfg.peerAddress hosts.${dns}.peerId) cfg.dns;
+        address = [ "${cfg.peerAddress host}/24" ];
+        dns = map (dns: cfg.peerAddress hosts.${dns}) cfg.dns;
       };
 
       "40-${iface}" = {

@@ -7,7 +7,6 @@
   imports = [
     ../../modules/facter.nix
     ../../modules/glesys-updaterecord.nix
-    ../../modules/monitor.nix
   ];
 
   fileSystems."/" = {
@@ -31,8 +30,6 @@
     enable = true;
     device = "/dev/sda";
   };
-
-  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
 
   networking = {
     useDHCP = false;
@@ -88,6 +85,11 @@
     sops.enable = true;
     facter.enable = true;
     nix.serveStore = true;
+
+    dns = {
+      enable = true;
+      subnet = "wg1";
+    };
 
     locksmith = {
       enable = true;

@@ -82,12 +82,14 @@
       ) (import ./hm-hosts.nix);
 
       nixosConfigurations = mapAttrs (
-        name: host:
+        hostname: hostconf:
         nixosSystem {
           specialArgs = {
+            host = hostconf // {
+              name = hostname;
+            };
             inherit
               inputs
-              host
               hosts
               ids
               users
@@ -97,7 +99,7 @@
           };
           modules = [
             ./modules/index.nix
-            ./hosts/${host.name}/configuration.nix
+            ./hosts/${hostname}/configuration.nix
           ];
         }
       ) hosts;

@@ -51,12 +51,14 @@ let
         ];
       }
       ./collabora.nix
+      ./dns.nix
       ./django-react.nix
       ./django.nix
       ./fastapi-svelte.nix
       ./fastapi.nix
       ./mailserver.nix
       ./mobilizon.nix
+      ./monitor.nix
       ./mysql.nix
       ./nextcloud.nix
       ./nextcloud-rolf.nix
