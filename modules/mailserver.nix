@@ -174,12 +174,14 @@ in
         #};
 
         postfix = {
-          origin = cfg.domain;
-          networks = [
-            "10.0.0.0/24"
-            "127.0.0.1/32"
-            "[::1]/128"
-          ];
+          settings.main = {
+            myorigin = cfg.domain;
+            mynetworks = [
+              "10.0.0.0/24"
+              "127.0.0.1/32"
+              "[::1]/128"
+            ];
+          };
           transport =
             let
               transportsList = mapAttrsToList (domain: cfg: "${domain} smtp:") relayDomains;
