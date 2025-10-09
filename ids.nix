@@ -26,7 +26,7 @@
   locksmith = {
     uid = 601;
   };
-  tunnelservice = {
+  reverse-tunnel = {
     uid = 602;
     port = 2602;
   };
@@ -73,7 +73,7 @@
     uid = 612;
     port = 2612;
   };
-  proxy = {
+  egress-proxy = {
     uid = 613;
     port = 2613;
   };

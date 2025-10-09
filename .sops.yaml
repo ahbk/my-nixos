@@ -43,7 +43,7 @@ ops:
     domain:
       - verify:tls-cert
 grants:
-  service-proxy:
+  service-egress-proxy:
     - host-stationary
     - host-helsinki
   service-chatddx-django:
@@ -82,7 +82,7 @@ grants:
     - host-laptop
     - host-stationary
     - host-glesys
-  service-tunnelservice:
+  service-reverse-tunnel:
     - host-helsinki
   user-ami:
     - host-adele
@@ -102,7 +102,7 @@ identities:
   user-ami: &user-ami age1avku5tyyvu9ndlqfcvd7r4nme84alce4f3shpqrxr93e8a747amskte558
   service-locksmith: &service-locksmith age177cjrw3q7p2nwf44ljswflghcx9vxd05qqe9rdhe7rdrghe3ye9swznuw2
   host-laptop: &host-laptop age17f2stt0f6yrunz0pfu3hf6rr5fcasgt7g2wyv3sq8a6a28j4jgwq2lywpy
-  service-tunnelservice: &service-tunnelservice age1z44ue69etcfw69ryc7mndtepgxt65ulwndrrlqjvc5nz29fzgs0sut3agn
+  service-reverse-tunnel: &service-reverse-tunnel age1z44ue69etcfw69ryc7mndtepgxt65ulwndrrlqjvc5nz29fzgs0sut3agn
   domain-km: &domain-km age1y5k2wqd0au34lecrt53xpwdtm0rwkvpkulgmwqrhz2p8a9zn8gxqvgts9g
   host-friday: &host-friday age15g32dcyjsr579ylcfpxnlemje3ythy30yl5q94j6kh7nlz2guynqxk8mw2
   host-glesys: &host-glesys age1tas34sz7hcqc5exu2l39dcxcfr8cuqgcgfmwcsd39t75mvprlprqznuhlr
@@ -116,7 +116,7 @@ identities:
   service-nextcloud-kompismoln: &service-nextcloud-kompismoln age19zqkrl5r5aat79tallyqclpv02venk7c4nw0xfvtqx8mdxxp6dnsdkj9zv
   service-nix-push: &service-nix-push age1mk0jc0en2lf92hsujl8pz48yrr9a62c6wk87um6g6c3d9e0aj53q7p4lhy
   service-dmarc-reports: &service-dmarc-reports age15mtx205sfcn93qcqnxlcpq2tdfaxmhsu97qfpcesw4zaq3x3a5wq77vn58
-  service-proxy: &service-proxy age12tqq6pvrm0ucn4qwcg8geemst5xw539p88vf8w9l02rkedu32dfsknf56e
+  service-egress-proxy: &service-egress-proxy age12tqq6pvrm0ucn4qwcg8geemst5xw539p88vf8w9l02rkedu32dfsknf56e
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -184,11 +184,11 @@ creation_rules:
       - age:
           - *root-1
           - *host-laptop
-  - path_regex: enc/service-tunnelservice
+  - path_regex: enc/service-reverse-tunnel
     key_groups:
       - age:
           - *root-1
-          - *service-tunnelservice
+          - *service-reverse-tunnel
           - *host-helsinki
   - path_regex: enc/domain-km
     key_groups:
@@ -272,10 +272,10 @@ creation_rules:
           - *root-1
           - *service-dmarc-reports
           - *host-helsinki
-  - path_regex: enc/service-proxy
+  - path_regex: enc/service-egress-proxy
     key_groups:
       - age:
           - *root-1
-          - *service-proxy
+          - *service-egress-proxy
           - *host-stationary
           - *host-helsinki

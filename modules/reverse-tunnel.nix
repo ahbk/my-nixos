@@ -1,3 +1,4 @@
+# modules/reverse-tunnel.nix
 {
   config,
   lib,
@@ -11,36 +12,36 @@ let
     mkIf
     mkForce
     ;
-  cfg = config.my-nixos.tunnelservice;
+  cfg = config.my-nixos.reverse-tunnel;
 in
 {
-  options.my-nixos.tunnelservice = {
+  options.my-nixos.reverse-tunnel = {
     enable = mkEnableOption "respond to phone home from stranded clients";
   };
 
   config = mkIf (cfg.enable) {
-    sops.secrets."tunnelservice/passwd-sha512" = {
+    sops.secrets."reverse-tunnel/passwd-sha512" = {
       neededForUsers = true;
-      sopsFile = ../enc/service-tunnelservice.yaml;
+      sopsFile = ../enc/service-reverse-tunnel.yaml;
     };
 
-    users.users.tunnelservice = {
+    users.users.reverse-tunnel = {
       isSystemUser = true;
       shell = pkgs.shadow;
-      hashedPasswordFile = config.sops.secrets."tunnelservice/passwd-sha512".path;
+      hashedPasswordFile = config.sops.secrets."reverse-tunnel/passwd-sha512".path;
       openssh.authorizedKeys.keyFiles = [
-        ../public-keys/service-tunnelservice-ssh-key.pub
+        ../public-keys/service-reverse-tunnel-ssh-key.pub
       ];
-      uid = ids.tunnelservice.uid;
-      group = "tunnelservice";
+      uid = ids.reverse-tunnel.uid;
+      group = "reverse-tunnel";
     };
 
-    users.groups.tunnelservice = {
-      gid = ids.tunnelservice.uid;
+    users.groups.reverse-tunnel = {
+      gid = ids.reverse-tunnel.uid;
     };
 
     networking.firewall.allowedTCPPorts = [
-      ids.tunnelservice.port
+      ids.reverse-tunnel.port
     ];
 
     services.openssh = {
@@ -50,7 +51,7 @@ in
       };
 
       extraConfig = ''
-        Match User tunnelservice
+        Match User reverse-tunnel
           ForceCommand /bin/false
           AllowTcpForwarding remote
           X11Forwarding no

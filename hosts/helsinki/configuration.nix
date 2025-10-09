@@ -2,8 +2,6 @@
   config,
   ids,
   users,
-  hosts,
-  lib,
   ...
 }:
 {
@@ -76,14 +74,14 @@
 
     preserve.enable = true;
 
-    tunnelservice.enable = true;
-    proxy.enable = true;
+    reverse-tunnel.enable = true;
+    egress-proxy.enable = true;
 
     users = with users; {
       inherit admin alex;
     };
 
-    dns = {
+    dns-hints = {
       enable = true;
       subnet = "wg0";
     };

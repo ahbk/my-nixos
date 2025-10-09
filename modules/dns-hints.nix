@@ -7,18 +7,18 @@
   ...
 }:
 let
-  cfg = config.my-nixos.dns;
+  cfg = config.my-nixos.dns-hints;
   subnet = subnets.${cfg.subnet};
   listen = subnet.peerAddress host;
   hint = hostname: hostconf: "hints['${subnet.fqdn hostname}'] = '${subnet.peerAddress hostconf}'";
   hints = lib.mapAttrsToList hint hosts;
 in
 {
-  options.my-nixos.dns = {
+  options.my-nixos.dns-hints = {
     enable = lib.mkEnableOption "dns hints on this host";
     subnet = lib.mkOption {
       type = lib.types.str;
-      description = "Which subnet to act dns on";
+      description = "Which subnet to provide dns hints for";
     };
   };
   config = lib.mkIf (cfg.enable) {

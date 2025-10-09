@@ -12,9 +12,9 @@
         static_configs = with config.services.prometheus.exporters; [
           {
             targets = [
-              "glesys.ahbk:${toString node.port}"
-              "stationary.ahbk:${toString node.port}"
-              "laptop.ahbk:${toString node.port}"
+              "helsinki.km:${toString node.port}"
+              "stationary.km:${toString node.port}"
+              "lenovo.km:${toString node.port}"
             ];
           }
         ];

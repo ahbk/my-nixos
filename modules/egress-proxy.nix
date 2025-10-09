@@ -1,3 +1,4 @@
+# modules/egress-proxy.nix
 {
   config,
   lib,
@@ -7,30 +8,30 @@
 }:
 let
   inherit (lib) mkEnableOption mkIf;
-  cfg = config.my-nixos.proxy;
+  cfg = config.my-nixos.egress-proxy;
 in
 {
-  options.my-nixos.proxy = {
+  options.my-nixos.egress-proxy = {
     enable = mkEnableOption "SOCKS proxy service";
   };
 
   config = mkIf (cfg.enable) {
-    users.users.proxy = {
+    users.users.egress-proxy = {
       isSystemUser = true;
-      uid = ids.proxy.uid;
+      uid = ids.egress-proxy.uid;
       shell = pkgs.bashInteractive;
       openssh.authorizedKeys.keyFiles = [
-        ../public-keys/service-proxy-ssh-key.pub
+        ../public-keys/service-egress-proxy-ssh-key.pub
       ];
-      group = "proxy";
+      group = "egress-proxy";
     };
 
-    users.groups.proxy = {
-      gid = ids.proxy.uid;
+    users.groups.egress-proxy = {
+      gid = ids.egress-proxy.uid;
     };
 
     services.openssh.extraConfig = ''
-      Match User proxy
+      Match User egress-proxy
         AllowTcpForwarding local
         X11Forwarding no
         AllowAgentForwarding no

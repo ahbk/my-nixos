@@ -20,7 +20,7 @@ main() {
 
 build() {
     nix build "$REPO#nixosConfigurations.$host.config.system.build.toplevel" \
-        --print-out-paths --no-link --refresh
+        --print-out-paths --no-link
 }
 
 pull() {

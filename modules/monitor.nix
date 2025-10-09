@@ -79,9 +79,9 @@ in
           static_configs = [
             {
               targets = [
-                "glesys.ahbk:${toString postfix.port}"
-                "glesys.ahbk:${toString dovecot.port}"
-                "glesys.ahbk:${toString rspamd.port}"
+                "helsinki.km:${toString postfix.port}"
+                "helsinki.km:${toString dovecot.port}"
+                "helsinki.km:${toString rspamd.port}"
               ];
               labels = {
                 service = "mail";
@@ -94,10 +94,9 @@ in
           static_configs = [
             {
               targets = [
-                "glesys.ahbk:${toString restic.port}"
-                "stationary.ahbk:${toString restic.port}"
-                "backup.ahbk:${toString restic.port}"
-                "laptop.ahbk:${toString restic.port}"
+                "helsinki.km:${toString restic.port}"
+                "stationary.km:${toString restic.port}"
+                "lenovo.km:${toString restic.port}"
               ];
               labels = {
                 service = "backup";
@@ -110,8 +109,8 @@ in
           static_configs = [
             {
               targets = [
-                "glesys.ahbk:${toString nginx.port}"
-                "stationary.ahbk:${toString nginx.port}"
+                "helsinki.km:${toString nginx.port}"
+                "stationary.km:${toString nginx.port}"
               ];
               labels = {
                 service = "nginx";
@@ -124,8 +123,8 @@ in
           static_configs = [
             {
               targets = [
-                "glesys.ahbk:${toString php-fpm.port}"
-                "stationary.ahbk:${toString php-fpm.port}"
+                "helsinki.km:${toString php-fpm.port}"
+                "stationary.km:${toString php-fpm.port}"
               ];
               labels = {
                 service = "php-fpm";
@@ -138,8 +137,8 @@ in
           static_configs = [
             {
               targets = [
-                "glesys.ahbk:${toString redis.port}"
-                "stationary.ahbk:${toString redis.port}"
+                "helsinki.km:${toString redis.port}"
+                "stationary.km:${toString redis.port}"
               ];
               labels = {
                 service = "redis";
@@ -152,8 +151,8 @@ in
           static_configs = [
             {
               targets = [
-                "glesys.ahbk:${toString postgres.port}"
-                "stationary.ahbk:${toString postgres.port}"
+                "helsinki.km:${toString postgres.port}"
+                "stationary.km:${toString postgres.port}"
               ];
               labels = {
                 service = "postgres";
@@ -176,7 +175,6 @@ in
                 "https://esse.nu"
                 "https://chatddx.com"
                 "https://sverigesval.org"
-                "https://sysctl-user-portal.curetheweb.se"
               ];
               labels = {
                 service = "website";
@@ -199,7 +197,7 @@ in
             }
             {
               target_label = "__address__";
-              replacement = "stationary.ahbk:9115";
+              replacement = "stationary.km:9115";
             }
           ];
           scrape_interval = "60s";
@@ -207,7 +205,7 @@ in
         }
       ];
     };
-    services.nginx.virtualHosts."stationary.ahbk".locations."/grafana/" = {
+    services.nginx.virtualHosts."stationary.km".locations."/grafana/" = {
       proxyPass = "http://localhost:9999";
       proxyWebsockets = true;
     };
@@ -219,8 +217,8 @@ in
       settings = {
         server = {
           http_port = 9999;
-          domain = "stationary.ahbk";
-          root_url = "http://stationary.ahbk/grafana/";
+          domain = "stationary.km";
+          root_url = "http://stationary.km/grafana/";
           serve_from_sub_path = true;
         };
       };

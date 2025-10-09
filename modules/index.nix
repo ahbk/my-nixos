@@ -51,7 +51,7 @@ let
         ];
       }
       ./collabora.nix
-      ./dns.nix
+      ./dns-hints.nix
       ./django-react.nix
       ./django.nix
       ./fastapi-svelte.nix
@@ -64,12 +64,12 @@ let
       ./nextcloud-rolf.nix
       ./nginx.nix
       ./postgresql.nix
-      ./proxy.nix
+      ./egress-proxy.nix
       ./react.nix
       ./redis.nix
       ./svelte.nix
       ./tls-certs.nix
-      ./tunnelservice.nix
+      ./reverse-tunnel.nix
       ./wordpress.nix
     ]
     ++ peer;

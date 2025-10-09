@@ -86,7 +86,7 @@
     facter.enable = true;
     nix.serveStore = true;
 
-    dns = {
+    dns-hints = {
       enable = true;
       subnet = "wg1";
     };

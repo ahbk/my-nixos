@@ -23,7 +23,7 @@ main() {
         address=${3:-"$host.$domain"}
         ;;
     tunnel)
-        user=tunnelservice
+        user=reverse-tunnel
         host="helsinki.kompismoln.se"
         ;;
     image)
@@ -109,7 +109,7 @@ tunnel() {
         -o "TCPKeepAlive=yes"
     )
 
-    ssh "${ssh_opts[@]}" "tunnelservice@$host"
+    ssh "${ssh_opts[@]}" "reverse-tunnel@$host"
 }
 
 main "$@"

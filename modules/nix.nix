@@ -1,3 +1,4 @@
+# modules/nix.nix
 {
   config,
   ids,
@@ -87,6 +88,8 @@ in
             "flakes"
           ];
           max-jobs = "auto";
+          narinfo-cache-negative-ttl = 0;
+          narinfo-cache-positive-ttl = 0;
           nix-path = mkForce "nixpkgs=/etc/nix/inputs/nixpkgs";
           substituters = [
             "https://cache.nixos.org"

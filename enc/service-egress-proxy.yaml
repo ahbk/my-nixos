@@ -1,5 +1,5 @@
 enable: ENC[AES256_GCM,data:YBOi1g==,iv:oxXfZSG1hEnc3WU/wtrxCMJlNTn9EWVkXyiirx6wYRk=,tag:/FunjtIJeOEJsYJ7JDQaBw==,type:bool]
-proxy:
+egress-proxy:
     age-key: ENC[AES256_GCM,data:ODXSRVJs81fxIF4737GNLRSw5GWxA1J6jLsU5vCE254TheIym26lLNuL8PoH6dIVapQd4t2BD+6HggDihnGFe3WeAiuPF2oI3d3p,iv:1Uk3xV4ChNgJHtGxZMUcaQ1i+QbUDeeGsQeBNw1FO7o=,tag:uDgATOYHKFXO9xNw+r/eRw==,type:str]
     ssh-key: ENC[AES256_GCM,data:HRDdurz6hmoF1iOgelKD6i/p6xCKkNVLCa+HCn0x9WRaoI/XbypSI9sAKqxPLhwgXOxUAmE+MjriBNYIN7UBEfDMg9KNQO5UFTgIcxJMnQuVLJs6TYepedIEN3bHlx/eAxhR2q5nU+tKaXSgfJbjjQxaNtTeLdiBWrxUNHb5lVLWLDXGogJES2ZUdiuj+GbJ91JMhlW4b2CfwtG0u4RhJGQm3338qJ+QEPnWLIKpMKBq+TNhS7WROOAdPSnierQgfPIJhwdnvX3fV4o88236Hki43RqJ/pL4XP06GjrANcDjNIxOLvtaGbDW6Redf6nEWRDbUcbONDDnf8hKTvzPpQUOTf7723gmg5ukSaNo8JNF6nOOdFnGAzD4envjJObiYlTbJCj1NBt+efK5VtjWRE14HcjvSVR7jtc4tKy3nyOb3ySxbF3AdfhF/l9tUMboJxlQCesNudd6GgosdGbjBfwoKYG+cnHmtsx+8yhqcm7q3kRWDXbe7x/VKvv+JB/sCPz+jHGPJkkj9zOZDvRX,iv:e/wY+2c1NmZObHZMQM/h8B1drKI+eOIXa2TPiSaBRYs=,tag:ZnBCBQ/qoxt6K8nzMNzuew==,type:str]
 sops:
