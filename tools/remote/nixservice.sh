@@ -4,14 +4,15 @@
 main() {
     case $1 in
     build)
-        local host=$2
+        host=$2
+        refresh=${3:-}
         ;;
     pull)
-        local closure=$2
-        local build_host=${3:-$BUILD_HOST}
+        closure=$2
+        build_host=${3:-$BUILD_HOST}
         ;;
     switch)
-        local closure=$2
+        closure=$2
         ;;
     *) exit 1 ;;
     esac
@@ -19,6 +20,9 @@ main() {
 }
 
 build() {
+    if [[ -n $refresh ]]; then
+        rm -r "$HOME/.cache/nix/"*
+    fi
     nix build "$REPO#nixosConfigurations.$host.config.system.build.toplevel" \
         --print-out-paths --no-link
 }

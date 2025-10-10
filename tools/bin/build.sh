@@ -17,7 +17,7 @@ build() {
     else
         local build_host
         build_host=$(find-route "$BUILD_HOST")
-        "$km_root/bin/as.sh" nix-build ssh -A "nix-build@$build_host" "build $target"
+        "$km_root/bin/as.sh" nix-build ssh -A "nix-build@$build_host" "build $target refresh"
     fi
 }
 
