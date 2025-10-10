@@ -5,10 +5,11 @@
 }:
 {
   imports = [
-    ./disko.nix
+    ./hardware-configuration.nix
   ];
 
-  facter.reportPath = ./facter.json;
+  #facter.reportPath = ./facter.json;
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
   boot.loader.grub = {
     enable = true;
@@ -16,26 +17,13 @@
   };
 
   networking = {
-    useDHCP = lib.mkDefault true;
     networkmanager = {
       enable = true;
     };
   };
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-
   my-nixos = {
-    users = with users; {
-      inherit admin alex;
-    };
-
     sysadm.rescueMode = true;
-    shell.alex.enable = true;
-    hm.alex.enable = true;
-    desktop-env.alex.enable = true;
-
-    wireguard.wg0.enable = true;
-    sendmail.alex.enable = true;
   };
 
   # Purism librem 13v2 has unusual keycode for pipe/backslash

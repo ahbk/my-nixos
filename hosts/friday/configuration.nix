@@ -1,17 +1,14 @@
-{ pkgs, ... }:
-let
-  users = import ../users.nix;
-in
+{ pkgs, users, ... }:
 {
+
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
   my-nixos = {
     users = with users; {
       inherit alex johanna;
     };
-    shell.alex.enable = true;
-
-    wireguard.wg0.enable = true;
-
   };
 
   services.xserver.enable = true;

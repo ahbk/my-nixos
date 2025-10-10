@@ -51,7 +51,12 @@
   outputs =
     { nixpkgs, home-manager, ... }@inputs:
     let
-      inherit (nixpkgs.lib) nixosSystem mapAttrs;
+      inherit (nixpkgs.lib)
+        nixosSystem
+        mapAttrs
+        hasAttr
+        filterAttrs
+        ;
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -99,10 +104,9 @@
           };
           modules = [
             ./modules/index.nix
-            ./hosts/${hostname}/configuration.nix
           ];
         }
-      ) hosts;
+      ) (filterAttrs (_: cfg: hasAttr "roles" cfg) hosts);
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         shellHook = ''

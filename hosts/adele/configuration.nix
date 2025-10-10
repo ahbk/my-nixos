@@ -127,6 +127,5 @@
     shell.ami.enable = true;
 
     hm.ami.enable = true;
-    wireguard.wg0.enable = true;
   };
 }

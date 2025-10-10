@@ -117,6 +117,7 @@ identities:
   service-nix-push: &service-nix-push age1mk0jc0en2lf92hsujl8pz48yrr9a62c6wk87um6g6c3d9e0aj53q7p4lhy
   service-dmarc-reports: &service-dmarc-reports age15mtx205sfcn93qcqnxlcpq2tdfaxmhsu97qfpcesw4zaq3x3a5wq77vn58
   service-egress-proxy: &service-egress-proxy age12tqq6pvrm0ucn4qwcg8geemst5xw539p88vf8w9l02rkedu32dfsknf56e
+  user-johanna: &user-johanna age1ujewmpxqxwwwfwn862473n3ufwtnt3dxcajhy9pxlaj5edtpk3usfh3rsq
 creation_rules:
   - path_regex: enc/host-adele
     key_groups:
@@ -279,3 +280,8 @@ creation_rules:
           - *service-egress-proxy
           - *host-stationary
           - *host-helsinki
+  - path_regex: enc/user-johanna
+    key_groups:
+      - age:
+          - *root-1
+          - *user-johanna

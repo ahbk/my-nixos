@@ -2,7 +2,7 @@
 {
   stationary = {
     id = 1;
-    class = "webserver";
+    roles = [ "webserver" ];
     endpoint = "stationary.kompismoln.se";
     subnets = [
       "wg0"
@@ -14,7 +14,7 @@
 
   laptop = {
     id = 2;
-    class = "peer";
+    roles = [ "peer" ];
     subnets = [
       "wg0"
       "wg1"
@@ -25,7 +25,6 @@
 
   phone = {
     id = 4;
-    class = "null";
     subnets = [
       "wg0"
     ];
@@ -35,7 +34,10 @@
 
   helsinki = {
     id = 5;
-    class = "webserver";
+    roles = [
+      "webserver"
+      "mailserver"
+    ];
     endpoint = "helsinki.kompismoln.se";
     subnets = [
       "wg0"
@@ -47,7 +49,7 @@
 
   friday = {
     id = 6;
-    class = "peer";
+    roles = [ "peer" ];
     subnets = [
       "wg0"
       "wg1"
@@ -58,7 +60,7 @@
 
   lenovo = {
     id = 7;
-    class = "workstation";
+    roles = [ "workstation" ];
     subnets = [
       "wg0"
       "wg1"
@@ -69,7 +71,7 @@
 
   adele = {
     id = 8;
-    class = "workstation";
+    roles = [ "workstation" ];
     subnets = [
       "wg0"
       "wg1"
@@ -80,7 +82,6 @@
 
   bootstrap = {
     id = 254;
-    class = "null";
     subnets = [
       "wg0"
     ];

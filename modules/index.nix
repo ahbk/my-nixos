@@ -1,10 +1,14 @@
-{ inputs, host, ... }:
+# modules/index.nix
+{
+  inputs,
+  host,
+  lib,
+  ...
+}:
 let
-  classes = rec {
-    null = [
-    ];
-
+  roles = rec {
     base = [
+      ../hosts/${host.name}/configuration.nix
       ./locksmith.nix
       ./nix.nix
       ./preserve.nix
@@ -38,7 +42,6 @@ let
       ./ide.nix
       ./mysql.nix
       ./postgresql.nix
-      ./sendmail.nix
       ./shell.nix
       ./vd.nix
     ]
@@ -54,9 +57,9 @@ let
       ./dns-hints.nix
       ./django-react.nix
       ./django.nix
+      ./egress-proxy.nix
       ./fastapi-svelte.nix
       ./fastapi.nix
-      ./mailserver.nix
       ./mobilizon.nix
       ./monitor.nix
       ./mysql.nix
@@ -64,17 +67,21 @@ let
       ./nextcloud-rolf.nix
       ./nginx.nix
       ./postgresql.nix
-      ./egress-proxy.nix
       ./react.nix
       ./redis.nix
+      ./reverse-tunnel.nix
       ./svelte.nix
       ./tls-certs.nix
-      ./reverse-tunnel.nix
       ./wordpress.nix
+    ]
+    ++ peer;
+
+    mailserver = [
+      ./mailserver.nix
     ]
     ++ peer;
   };
 in
 {
-  imports = classes.${host.class};
+  imports = lib.optionals (lib.hasAttr "roles" host) lib.concatMap (role: roles.${role}) host.roles;
 }
