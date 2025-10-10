@@ -115,6 +115,13 @@
             size = "60%VG";
             content = {
               type = "btrfs";
+              extraArgs = [ "-f" ];
+              mountpoint = "/mnt/state";
+              mountOptions = [
+                "subvolid=5"
+                "noatime"
+                "space_cache=v2"
+              ];
               subvolumes = {
                 "@nix" = {
                   mountpoint = "/nix";
@@ -148,6 +155,14 @@
                     "noatime"
                     "space_cache=v2"
                     "ro"
+                  ];
+                };
+                "@snapshots" = {
+                  mountpoint = "/mnt/snapshots";
+                  mountOptions = [
+                    "compress=no"
+                    "noatime"
+                    "space_cache=v2"
                   ];
                 };
               };
