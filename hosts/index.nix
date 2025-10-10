@@ -1,4 +1,4 @@
-# hosts.nix
+# hosts/index.nix
 {
   stationary = {
     id = 1;

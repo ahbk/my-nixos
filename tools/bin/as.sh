@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# as.sh
+# tools/bin/as.sh
 
 set -euo pipefail
 

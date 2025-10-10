@@ -3,6 +3,7 @@
   host,
   inputs,
   lib,
+  lib',
   pkgs,
   ids,
   ...
@@ -11,8 +12,6 @@
 let
   inherit (lib)
     filterAttrs
-    flatten
-    getExe
     mapAttrs
     mapAttrs'
     mapAttrsToList
@@ -25,14 +24,12 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.django;
 
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
   eachCelery = filterAttrs (name: cfg: cfg.celery.enable) eachSite;
 
   stateDir = appname: "/var/lib/${appname}/django";
-  envToList = env: lib.mapAttrsToList (name: value: "${name}=${toString value}") env;
 
   siteOpts =
     { name, ... }:
@@ -202,7 +199,7 @@ in
           }";
           User = "${cfg.appname}-django";
           Group = "${cfg.appname}-django";
-          Environment = envToList envs.${cfg.appname};
+          Environment = lib'.envToList envs.${cfg.appname};
         };
         wantedBy = [ "multi-user.target" ];
       };
@@ -215,7 +212,7 @@ in
           }/bin/celery -A ${cfg.packagename} worker -l warning";
           User = "${cfg.appname}-django";
           Group = "${cfg.appname}-django";
-          Environment = envToList envs.${cfg.appname};
+          Environment = lib'.envToList envs.${cfg.appname};
         };
         wantedBy = [ "multi-user.target" ];
       };
@@ -228,7 +225,7 @@ in
           }/bin/celery -A ${cfg.packagename} flower --port=5555";
           User = "${cfg.appname}-django";
           Group = "${cfg.appname}-django";
-          Environment = envToList envs.${cfg.appname};
+          Environment = lib'.envToList envs.${cfg.appname};
         };
         wantedBy = [ "multi-user.target" ];
       };
@@ -240,7 +237,7 @@ in
           ExecStart = "${inputs.${cfg.appname}.packages.${host.system}.django-app}/bin/django-admin migrate";
           User = "${cfg.appname}-django";
           Group = "${cfg.appname}-django";
-          Environment = envToList envs.${cfg.appname};
+          Environment = lib'.envToList envs.${cfg.appname};
         };
       };
       "${cfg.appname}-pgsql-dump" = {

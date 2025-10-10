@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  lib',
   pkgs,
   inputs,
   host,
@@ -24,8 +25,6 @@ let
 
   cfg = config.my-nixos.nextcloud-rolf;
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
-
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
 
   serverName = cfg: if cfg.www == "yes" then "www.${cfg.hostname}" else cfg.hostname;
   serverNameRedirect = cfg: if cfg.www == "yes" then cfg.hostname else "www.${cfg.hostname}";

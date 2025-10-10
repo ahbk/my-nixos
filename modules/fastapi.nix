@@ -3,6 +3,7 @@
   host,
   inputs,
   lib,
+  lib',
   pkgs,
   ...
 }:
@@ -20,7 +21,6 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.fastapi;
 
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
@@ -53,20 +53,17 @@ let
 
   fastapiPkgs = appname: inputs.${appname}.packages.${host.system}.fastapi;
 
-  envs = mapAttrs (
-    name: cfg:
-    (lib'.mkEnv cfg.appname {
-      ALLOW_ORIGINS = "'[\"${if cfg.ssl then "https" else "http"}://${cfg.hostname}\"]'";
-      DB_DSN = "postgresql+psycopg2://${cfg.appname}@:5432/${cfg.appname}";
-      ENV = "production";
-      HOSTNAME = cfg.hostname;
-      LOG_LEVEL = "error";
-      SECRETS_DIR = builtins.dirOf config.sops.secrets."${cfg.appname}/secret_key".path;
-      SSL = if cfg.ssl then "true" else "false";
-      STATE_DIR = stateDir cfg.appname;
-      ALEMBIC_CONFIG = "${(fastapiPkgs cfg.appname).alembic}/alembic.ini";
-    })
-  ) eachSite;
+  envs = mapAttrs (name: cfg: {
+    ALLOW_ORIGINS = "'[\"${if cfg.ssl then "https" else "http"}://${cfg.hostname}\"]'";
+    DB_DSN = "postgresql+psycopg2://${cfg.appname}@:5432/${cfg.appname}";
+    ENV = "production";
+    HOSTNAME = cfg.hostname;
+    LOG_LEVEL = "error";
+    SECRETS_DIR = builtins.dirOf config.sops.secrets."${cfg.appname}/secret_key".path;
+    SSL = if cfg.ssl then "true" else "false";
+    STATE_DIR = stateDir cfg.appname;
+    ALEMBIC_CONFIG = "${(fastapiPkgs cfg.appname).alembic}/alembic.ini";
+  }) eachSite;
 
   bins = mapAttrs (
     name: cfg:
@@ -131,7 +128,7 @@ in
           ExecStart = "${(fastapiPkgs cfg.appname).app}/bin/uvicorn app.main:fastapi --host localhost --port ${toString cfg.port}";
           User = cfg.appname;
           Group = cfg.appname;
-          EnvironmentFile = "${envs.${cfg.appname}}";
+          Environment = lib'.envToList envs.${cfg.appname};
         };
         wantedBy = [ "multi-user.target" ];
       };
@@ -144,7 +141,7 @@ in
           ExecStart = "${bins.${cfg.appname}}/bin/${cfg.appname}-manage migrate";
           User = cfg.appname;
           Group = cfg.appname;
-          EnvironmentFile = "${envs.${cfg.appname}}";
+          Environment = lib'.envToList envs.${cfg.appname};
         };
       };
 

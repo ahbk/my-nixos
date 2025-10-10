@@ -2,6 +2,7 @@
   config,
   ids,
   lib,
+  lib',
   pkgs,
   ...
 }:
@@ -21,7 +22,6 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.wordpress;
   webserver = config.services.nginx;
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;

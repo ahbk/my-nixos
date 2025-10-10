@@ -322,26 +322,6 @@
         "type": "github"
       }
     },
-    "klimatkalendern1": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1756234564,
-        "narHash": "sha256-gLHCoW6bkjqS4cun/kpvkGzF3oQLc1hXgwrUbGNzoe0=",
-        "owner": "Kompismoln",
-        "repo": "klimatkalendern",
-        "rev": "03ba9583307a36e673dff8e00558de1458b1d3ef",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Kompismoln",
-        "repo": "klimatkalendern",
-        "type": "github"
-      }
-    },
     "kompismoln-site": {
       "inputs": {
         "nixpkgs": [
@@ -711,7 +691,6 @@
         "home-manager": "home-manager",
         "klimatkalendern": "klimatkalendern",
         "klimatkalendern-dev": "klimatkalendern-dev",
-        "klimatkalendern1": "klimatkalendern1",
         "kompismoln-site": "kompismoln-site",
         "nixos-cli": "nixos-cli",
         "nixos-facter-modules": "nixos-facter-modules",

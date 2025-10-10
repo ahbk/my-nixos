@@ -41,9 +41,6 @@
     klimatkalendern.url = "github:Kompismoln/klimatkalendern";
     klimatkalendern.inputs.nixpkgs.follows = "nixpkgs";
 
-    klimatkalendern1.url = "github:Kompismoln/klimatkalendern";
-    klimatkalendern1.inputs.nixpkgs.follows = "nixpkgs";
-
     klimatkalendern-dev.url = "github:Kompismoln/klimatkalendern/dev";
     klimatkalendern-dev.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -63,12 +60,9 @@
 
       ids = import ./ids.nix;
       users = import ./users.nix;
-      hosts = import ./hosts.nix;
+      hosts = import ./hosts/index.nix;
       subnets = import ./subnets.nix;
-      lib' = (import ./lib.nix) {
-        inherit pkgs;
-        lib = nixpkgs.lib;
-      };
+      lib' = (import ./lib.nix) nixpkgs.lib;
     in
     {
       homeConfigurations = mapAttrs (
@@ -103,12 +97,12 @@
               ;
           };
           modules = [
-            ./modules/index.nix
+            ./hosts/roles.nix
           ];
         }
       ) (filterAttrs (_: cfg: hasAttr "roles" cfg) hosts);
 
-      devShells.${system}.default = pkgs.mkShellNoCC {
+      devShells.${system}.default = pkgs.mkShell {
         shellHook = ''
           export BUILD_HOST=./
           PATH=$(pwd)/tools/bin:$PATH

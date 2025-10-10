@@ -22,19 +22,21 @@ let
 
   createPeer =
     iface: subnet: peerName: peerCfg:
-    {
-
-      PublicKey = builtins.readFile ../public-keys/host-${peerName}-${iface}-key.pub;
-      AllowedIPs = [
-        (if peerName == subnet.gateway then subnet.address else "${subnet.peerAddress peerCfg}/32")
-      ];
-    }
-    // (
-      if isServer peerCfg then
-        { Endpoint = "${peerCfg.endpoint}:${toString subnet.port}"; }
-      else
-        { PersistentKeepalive = subnet.keepalive; }
-    );
+    let
+      base = {
+        PublicKey = builtins.readFile ../public-keys/host-${peerName}-${iface}-key.pub;
+        AllowedIPs = [
+          (if peerName == subnet.gateway then subnet.address else "${subnet.peerAddress peerCfg}/32")
+        ];
+      };
+      serverConfig = {
+        Endpoint = "${peerCfg.endpoint}:${toString subnet.port}";
+      };
+      clientConfig = {
+        PersistentKeepalive = subnet.keepalive;
+      };
+    in
+    base // (if isServer peerCfg then serverConfig else clientConfig);
 
   peers =
     iface:

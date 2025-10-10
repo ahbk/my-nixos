@@ -1,29 +1,17 @@
-{ lib, pkgs, ... }:
-let
-  inherit (lib)
-    concatStringsSep
-    elem
-    filterAttrs
-    foldlAttrs
-    mapAttrsToList
-    recursiveUpdate
-    ;
-  inherit (pkgs) writeText;
-in
-{
+# lib.nix
+lib: {
   # pick a list of attributes from an attrSet
-  pick = attrNames: attrSet: filterAttrs (name: value: elem name attrNames) attrSet;
+  pick = attrNames: attrSet: lib.filterAttrs (name: value: lib.elem name attrNames) attrSet;
 
-  # create an env-file (package) that can be sourced to set environment variables
-  mkEnv =
-    name: value:
-    writeText "${name}-env" (concatStringsSep "\n" (mapAttrsToList (n: v: "${n}=${v}") value));
+  # create an env-file that can be sourced to set environment variables
+  envToList = env: lib.mapAttrsToList (name: value: "${name}=${toString value}") env;
 
-  # loop over an attrSet and merge the attrSets returned from f into one (latter override the former in case of conflict)
+  # loop over an attrSet and merge the attrSets returned from f into one
+  # (latter override the former in case of conflict)
   mergeAttrs =
     f: attrs:
-    foldlAttrs (
+    lib.foldlAttrs (
       acc: name: value:
-      (recursiveUpdate acc (f name value))
+      (lib.recursiveUpdate acc (f name value))
     ) { } attrs;
 }

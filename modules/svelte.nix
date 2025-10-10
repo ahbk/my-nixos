@@ -3,6 +3,7 @@
   host,
   inputs,
   lib,
+  lib',
   pkgs,
   ids,
   ...
@@ -20,11 +21,8 @@ let
     types
     ;
 
-  lib' = (import ../lib.nix) { inherit lib pkgs; };
   cfg = config.my-nixos.svelte;
-
   eachSite = filterAttrs (hostname: cfg: cfg.enable) cfg.sites;
-  envToList = env: lib.mapAttrsToList (name: value: "${name}=${toString value}") env;
 
   siteOpts =
     { name, config, ... }:
@@ -121,7 +119,7 @@ in
         description = "serve ${cfg.appname}-svelte";
         serviceConfig = {
           ExecStart = "${pkgs.nodejs_20}/bin/node ${sveltePkgs cfg.appname}/build";
-          Environment = envToList envs.${cfg.appname};
+          Environment = lib'.envToList envs.${cfg.appname};
           User = "${cfg.appname}-svelte";
           Group = "${cfg.appname}-svelte";
         };
