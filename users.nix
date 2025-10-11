@@ -15,10 +15,7 @@
     enable = true;
     name = "Alexander Holmbäck";
     uid = 1001;
-    groups = [
-      "wheel"
-      "nginx"
-    ];
+    groups = [ "wheel" ];
     keys = [ ./public-keys/user-alex-ssh-key.pub ];
     email = "alex@kompismoln.se";
     aliases = [
@@ -29,25 +26,25 @@
 
   johanna = {
     enable = true;
-    groups = [ "nextcloud-kompismoln" ];
-    uid = 1102;
     name = "Johanna Landberg";
+    groups = [ ];
+    uid = 1102;
     email = "landberg@gmail.com";
   };
 
   ludvig = {
     enable = true;
-    groups = [ "mobilizon" ];
-    uid = 1103;
     name = "ludvig";
+    groups = [ ];
+    uid = 1103;
     email = "ludvig.janiuk@proton.me";
   };
 
   ami = {
     enable = true;
+    name = "ami";
     groups = [ ];
     uid = 1104;
-    name = "ami";
     email = "gunami59@gmail.com";
   };
 }

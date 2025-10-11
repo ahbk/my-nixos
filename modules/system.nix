@@ -2,7 +2,6 @@
   config,
   host,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -25,17 +24,6 @@ in
       i18n.defaultLocale = "en_US.UTF-8";
       system.stateVersion = host.stateVersion;
       networking.hostName = host.name;
-      security.sudo.extraRules = [
-        {
-          users = [ "admin" ];
-          commands = [
-            {
-              command = "${pkgs.systemd}/bin/journalctl *";
-              options = [ "NOPASSWD" ];
-            }
-          ];
-        }
-      ];
     }
 
     (mkIf (cfg.rescueMode) {

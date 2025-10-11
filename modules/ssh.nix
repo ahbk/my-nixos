@@ -18,6 +18,12 @@ in
 
   config = mkIf (cfg.enable) {
 
+    services.fail2ban.jails = {
+      sshd.settings = {
+        filter = "sshd[mode=normal]";
+      };
+    };
+
     #programs.ssh.knownHosts = mapAttrs (host: cfg: {
     #  hostNames = [
     #    "${host}.kompismoln.se"

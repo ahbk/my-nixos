@@ -99,11 +99,5 @@ in
         '') eachUser
       );
     };
-
-    services.fail2ban.jails = {
-      sshd.settings = {
-        filter = "sshd[mode=normal]";
-      };
-    };
   };
 }
