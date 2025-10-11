@@ -1,13 +1,17 @@
-{ pkgs, users, ... }:
+{ pkgs, ... }:
 {
 
   imports = [
     ./hardware-configuration.nix
   ];
 
-  my-nixos = {
-    users = with users; {
-      inherit alex johanna;
+  my-nixos.users = {
+    johanna = {
+      class = "user";
+    };
+    admin = {
+      class = "user";
+      groups = [ "wheel" ];
     };
   };
 

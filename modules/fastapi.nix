@@ -176,14 +176,10 @@ in
       };
     }) eachSite;
 
-    my-nixos.backup.km.local.paths = flatten (
-      mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
-    );
-
-    system.activationScripts = mapAttrs (name: cfg: {
-      text = ''
-        ${pkgs.systemd}/bin/systemctl start ${cfg.appname}-fastapi-migrate
-      '';
-    }) eachSite;
+    #system.activationScripts = mapAttrs (name: cfg: {
+    #  text = ''
+    #    ${pkgs.systemd}/bin/systemctl start ${cfg.appname}-fastapi-migrate
+    #  '';
+    #}) eachSite;
   };
 }

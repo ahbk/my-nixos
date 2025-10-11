@@ -162,10 +162,6 @@ in
       ]) eachSite
     );
 
-    services.restic.backups.km.paths = flatten (
-      mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
-    );
-
     systemd.services = lib'.mergeAttrs (name: cfg: {
       "${cfg.appname}-pgsql-dump" = {
         description = "dump a snapshot of the postgresql database";

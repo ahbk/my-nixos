@@ -1,9 +1,10 @@
 {
   config,
   host,
+  ids,
   inputs,
   lib,
-  users,
+
   ...
 }:
 
@@ -51,7 +52,7 @@ in
         my-nixos-hm.user = {
           enable = config.my-nixos.hm.${user}.enable;
           name = user;
-          uid = users.${user}.uid;
+          uid = ids.${user}.uid;
         };
       }) eachUser;
     };

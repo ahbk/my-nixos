@@ -1,7 +1,7 @@
 {
   config,
   ids,
-  users,
+  org,
   ...
 }:
 {
@@ -77,8 +77,13 @@
     reverse-tunnel.enable = true;
     egress-proxy.enable = true;
 
-    users = with users; {
-      inherit admin alex;
+    users.admin = {
+      class = "user";
+      groups = [ "wheel" ];
+    };
+
+    users.alex = {
+      class = "user";
     };
 
     dns-hints = {
@@ -88,22 +93,26 @@
 
     nginx = {
       enable = true;
-      email = users.admin.email;
-    };
-
-    backup.km = {
-      enable = true;
-      target = "stationary.km";
+      email = config.my-nixos.users.admin.email;
     };
 
     mailserver = {
       enable = true;
-      domain = "kompismoln.se";
+      domain = org.domain;
       dkimSelector = "k1";
 
       users = {
-        admin = { };
-        alex = { };
+        admin = {
+          aliases = [
+            "postmaster@kompismoln.se"
+          ];
+        };
+        alex = {
+          aliases = [
+            "alex@ahbk.se"
+            "alex@klimatkalendern.nu"
+          ];
+        };
       };
 
       domains = {

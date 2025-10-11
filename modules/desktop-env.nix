@@ -51,9 +51,9 @@ in
       ];
     }) eachUser;
 
-    my-nixos.backup.km.paths = flatten (
-      mapAttrsToList (user: cfg: [ "/home/${user}/.local/share/qutebrowser/history.sqlite" ]) eachUser
-    );
+    #my-nixos.backup.km.paths = flatten (
+    #  mapAttrsToList (user: cfg: [ "/home/${user}/.local/share/qutebrowser/history.sqlite" ]) eachUser
+    #);
 
     fonts.packages = with pkgs; [
       source-code-pro

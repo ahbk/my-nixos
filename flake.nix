@@ -35,9 +35,6 @@
     kompismoln-site.url = "git+ssh://git@github.com/Kompismoln/website";
     kompismoln-site.inputs.nixpkgs.follows = "nixpkgs";
 
-    sysctl-user-portal.url = "git+ssh://git@github.com/PelleHanspers/sysctl_userportal";
-    sysctl-user-portal.inputs.nixpkgs.follows = "nixpkgs";
-
     klimatkalendern.url = "github:Kompismoln/klimatkalendern";
     klimatkalendern.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -59,9 +56,9 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
       ids = import ./ids.nix;
-      users = import ./users.nix;
       hosts = import ./hosts/index.nix;
       subnets = import ./subnets.nix;
+      org = import ./org.nix;
       lib' = (import ./lib.nix) nixpkgs.lib;
     in
     {
@@ -91,9 +88,9 @@
               inputs
               hosts
               ids
-              users
               subnets
               lib'
+              org
               ;
           };
           modules = [

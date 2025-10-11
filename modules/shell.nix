@@ -9,10 +9,8 @@
 let
   inherit (lib)
     filterAttrs
-    flatten
     hasAttr
     mapAttrs
-    mapAttrsToList
     mkEnableOption
     mkIf
     mkOption
@@ -43,10 +41,6 @@ in
     };
 
   config = mkIf (eachUser != { }) {
-
-    my-nixos.backup.km.paths = flatten (
-      mapAttrsToList (user: cfg: [ "/home/${user}/.bash_history" ]) eachUser
-    );
 
     home-manager.users = mapAttrs (user: cfg: { my-nixos-hm.shell.enable = true; }) eachHMUser;
 

@@ -19,8 +19,6 @@ let
       {
         my-nixos.tls-certs = [ "km" ];
       }
-      ../modules/backup.nix
-      ../modules/backup-server.nix
       ../modules/fail2ban.nix
       ../modules/sendmail.nix
       ../modules/sops.nix

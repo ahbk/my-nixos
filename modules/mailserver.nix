@@ -50,6 +50,11 @@ in
             type = listOf str;
             default = [ ];
           };
+          aliases = mkOption {
+            description = "Make the user recipient of alternative emails";
+            type = listOf str;
+            default = [ ];
+          };
         };
       });
     };
@@ -147,7 +152,7 @@ in
             value = {
               inherit (userCfg) catchAll;
               hashedPasswordFile = config.sops.secrets."${user}/mail-sha512".path;
-              aliases = config.my-nixos.users.${user}.aliases;
+              aliases = userCfg.aliases;
             };
           }) cfg.users)
           {

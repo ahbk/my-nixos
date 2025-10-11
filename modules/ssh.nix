@@ -1,6 +1,6 @@
+# modules/ssh.nix
 {
   config,
-  hosts,
   lib,
   ...
 }:
@@ -24,6 +24,12 @@ in
       };
     };
 
+    services.openssh.extraConfig = ''
+      Match User *
+        PasswordAuthentication no
+        ChallengeResponseAuthentication no
+        KbdInteractiveAuthentication no
+    '';
     #programs.ssh.knownHosts = mapAttrs (host: cfg: {
     #  hostNames = [
     #    "${host}.kompismoln.se"

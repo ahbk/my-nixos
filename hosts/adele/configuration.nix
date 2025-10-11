@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  users,
   pkgs,
   ...
 }:
@@ -98,13 +97,17 @@
       ];
     };
 
-    users = with users; {
-      inherit admin ami;
+    users = {
+      admin = {
+        class = "user";
+        groups = [ "wheel" ];
+      };
+      ami = {
+        class = "user";
+      };
     };
 
-    shell.admin.enable = true;
     shell.ami.enable = true;
-
     hm.ami.enable = true;
   };
 }

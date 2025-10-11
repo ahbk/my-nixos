@@ -1,3 +1,4 @@
+# ids.nix
 {
   klimatkalendern = {
     uid = 700;
@@ -76,5 +77,20 @@
   egress-proxy = {
     uid = 613;
     port = 2613;
+  };
+  admin = {
+    uid = 1000;
+  };
+  alex = {
+    uid = 1001;
+  };
+  johanna = {
+    uid = 1102;
+  };
+  ludvig = {
+    uid = 1103;
+  };
+  ami = {
+    uid = 1104;
   };
 }

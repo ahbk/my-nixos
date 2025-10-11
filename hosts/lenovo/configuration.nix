@@ -1,6 +1,5 @@
 {
   config,
-  users,
   ...
 }:
 {
@@ -64,13 +63,16 @@
       luksDevice = "/dev/sda3";
     };
 
-    backup.km = {
-      enable = true;
-      target = "backup.km";
-    };
-
-    users = with users; {
-      inherit admin alex;
+    users = {
+      admin = {
+        class = "user";
+        groups = [ "wheel" ];
+      };
+      alex = {
+        description = "Alexander Holmbäck";
+        class = "user";
+        groups = [ "wheel" ];
+      };
     };
 
     shell.admin.enable = true;

@@ -10,7 +10,6 @@
 let
   inherit (lib)
     filterAttrs
-    flatten
     getExe
     mapAttrs'
     mapAttrsToList
@@ -268,10 +267,6 @@ in
         };
       };
     }) eachSite;
-
-    services.restic.backups.km.paths = flatten (
-      mapAttrsToList (name: cfg: [ (stateDir cfg.appname) ]) eachSite
-    );
 
     systemd.timers = lib'.mergeAttrs (name: cfg: {
       "${cfg.appname}-mysql-dump" = {

@@ -41,7 +41,8 @@ in
     home-manager.users = mapAttrs (user: cfg: {
       my-nixos-hm.ide = {
         enable = true;
-        inherit (config.my-nixos.users.${user}) name email;
+        name = config.my-nixos.users.${user}.description;
+        inherit (config.my-nixos.users.${user}) email;
       };
     }) eachHMUser;
 

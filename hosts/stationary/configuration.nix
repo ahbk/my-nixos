@@ -1,6 +1,6 @@
 {
   ids,
-  users,
+  config,
   ...
 }:
 {
@@ -49,37 +49,12 @@
     };
   };
 
-  services.nfs.server = {
-    enable = true;
-    exports = ''
-      /mnt/t1 10.0.0.2(rw,no_root_squash,async)
-      /mnt/t1/alex 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-      /mnt/t1/johanna 10.0.0.3(rw,no_root_squash,async) 10.0.0.6(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-
-      /mnt/t1/chris 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-      /mnt/t1/john 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-      /mnt/t1/media 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-      /mnt/t1/petra 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-      /mnt/t1/rigmor 10.0.0.3(rw,no_root_squash,async) 10.0.0.7(rw,no_root_squash,async)
-    '';
-  };
-
-  users.users.nextcloud-kompismoln = {
-    uid = 978;
-    isSystemUser = true;
-    group = "nextcloud-kompismoln";
-  };
-  users.groups.nextcloud-kompismoln.gid = 978;
-
-  users.users.jellyfin = {
-    uid = 970;
-    isSystemUser = true;
-    group = "jellyfin";
-  };
-  users.groups.jellyfin.gid = 970;
-
   my-nixos = {
-    users.admin = users.admin;
+    users.admin = {
+      class = "user";
+      passwd = true;
+      groups = [ "wheel" ];
+    };
     sysadm.rescueMode = true;
     ssh.enable = true;
     sops.enable = true;
@@ -96,17 +71,6 @@
       luksDevice = "/dev/null";
     };
 
-    backup-server.enable = true;
-
-    backup.km = {
-      enable = true;
-      target = "backup.km";
-    };
-
-    tls-certs = [ "km" ];
-
-    monitor.enable = false;
-
     glesys.updaterecord = {
       enable = true;
       recordid = "3357682";
@@ -114,19 +78,12 @@
       device = "enp3s0";
     };
 
-    fail2ban = {
-      enable = true;
-      ignoreIP = [
-        "10.0.0.0/24"
-      ];
-    };
+    fail2ban.enable = true;
 
     nginx = {
       enable = true;
-      email = users.admin.email;
+      email = config.my-nixos.users.admin.email;
     };
-
-    #wordpress.sites."esse_test" = (import ../../sites.nix)."esse_test";
 
     mobilizon.sites."klimatkalendern-dev" = {
       enable = true;
