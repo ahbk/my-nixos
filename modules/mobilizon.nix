@@ -203,7 +203,7 @@ in
       name: cfg:
       let
         inherit (cfg.containerConf.services.mobilizon) package;
-        proxyPass = "http://localhost:${toString cfg.port}";
+        proxyPass = "http://127.0.0.1:${toString cfg.port}";
         serverName = if cfg.www == "yes" then "www.${cfg.hostname}" else cfg.hostname;
         serverNameRedirect = if cfg.www == "yes" then cfg.hostname else "www.${cfg.hostname}";
       in
