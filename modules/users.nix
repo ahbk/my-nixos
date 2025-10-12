@@ -65,7 +65,7 @@ in
       user: userCfg:
       lib.nameValuePair "${user}/passwd-sha512" {
         neededForUsers = true;
-        sopsFile = ../enc/user-${user}.yaml;
+        sopsFile = ../enc/${userCfg.class}-${user}.yaml;
       }
     ) (lib.filterAttrs (user: userCfg: userCfg.passwd) eachUser);
 

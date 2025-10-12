@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  ids,
   pkgs,
   ...
 }:
@@ -45,19 +44,9 @@ in
 
   config = mkIf (cfg.enable) {
     environment.systemPackages = [ locksmithPkg ];
-    users.users.locksmith = {
-      isSystemUser = true;
-      shell = pkgs.bash;
-
-      openssh.authorizedKeys.keyFiles = [
-        ../public-keys/service-locksmith-ssh-key.pub
-      ];
-      uid = ids.locksmith.uid;
-      group = "locksmith";
-    };
-
-    users.groups.locksmith = {
-      gid = ids.locksmith.uid;
+    my-nixos.users.locksmith = {
+      class = "service";
+      shell = true;
     };
 
     services.openssh = {

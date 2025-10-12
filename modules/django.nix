@@ -143,14 +143,13 @@ in
       enable = true;
     }) eachCelery;
 
-    users = lib'.mergeAttrs (name: cfg: {
-      users."${cfg.appname}-django" = {
-        isSystemUser = true;
-        uid = ids."${cfg.appname}-django".uid;
-        group = "${cfg.appname}-django";
-      };
-      groups."${cfg.appname}-django".gid = ids."${cfg.appname}-django".uid;
-    }) eachSite;
+    my-nixos.users = lib.mapAttrs' (
+      name: cfg:
+      lib.nameValuePair "${cfg.appname}-django" {
+        class = "service";
+        publicKey = false;
+      }
+    ) eachSite;
 
     my-nixos.postgresql = mapAttrs' (
       name: cfg: nameValuePair "${name}-django" { ensure = true; }

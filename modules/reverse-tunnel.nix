@@ -3,7 +3,6 @@
   config,
   lib,
   ids,
-  pkgs,
   ...
 }:
 let
@@ -20,24 +19,9 @@ in
   };
 
   config = mkIf (cfg.enable) {
-    sops.secrets."reverse-tunnel/passwd-sha512" = {
-      neededForUsers = true;
-      sopsFile = ../enc/service-reverse-tunnel.yaml;
-    };
-
-    users.users.reverse-tunnel = {
-      isSystemUser = true;
-      shell = pkgs.shadow;
-      hashedPasswordFile = config.sops.secrets."reverse-tunnel/passwd-sha512".path;
-      openssh.authorizedKeys.keyFiles = [
-        ../public-keys/service-reverse-tunnel-ssh-key.pub
-      ];
-      uid = ids.reverse-tunnel.uid;
-      group = "reverse-tunnel";
-    };
-
-    users.groups.reverse-tunnel = {
-      gid = ids.reverse-tunnel.uid;
+    my-nixos.users.reverse-tunnel = {
+      class = "service";
+      passwd = true;
     };
 
     networking.firewall.allowedTCPPorts = [

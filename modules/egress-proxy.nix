@@ -2,8 +2,6 @@
 {
   config,
   lib,
-  pkgs,
-  ids,
   ...
 }:
 let
@@ -16,18 +14,8 @@ in
   };
 
   config = mkIf (cfg.enable) {
-    users.users.egress-proxy = {
-      isSystemUser = true;
-      uid = ids.egress-proxy.uid;
-      shell = pkgs.bashInteractive;
-      openssh.authorizedKeys.keyFiles = [
-        ../public-keys/service-egress-proxy-ssh-key.pub
-      ];
-      group = "egress-proxy";
-    };
-
-    users.groups.egress-proxy = {
-      gid = ids.egress-proxy.uid;
+    my-nixos.users.egress-proxy = {
+      class = "service";
     };
 
     services.openssh.extraConfig = ''

@@ -90,16 +90,13 @@ in
   };
 
   config = mkIf (eachSite != { }) {
-    users = lib'.mergeAttrs (name: cfg: {
-      users."${cfg.appname}-svelte" = {
-        isSystemUser = true;
-        uid = ids."${cfg.appname}-svelte".uid;
-        group = "${cfg.appname}-svelte";
-      };
-      groups."${cfg.appname}-svelte" = {
-        gid = ids."${cfg.appname}-svelte".uid;
-      };
-    }) eachSite;
+    my-nixos.users = lib.mapAttrs' (
+      name: cfg:
+      lib.nameValuePair "${cfg.appname}-svelte" {
+        class = "service";
+        publicKey = false;
+      }
+    ) eachSite;
 
     services.nginx.virtualHosts = mapAttrs' (
       name: cfg:
@@ -108,7 +105,7 @@ in
         enableACME = cfg.ssl;
         locations."${cfg.location}" = {
           recommendedProxySettings = true;
-          proxyPass = "http://localhost:${toString cfg.port}";
+          proxyPass = "http://127.0.0.1:${toString cfg.port}";
         };
       }
     ) eachSite;

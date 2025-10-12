@@ -1,7 +1,6 @@
 # modules/nix.nix
 {
   config,
-  ids,
   inputs,
   lib,
   pkgs,
@@ -47,6 +46,7 @@ in
       default = "http://stationary.km:5000";
     };
   };
+
   config = lib.mkMerge [
     (lib.mkIf cfg.serveStore {
       sops.secrets.nix-cache-key = { };
@@ -110,51 +110,20 @@ in
         "nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
       };
 
-      users.users.nix-build = {
-        isSystemUser = true;
-        shell = pkgs.bash;
-        home = "/var/lib/nix-build";
-        createHome = true;
-
-        openssh.authorizedKeys.keyFiles = [
-          ../public-keys/service-nix-build-ssh-key.pub
-        ];
-        uid = ids.nix-build.uid;
-        group = "nix-build";
+      my-nixos.users.nix-build = {
+        class = "service";
+        shell = true;
+        home = true;
       };
 
-      users.groups.nix-build = {
-        gid = ids.nix-build.uid;
+      my-nixos.users.nix-switch = {
+        class = "service";
+        shell = true;
       };
 
-      users.users.nix-switch = {
-        isSystemUser = true;
-        shell = pkgs.bash;
-
-        openssh.authorizedKeys.keyFiles = [
-          ../public-keys/service-nix-switch-ssh-key.pub
-        ];
-        uid = ids.nix-switch.uid;
-        group = "nix-switch";
-      };
-
-      users.groups.nix-switch = {
-        gid = ids.nix-switch.uid;
-      };
-
-      users.users.nix-push = {
-        isSystemUser = true;
-        shell = pkgs.bash;
-
-        openssh.authorizedKeys.keyFiles = [
-          ../public-keys/service-nix-push-ssh-key.pub
-        ];
-        uid = ids.nix-push.uid;
-        group = "nix-push";
-      };
-
-      users.groups.nix-push = {
-        gid = ids.nix-push.uid;
+      my-nixos.users.nix-push = {
+        class = "service";
+        shell = true;
       };
 
       services.openssh = {

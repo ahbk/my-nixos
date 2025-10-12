@@ -94,13 +94,13 @@ in
       };
     }) eachSite;
 
-    users = lib'.mergeAttrs (name: cfg: {
-      users.${cfg.appname} = {
-        isSystemUser = true;
-        group = cfg.appname;
-      };
-      groups.${cfg.appname} = { };
-    }) eachSite;
+    my-nixos.users = lib.mapAttrs' (
+      name: cfg:
+      lib.nameValuePair "${cfg.appname}-fastapi" {
+        class = "service";
+        publicKey = false;
+      }
+    ) eachSite;
 
     my-nixos.postgresql = mapAttrs (name: cfg: { ensure = true; }) eachSite;
 

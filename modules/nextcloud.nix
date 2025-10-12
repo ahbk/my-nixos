@@ -96,22 +96,16 @@ in
       ) cfg.mounts
     ) eachSite;
 
-    users = lib'.mergeAttrs (name: cfg: {
-      users.${cfg.appname} = {
-        name = cfg.appname;
-        uid = cfg.uid;
-        isSystemUser = true;
-        group = cfg.appname;
-      };
-      groups.${cfg.appname} = {
-        name = cfg.appname;
-        gid = cfg.uid;
-        members = [
-          cfg.appname
+    my-nixos.users = lib.mapAttrs' (
+      name: cfg:
+      lib.nameValuePair "${cfg.appname}" {
+        class = "service";
+        publicKey = false;
+        groups = [
           webserver.user
         ];
-      };
-    }) eachSite;
+      }
+    ) eachSite;
 
     my-nixos.preserve.directories = mapAttrsToList (name: cfg: {
       directory = stateDir cfg.appname;

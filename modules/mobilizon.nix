@@ -24,7 +24,6 @@ let
     ;
 
   cfg = config.my-nixos.mobilizon;
-  webserver = config.services.nginx;
   settingsFormat = pkgs.formats.elixirConf { elixir = cfg.package.elixirPackage; };
 
   eachSite = filterAttrs (name: cfg: cfg.enable) cfg.sites;
@@ -140,20 +139,13 @@ in
       group = cfg.appname;
     }) eachSite;
 
-    users = lib'.mergeAttrs (name: cfg: {
-      users.${cfg.appname} = {
-        uid = cfg.uid;
-        isSystemUser = true;
-        group = cfg.appname;
-      };
-      groups.${cfg.appname} = {
-        gid = cfg.uid;
-        members = [
-          cfg.appname
-          webserver.user
-        ];
-      };
-    }) eachSite;
+    my-nixos.users = lib.mapAttrs' (
+      name: cfg:
+      lib.nameValuePair cfg.appname {
+        class = "service";
+        publicKey = false;
+      }
+    ) eachSite;
 
     systemd.tmpfiles.rules = flatten (
       mapAttrsToList (name: cfg: [

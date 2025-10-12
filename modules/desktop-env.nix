@@ -8,11 +8,9 @@
 let
   inherit (lib)
     filterAttrs
-    flatten
     hasAttr
     types
     mapAttrs
-    mapAttrsToList
     mkEnableOption
     mkIf
     mkOption

@@ -1,6 +1,5 @@
 {
   config,
-  ids,
   lib,
   lib',
   pkgs,
@@ -106,20 +105,16 @@ in
       enable = true;
     }) eachSite;
 
-    users = lib'.mergeAttrs (name: cfg: {
-      users.${cfg.appname} = {
-        uid = ids.${cfg.appname}.uid;
-        isSystemUser = true;
-        group = cfg.appname;
-      };
-      groups.${cfg.appname} = {
-        gid = ids.${cfg.appname}.uid;
-        members = [
-          cfg.appname
+    my-nixos.users = lib.mapAttrs' (
+      name: cfg:
+      lib.nameValuePair "${cfg.appname}" {
+        class = "service";
+        publicKey = false;
+        groups = [
           webserver.group
         ];
-      };
-    }) eachSite;
+      }
+    ) eachSite;
 
     services.nginx.virtualHosts = lib'.mergeAttrs (
       name: cfg:

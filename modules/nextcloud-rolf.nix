@@ -11,7 +11,6 @@
 let
   inherit (lib)
     filterAttrs
-    flatten
     mapAttrs
     mapAttrsToList
     mapAttrs'
