@@ -99,7 +99,8 @@ let
         };
         port = mkOption {
           description = "Port to serve on";
-          type = types.port;
+          type = lib.types.port;
+          default = lib'.ids.${config.appname}.port;
         };
         hostname = mkOption {
           description = "Namespace identifying the service externally on the network";
@@ -112,6 +113,7 @@ let
         uid = mkOption {
           description = "Userid is required to map user in container";
           type = types.int;
+          default = lib'.ids.${config.appname}.uid;
         };
         containerConf = mkOption {
           description = "The configuration passed to the mobilizon container";
@@ -198,7 +200,7 @@ in
       {
         ${serverNameRedirect} = mkIf (cfg.www != "no") {
           forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificate = mkIf cfg.subnet ../public-keys/service-domain-km-tls-cert.pem;
           sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
           enableACME = cfg.ssl && !cfg.subnet;
           extraConfig = ''
@@ -208,7 +210,7 @@ in
 
         ${serverName} = {
           forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificate = mkIf cfg.subnet ../public-keys/service-domain-km-tls-cert.pem;
           sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
           enableACME = cfg.ssl && !cfg.subnet;
 

@@ -1,0 +1,162 @@
+# tools/test/org.toml
+name = "Testorg"
+domain = "example.com"
+timezone = "Europe/Stockholm"
+locale = "en_US.UTF-8"
+namespaces = [
+  "local",
+]
+build-hosts = [
+  "testhost",
+]
+root-identities = [
+  "root-1",
+  "root-2",
+]
+
+[public-artifacts]
+default = "artifacts/$class-$entity-$key.pub"
+tls-cert = "artifacts/$class-$entity-$key.pem"
+
+[secrets]
+default = "enc/$class-$entity.yaml"
+root = "keys/$class-$entity"
+
+[class.root]
+keys = [
+  "age-key",
+]
+
+[class.host]
+keys = [
+  "age-key",
+  "ssh-key",
+  "wg0-key",
+  "wg1-key",
+  "wg2-key",
+  "luks-key",
+  "nix-cache-key",
+]
+
+[class.service]
+keys = [
+  "age-key",
+  "ssh-key",
+  "mail",
+  "passwd",
+  "secret-key",
+  "tls-cert",
+]
+
+[class.user]
+keys = [
+  "age-key",
+  "ssh-key",
+  "mail",
+  "passwd",
+]
+
+[ops.rebuild]
+"*" = [
+  "rebuild:age-key",
+]
+
+[ops.check]
+"host:luks+server" = [
+  "check:luks-key",
+]
+"host:server" = [
+  "check:age-key",
+  "check:ssh-key",
+]
+"host-lenovo" = [
+  "check:age-key",
+  "check:ssh-key",
+]
+
+[ops.verify]
+"*" = [
+  "verify:age-key",
+]
+"user-*" = [
+  "verify:ssh-key",
+  "verify:passwd",
+  "verify:mail",
+]
+"host-*" = [
+  "verify:wg-key",
+]
+"service-*" = [
+  "verify:ssh-key",
+  "verify:tls-cert",
+  "verify:passwd",
+  "verify:mail",
+]
+"host-stationary" = [
+  "verify:nix-cache-key",
+]
+
+[user.testuser]
+grants = [
+  "host-testhost",
+]
+
+[user.testadmin]
+grants = [
+  "host-*",
+]
+
+[service.testservice]
+grants = [
+  "host-*",
+]
+
+[service.sysctl-user-portal]
+grants = [
+  "host-*",
+]
+
+[service.locksmith]
+grants = [
+  "host-*",
+]
+
+[service.domain-local]
+grants = [
+  "host-*",
+]
+
+[root.1]
+
+[host.testhost]
+id = 1
+roles = ["testrole"]
+endpoint = "stationary.kompismoln.se"
+subnets = [
+  "wg0",
+  "wg1",
+]
+
+[host.lorem]
+id = 2
+roles = [
+  "testrole",
+  "lorem",
+]
+subnets = [
+  "wg0",
+]
+system = "x86_64-linux"
+stateVersion = "20.03"
+
+[subnet.test0]
+enable = true
+address = "10.0.0.0/24"
+port = 51820
+keepalive = 25
+gateway = "helsinki"
+namespace = "km"
+dns = ["helsinki"]
+resetOnRebuild = true
+peerAddress = "10.0.0.x"
+allowedTCPPortRanges = [{ from = 0, to = 65535 }]

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  org,
   pkgs,
   ...
 }:
@@ -13,7 +14,7 @@ let
     substring
     ;
 
-  inherit (import ../theme.nix) colors fonts;
+  inherit (org.theme) colors fonts;
   unhashedHexes = lib.mapAttrs (n: c: substring 1 6 c) colors;
   cfg = config.my-nixos-hm.desktop-env;
 in
@@ -42,7 +43,7 @@ in
     ];
 
     home.file.wallpaper = {
-      source = ../wallpaper.jpg;
+      source = ../assets/wallpaper.jpg;
       target = ".config/hypr/wallpaper.jpg";
     };
 

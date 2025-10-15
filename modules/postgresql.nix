@@ -1,4 +1,5 @@
 {
+  options,
   config,
   lib,
   pkgs,
@@ -10,7 +11,6 @@ let
     filterAttrs
     mapAttrsToList
     mkDefault
-    mkIf
     mkOption
     types
     ;
@@ -46,31 +46,27 @@ in
     description = "Specification of one or more postgresql user/database pair to setup";
   };
 
-  config = mkIf (eachCfg != { }) {
-    preservation.preserveAt."/srv/database" = {
-      directories = [
-        {
-          directory = "/var/lib/postgresql";
-          user = "postgres";
-          group = "postgres";
-        }
-      ];
-    };
-    services = {
-      postgresql = {
-        extensions =
-          ps: with ps; [
-            postgis
-            pg_repack
-          ];
-        enable = true;
-        package = pkgs.postgresql_17;
-        ensureDatabases = mapAttrsToList (user: cfg: cfg.name) eachCfg;
-        ensureUsers = mapAttrsToList (user: cfg: {
-          name = cfg.name;
-          ensureDBOwnership = true;
-        }) eachCfg;
-      };
+  config = lib.mkIf (eachCfg != { }) {
+    my-nixos.preserve.databases = [
+      {
+        directory = "/var/lib/postgresql";
+        user = "postgres";
+        group = "postgres";
+      }
+    ];
+    services.postgresql = {
+      extensions =
+        ps: with ps; [
+          postgis
+          pg_repack
+        ];
+      enable = true;
+      package = pkgs.postgresql_17;
+      ensureDatabases = mapAttrsToList (user: cfg: cfg.name) eachCfg;
+      ensureUsers = mapAttrsToList (user: cfg: {
+        name = cfg.name;
+        ensureDBOwnership = true;
+      }) eachCfg;
     };
   };
 }

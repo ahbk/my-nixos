@@ -5,7 +5,6 @@
   lib,
   lib',
   pkgs,
-  ids,
   ...
 }:
 
@@ -36,7 +35,7 @@ let
         };
         port = mkOption {
           description = "Port to serve the application.";
-          default = ids."${config.appname}-svelte".port;
+          default = lib'.ids."${config.appname}-svelte".port;
           type = port;
         };
         ssl = mkOption {

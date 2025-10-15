@@ -10,23 +10,11 @@ set -euo pipefail
 declare -x act_as entity prefix class key
 declare -g slot
 
-declare -rA allowed_keys=(
-    ["root"]="age-key"
-    ["host"]="age-key ssh-key wg0-key wg1-key wg2-key luks-key nix-cache-key"
-    ["service"]="age-key ssh-key mail passwd secret-key"
-    ["user"]="age-key ssh-key passwd mail"
-    ["domain"]="age-key tls-cert"
-)
-
 km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 
 # import run, with, log/try/die etc.
 # shellcheck source=../libexec/run-with.bash
 . "$km_root/libexec/run-with.bash"
-
-# import upsert-identity, read-setting etc.
-# shellcheck source=../libexec/sops-yaml.sh
-. "$km_root/libexec/sops-yaml.sh"
 
 main() {
     # setup prefix, class, key etc.
@@ -49,12 +37,6 @@ main() {
     sync && log success "$prefix $key for $id completed."
 }
 
-# run-with.bash requires context() to be implemented,
-# but it is not used in this script, hence the no-op.
-context() {
-    :
-}
-
 # generate a sequence of functions for `run` to try
 callchain() {
     # strip everything from the first colon
@@ -74,14 +56,13 @@ setup() {
     -r | --root) class="root" ;;
     -h | --host) class="host" ;;
     -u | --user) class="user" ;;
-    -d | --domain) class="domain" ;;
     -s | --service) class="service" ;;
     -H | --help)
         less "$km_root/share/doc/id-entities-usage.txt"
         exit 0
         ;;
     *)
-        if IFS='-' read -r class entity < <(autocomplete-identity "$1"); then
+        if IFS='-' read -r class entity < <(org-toml.sh autocomplete-identity "$1"); then
             shift
             set -- "$entity" "$@"
             set -- "$class" "$@"
@@ -97,7 +78,7 @@ setup() {
     slot=${5:-0}
 
     preflight-input
-    preflight-sops-yaml
+    preflight-org-toml
     preflight-backend
     preflight-act-as
 }
@@ -106,19 +87,12 @@ preflight-input() {
     links-by-prefix "$prefix" >/dev/null ||
         die 1 "no link matches prefix '$prefix'"
 
-    [[ " ${allowed_keys[$class]} " == *" $key "* ]] ||
-        die 1 "$key not allowed for $class, allowed keys: ${allowed_keys[$class]}"
+    allowed_keys | grep -q "$key" ||
+        die 1 "$key not allowed for $class, allowed keys: $(allowed_keys)"
 }
 
-preflight-sops-yaml() {
-    with id repo_root
-    [[ "$prefix-$id" == "init-root-1" && ! -f "$repo_root/.sops.yaml" ]] && {
-        log important "bootstrap conditions, creating $repo_root/.sops.yaml."
-        create-sops-yaml "$repo_root/.sops.yaml"
-    }
-
-    with sops_config
-    [[ -f "$sops_config" ]] || die 1 "no sops-config at $sops_config"
+preflight-org-toml() {
+    log info "org name: $(org-toml.sh "name")"
 }
 
 preflight-backend() {
@@ -134,11 +108,20 @@ preflight-backend() {
 
 preflight-act-as() {
     with id
+    local _class _entity age_key
     # bootstrap root-1 need not be checked, as it has nothing to be checked against
     [[ "$prefix-$id" != "init-root-1" ]] || return 0
+    IFS='-' read -r _class _entity <<<"${SOPS_AGE_KEY_FILE##*/}"
 
-    act_as=$(age-keygen -y <"$SOPS_AGE_KEY_FILE" | get-identity-by-age-key) ||
-        die 1 "no identity found in '$SOPS_AGE_KEY_FILE'"
+    age_key=$(
+        class=$_class
+        entity=$_entity
+        key="age-key"
+        slot=0
+        run derive-artifact
+    ) || die 1 "no identity found in '$SOPS_AGE_KEY_FILE'"
+
+    act_as="$_class-$_entity $age_key"
 
     log important "$act_as"
 }
@@ -155,10 +138,11 @@ init:root:() {
     run new
 }
 
-# non-root entities require a little dance to insert themselves in .sops.yaml
-# before backend is created (the age-key has to encrypt itself)
+# non-root entities require a little dance to encrypt themselves before backend
+# is created (the age-key has to encrypt itself)
 init:() {
     with id backend_path secret_path secret_seed
+    IFS=' ' read -r act_as_id _ <<<"$act_as"
 
     if [[ -s "$secret_seed" ]]; then
         cat "$secret_seed" >"$secret_path"
@@ -166,8 +150,16 @@ init:() {
         run create-secret >"$secret_path"
     fi
 
-    run derive-artifact | upsert-identity "$id"
-    create-sops-backend "$backend_path"
+    run align
+    mkdir -p "$(dirname "$backend_path")"
+
+    with sops_yaml
+    # shellcheck disable=SC2094
+    # SC believes we're reading from $(backend_file) here, but --filename-override
+    # simply tells sops what creation rule to use, so this is ok.
+    echo "identity: $class-$entity" | (cd "$(dirname "$sops_yaml")" && sops encrypt \
+        --filename-override "$backend_path" \
+        /dev/stdin >"$backend_path")
     run new
 }
 
@@ -180,7 +172,9 @@ new:() {
 # prevent identities from rotating themselves out of access
 new:age-key() {
     with id
-    [[ "$id" != "${act_as:-}" ]] ||
+    [[ -n ${act_as:-} ]] || return 0
+    IFS=' ' read -r act_as_id _ <<<"$act_as"
+    [[ "$id" != "${act_as_id:-}" ]] ||
         die 1 "entities are not allowed to rotate their own identity"
 }
 
@@ -210,7 +204,7 @@ verify:host:ssh-key:() {
     derive-artifact:ssh-key: | try diff - "$get_artifact_"
 }
 
-verify:domain:tls-cert:() {
+verify:service:tls-cert:() {
     with get-artifact: secret_file
 
     try openssl x509 -in "$get_artifact_" -checkend 2592000 | log info
@@ -298,6 +292,10 @@ create-secret:nix-cache-key() {
     with fqdn tmp_path
     nix-store --generate-binary-cache-key "$fqdn" "$tmp_path" "$tmp_path.pub"
     cat "$tmp_path"
+}
+
+create-secret:nix-sign() {
+    nix key generate-secret --key-name "nix-sign"
 }
 
 create-secret:wg0-key() {
@@ -427,6 +425,10 @@ derive-artifact:nix-cache-key:() {
     }
 }
 
+derive-artifact:nix-sign:() {
+    cat-secret: | try nix key convert-secret-to-public
+}
+
 derive-artifact:tls-cert:() {
     run cat-secret | try openssl req -new -x509 -key /dev/stdin \
         -subj "/CN=*.$entity" \
@@ -455,12 +457,6 @@ get-artifact:() {
         die 1 "no artifact at $artifact_path"
 }
 
-get-artifact:age-key() {
-    with artifact_path
-    # the public age-key is stored under .identities in .sops.yaml.
-    get-identity >"$artifact_path"
-}
-
 get-artifact:passwd() {
     with artifact_path
     # create subshell to retreive secret from passwd-sha512 and use as artifact
@@ -487,8 +483,18 @@ set-artifact:() {
 }
 
 set-artifact:age-key:() {
-    with id
-    upsert-identity "$id"
+    local diff=false
+    with tmp_path
+    cat >"$tmp_path"
+
+    (run verify) || diff=true
+
+    with artifact_path
+    cat "$tmp_path" >"$artifact_path"
+
+    if [[ $diff == true ]]; then
+        rebuild:
+    fi
 }
 
 set-artifact:luks-key:() {
@@ -542,14 +548,14 @@ unset:() {
 # --- rebuild:*:*
 
 rebuild:() {
-    try rebuild-creation-rules
     [[ $class != "root" ]] || return 0
 
-    with backend_path
     local rc=0
-    sops updatekeys -y "$backend_path" \
+    with backend_path sops_yaml
+
+    (cd "$(dirname "$sops_yaml")" && sops updatekeys -y "$backend_path" \
         > >(log important) \
-        2> >(grep "synced with" | log info) ||
+        2> >(grep "synced with" | log info)) ||
         rc=$?
 
     case $rc in
@@ -562,7 +568,7 @@ rebuild:() {
 
 next-slot:() {
     local slot=0
-    while (LOG_LEVEL=off run decrypt >/dev/null); do
+    while (LOG_LEVEL=trace run decrypt >/dev/null); do
         ((slot++)) || true
     done
     echo "$slot"
@@ -612,13 +618,19 @@ declare -g \
     secret_file \
     secret_path \
     secret_seed \
+    sops_yaml \
     tmp_path
+
+allowed_keys() {
+    org-toml.sh "class" "$class" "keys"
+}
 
 artifact_path() {
     # secrets that have public keys and other artifacts can store them at a
-    # permanent location specified in .sops.yaml
-    with exact_key
-    LOG_LEVEL=off read-setting "artifact:$key" ||
+    # permanent location specified in org.toml
+    with repo_root
+    echo -n "$repo_root/"
+    CONTEXT="$class:$entity:$key" org-toml.sh "public-artifacts" ||
         echo "$tmpdir/$class.$entity.$exact_key.artifact"
 }
 
@@ -631,11 +643,16 @@ backend_component() {
 
 backend_enabled() {
     with backend_path
-    local enabled rc
-    enabled=$(try sops decrypt --extract "['enable']" "$backend_path")
+    local identity rc
+
+    identity=$(try sops decrypt --extract "['identity']" "$backend_path")
     rc=$?
+
+    [[ $identity == "$class-$entity" ]] ||
+        die 1 "identity $identity don't match $class-$entity"
+
     case $rc in
-    0) echo "$enabled" ;;
+    0) echo true ;;
     100) die 1 "backend file missing for '$entity'" ;;
     *) die $rc "sops could not decrypt '$backend_path'" ;;
     esac
@@ -650,7 +667,7 @@ backend_file() {
 backend_path() {
     with repo_root
     echo -n "$repo_root/"
-    search-setting "backend:$class" "backend"
+    CONTEXT="$class:$entity:$key" org-toml.sh "secrets"
 }
 
 exact_key() {
@@ -661,7 +678,8 @@ exact_key() {
 
 fqdn() {
     [[ $class == "host" ]] || die 1 "only hosts can have fqdn"
-    try read-setting "fqdn"
+    echo -n "$entity."
+    org-toml.sh "namespaces" | head -n1
 }
 
 id() {
@@ -697,6 +715,14 @@ secret_seed() {
         [[ -r ${SECRET_SEED:-} ]] &&
             cat "$SECRET_SEED" >"$f"
     }
+    echo "$f"
+}
+
+sops_yaml() {
+    with id
+    local f="$tmpdir/$id/.sops.yaml"
+    mkdir -p "$(dirname "$f")"
+    org-toml.sh "sops-yaml" "$id" >"$f"
     echo "$f"
 }
 

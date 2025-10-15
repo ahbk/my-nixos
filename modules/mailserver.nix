@@ -3,6 +3,7 @@
   inputs,
   lib,
   lib',
+  org,
   ...
 }:
 
@@ -16,7 +17,6 @@ let
     mkIf
     mkMerge
     mkOption
-    types
     ;
 
   cfg = config.my-nixos.mailserver;
@@ -28,46 +28,58 @@ in
     inputs.nixos-mailserver.nixosModules.default
   ];
 
-  options.my-nixos.mailserver = with types; {
+  options.my-nixos.mailserver = {
     enable = mkEnableOption "mailserver on this host";
     domain = mkOption {
       description = "The domain name of this mailserver.";
-      type = str;
+      type = lib.types.str;
     };
     dkimSelector = mkOption {
       description = "Label for the DKIM key currently in use.";
-      type = str;
+      type = lib.types.str;
     };
     users = mkOption {
       description = "Configure user accounts.";
-      type = attrsOf (submodule {
-        options = {
-          enable = (mkEnableOption "this user") // {
-            default = true;
-          };
-          catchAll = mkOption {
-            description = "Make the user recipient of a whole domain.";
-            type = listOf str;
-            default = [ ];
-          };
-          aliases = mkOption {
-            description = "Make the user recipient of alternative emails";
-            type = listOf str;
-            default = [ ];
-          };
-        };
-      });
+      type = lib.types.attrsOf (
+        lib.types.submodule (
+          { name, ... }:
+          {
+            options = {
+              enable = (mkEnableOption "this user") // {
+                default = true;
+              };
+              email = mkOption {
+                description = "User email";
+                type = lib.types.str;
+                default = "${name}@${org.domain}";
+              };
+              catchAll = mkOption {
+                description = "Make the user recipient of a whole domain.";
+                type = with lib.types; listOf str;
+                default = [ ];
+              };
+              aliases = mkOption {
+                description = "Make the user recipient of alternative emails";
+                type = with lib.types; listOf str;
+                default = [ ];
+              };
+            };
+          }
+        )
+      );
     };
     domains = mkOption {
       description = "List of domains to manage.";
-      type = attrsOf (submodule {
-        options = {
-          mailbox = mkOption {
-            description = "Enable if this host is the domain's final destination.";
-            type = bool;
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            mailbox = mkOption {
+              description = "Enable if this host is the domain's final destination.";
+              type = lib.types.bool;
+            };
           };
-        };
-      });
+        }
+      );
     };
   };
 
@@ -148,11 +160,10 @@ in
 
         loginAccounts = mkMerge [
           (mapAttrs' (user: userCfg: {
-            name = config.my-nixos.users.${user}.email;
+            name = userCfg.email;
             value = {
-              inherit (userCfg) catchAll;
+              inherit (userCfg) catchAll aliases;
               hashedPasswordFile = config.sops.secrets."${user}/mail-sha512".path;
-              aliases = userCfg.aliases;
             };
           }) cfg.users)
           {

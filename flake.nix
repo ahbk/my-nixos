@@ -45,29 +45,26 @@
   outputs =
     { nixpkgs, home-manager, ... }@inputs:
     let
-      inherit (nixpkgs.lib)
-        nixosSystem
-        mapAttrs
-        hasAttr
-        filterAttrs
-        ;
+      inherit (nixpkgs) lib;
       inherit (home-manager.lib) homeManagerConfiguration;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
 
-      ids = import ./ids.nix;
-      hosts = import ./hosts/index.nix;
-      subnets = import ./subnets.nix;
-      org = import ./org.nix;
-      lib' = (import ./lib.nix) nixpkgs.lib;
+      lib' = (import ./lib) nixpkgs.lib;
+
+      org-unwrapped = builtins.fromTOML (builtins.readFile ./org.toml);
+      org = lib.recursiveUpdate org-unwrapped {
+        theme.colors = lib'.semantic-colors org-unwrapped.theme.colors;
+      };
+
     in
     {
-      homeConfigurations = mapAttrs (
+      homeConfigurations = lib.mapAttrs (
         target: cfg:
         homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${cfg.system};
           extraSpecialArgs = {
-            inherit inputs;
+            inherit inputs lib';
           };
           modules = [
             { home.stateVersion = cfg.stateVersion; }
@@ -75,32 +72,31 @@
             { inherit (cfg) my-nixos-hm; }
           ];
         }
-      ) (import ./hm-hosts.nix);
+      ) (import ./hm-modules/hosts.nix);
 
-      nixosConfigurations = mapAttrs (
+      nixosConfigurations = lib.mapAttrs (
         hostname: hostconf:
-        nixosSystem {
+        lib.nixosSystem {
           specialArgs = {
             host = hostconf // {
               name = hostname;
             };
             inherit
               inputs
-              hosts
-              ids
-              subnets
-              lib'
               org
+              lib'
               ;
           };
-          modules = [
-            ./hosts/roles.nix
-          ];
+          modules = map (role: ./roles/${role}.nix) hostconf.roles;
         }
-      ) (filterAttrs (_: cfg: hasAttr "roles" cfg) hosts);
+      ) (lib.filterAttrs (_: cfg: lib.elem "nixos" cfg.roles) org.host);
 
       devShells.${system}.default = pkgs.mkShell {
+        buildInputs = with pkgs; [
+          toml2json
+        ];
         shellHook = ''
+          export SOPS_AGE_KEY_FILE=/keys/root-1
           export BUILD_HOST=./
           PATH=$(pwd)/tools/bin:$PATH
         '';

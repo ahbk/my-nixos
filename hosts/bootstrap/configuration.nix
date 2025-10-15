@@ -41,6 +41,7 @@ in
   };
 
   config = {
+    my-nixos.nix.facter = false;
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
     boot.initrd.compressor = "xz";
     # This is a variant of the upstream kexecScript that also allows embedding

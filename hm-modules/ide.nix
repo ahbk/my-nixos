@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  org,
   pkgs,
   ...
 }:
@@ -13,7 +14,7 @@ let
     mkOption
     ;
 
-  inherit (import ../theme.nix) colors;
+  inherit (org.theme) colors;
   cfg = config.my-nixos-hm.ide;
 
 in
@@ -248,6 +249,7 @@ in
             nixd.enable = true;
             eslint.enable = true;
             bashls.enable = true;
+            tombi.enable = true;
           };
           keymaps = {
             lspBuf = {

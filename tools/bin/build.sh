@@ -6,8 +6,6 @@ set -euo pipefail
 km_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 # shellcheck source=../libexec/run-with.bash
 . "$km_root/libexec/run-with.bash"
-# shellcheck source=../libexec/sops-yaml.sh
-. "$km_root/libexec/sops-yaml.sh"
 
 build() {
     local target=$1

@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  ids,
+  lib',
   ...
 }:
 
@@ -19,7 +19,7 @@ in
     enable = mkEnableOption ''a restic rest server on this host'';
     port = mkOption {
       type = types.port;
-      default = ids.restic.port;
+      default = lib'.ids.restic.port;
     };
   };
   config = mkIf (cfg.enable) {

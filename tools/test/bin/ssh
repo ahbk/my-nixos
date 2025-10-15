@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
-connection_string=$1
-fqdn="${connection_string#*@}"
-shift
+IFS='@' read -r user fqdn <<<"$1"
+IFS='.' read -r host _ <<<"$fqdn"
 
-export LUKS_DEVICE="/dev/null"
-export KEY_FILE=$BATS_TEST_TMPDIR/$fqdn/age-key
-"$testroot/remote/locksmith.sh" "$@"
+case "$user" in
+locksmith)
+	export LUKS_DEVICE="/dev/null"
+	export KEY_FILE=$BATS_TEST_TMPDIR/host-$fqdn/keys/host-$host
+	shift
+	"$TESTROOT/remote/locksmith.sh" "$@"
+	;;
+*)
+	echo "invalid user '$user'" >&2
+	exit 1
+	;;
+esac

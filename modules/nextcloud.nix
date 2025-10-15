@@ -170,7 +170,7 @@ in
       name: cfg:
       nameValuePair cfg.hostname {
         forceSSL = cfg.ssl;
-        sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+        sslCertificate = mkIf cfg.subnet ../public-keys/service-domain-km-tls-cert.pem;
         sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
         enableACME = !cfg.subnet;
         extraConfig = ''

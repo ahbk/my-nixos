@@ -2,7 +2,7 @@
   config,
   lib,
   pkgs,
-  ids,
+  lib',
   ...
 }:
 let
@@ -243,7 +243,7 @@ in
         };
 
         server = {
-          http_listen_port = ids.loki.port;
+          http_listen_port = lib'.ids.loki.port;
           grpc_listen_port = 0;
         };
 
@@ -293,12 +293,8 @@ in
       };
     };
 
-    users.users.loki = {
-      uid = ids.loki.uid;
-      isSystemUser = true;
-      group = "loki";
+    my-nixos.users.loki = {
+      class = "system";
     };
-    users.groups.loki.gid = config.users.users.loki.uid;
-
   };
 }

@@ -1,13 +1,30 @@
 {
-  ids,
-  config,
-  ...
-}:
-{
   imports = [
-    ../../modules/facter.nix
     ../../modules/glesys-updaterecord.nix
   ];
+
+  my-nixos = {
+    sysadm.rescueMode = true;
+
+    dns-hints = {
+      enable = true;
+      subnet = "wg1";
+    };
+
+    glesys.updaterecord = {
+      enable = true;
+      recordid = "3357682";
+      cloudaccount = "cl44748";
+      device = "enp3s0";
+    };
+
+    mobilizon.sites."klimatkalendern-dev" = {
+      enable = true;
+      www = "no";
+      hostname = "klimatkalendern-dev.kompismoln.se";
+      appname = "klimatkalendern-dev";
+    };
+  };
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/7790a226-31aa-44e3-abc5-8e96df673c74";
@@ -49,49 +66,4 @@
     };
   };
 
-  my-nixos = {
-    users.admin = {
-      class = "user";
-      passwd = true;
-      groups = [ "wheel" ];
-    };
-    sysadm.rescueMode = true;
-    ssh.enable = true;
-    sops.enable = true;
-    facter.enable = true;
-    nix.serveStore = true;
-
-    dns-hints = {
-      enable = true;
-      subnet = "wg1";
-    };
-
-    locksmith = {
-      enable = true;
-      luksDevice = "/dev/null";
-    };
-
-    glesys.updaterecord = {
-      enable = true;
-      recordid = "3357682";
-      cloudaccount = "cl44748";
-      device = "enp3s0";
-    };
-
-    fail2ban.enable = true;
-
-    nginx = {
-      enable = true;
-      email = config.my-nixos.users.admin.email;
-    };
-
-    mobilizon.sites."klimatkalendern-dev" = {
-      enable = true;
-      www = "no";
-      hostname = "klimatkalendern-dev.kompismoln.se";
-      appname = "klimatkalendern-dev";
-      port = ids.klimatkalendern-dev.port;
-      uid = ids.klimatkalendern-dev.uid;
-    };
-  };
 }

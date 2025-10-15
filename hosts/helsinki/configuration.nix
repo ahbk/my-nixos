@@ -1,22 +1,10 @@
 {
-  config,
-  ids,
-  org,
+  lib',
   ...
 }:
 {
-  imports = [
-    ./disko.nix
-    ../../modules/facter.nix
-    ../../modules/preserve.nix
-  ];
-
-  sops.secrets.luks-key = { };
   boot = {
     loader.grub.enable = true;
-    initrd = {
-      secrets."/luks-key" = config.sops.secrets.luks-key.path;
-    };
   };
 
   networking = {
@@ -64,27 +52,6 @@
 
   my-nixos = {
     sysadm.rescueMode = true;
-    facter.enable = true;
-    locksmith = {
-      enable = true;
-      luksDevice = "/dev/sda3";
-    };
-    sops.enable = true;
-    ssh.enable = true;
-
-    preserve.enable = true;
-
-    reverse-tunnel.enable = true;
-    egress-proxy.enable = true;
-
-    users.admin = {
-      class = "user";
-      groups = [ "wheel" ];
-    };
-
-    users.alex = {
-      class = "user";
-    };
 
     dns-hints = {
       enable = true;
@@ -93,36 +60,7 @@
 
     nginx = {
       enable = true;
-      email = config.my-nixos.users.admin.email;
-    };
-
-    mailserver = {
-      enable = true;
-      domain = org.domain;
-      dkimSelector = "k1";
-
-      users = {
-        admin = {
-          aliases = [
-            "postmaster@kompismoln.se"
-          ];
-        };
-        alex = {
-          aliases = [
-            "alex@ahbk.se"
-            "alex@klimatkalendern.nu"
-          ];
-        };
-      };
-
-      domains = {
-        "kompismoln.se".mailbox = true;
-        "chatddx.com".mailbox = true;
-        "sverigesval.org".mailbox = true;
-        "ahbk.se".mailbox = true;
-        "esse.nu".mailbox = false;
-        "klimatkalendern.nu".mailbox = false;
-      };
+      monitor = true;
     };
 
     svelte.sites."chatddx" = rec {
@@ -131,7 +69,7 @@
       hostname = "chatddx.com";
       ssl = true;
       api = "${if ssl then "https" else "http"}://${hostname}";
-      api_ssr = "http://localhost:${toString ids."${appname}-django".port}";
+      api_ssr = "http://localhost:${toString lib'.ids."${appname}-django".port}";
     };
 
     django.sites."chatddx" = {
@@ -155,15 +93,15 @@
       hostname = "klimatkalendern.nu";
       appname = "klimatkalendern";
       www = "redirect";
-      port = ids.klimatkalendern.port;
-      uid = ids.klimatkalendern.uid;
+      port = lib'.ids.klimatkalendern.port;
+      uid = lib'.ids.klimatkalendern.uid;
     };
 
     nextcloud.sites."nextcloud-kompismoln" = {
       enable = true;
       hostname = "nextcloud.kompismoln.se";
-      uid = ids.nextcloud-kompismoln.uid;
-      port = ids.nextcloud-kompismoln.port;
+      uid = lib'.ids.nextcloud-kompismoln.uid;
+      port = lib'.ids.nextcloud-kompismoln.port;
       collaboraHost = "collabora.kompismoln.se";
       mounts = { };
     };

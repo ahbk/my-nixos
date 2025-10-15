@@ -1,7 +1,7 @@
 {
   lib,
+  lib',
   config,
-  ids,
   ...
 }:
 let
@@ -38,7 +38,7 @@ in
 
     services.nginx.virtualHosts.${cfg.host} =
       let
-        proxyPass = "http://127.0.0.1:${builtins.toString ids.collabora.port}";
+        proxyPass = "http://127.0.0.1:${builtins.toString lib'.ids.collabora.port}";
       in
       {
         forceSSL = true;
@@ -98,7 +98,7 @@ in
 
     services.collabora-online = {
       enable = true;
-      port = ids.collabora.port;
+      port = lib'.ids.collabora.port;
       aliasGroups = map (host: {
         host = "https://nextcloud.km";
       }) cfg.allowedHosts;

@@ -35,18 +35,18 @@ wg-key() {
 }
 
 age-key() {
-    local key_file=$KEY_FILE
+    local keyfile=$KEY_FILE
 
-    age-keygen -y <"$key_file" | grep -qxF "$(decode "$k1" | age-keygen -y)" ||
+    age-keygen -y <"$keyfile" | grep -qxF "$(decode "$k1" | age-keygen -y)" ||
         exit 1
 
     [[ -n $k2 ]] || exit 0
     decode "$k2" | tail -1 | age-keygen -y || exit 1
 
-    decode "$k2" | tail -1 >>"$key_file"
+    decode "$k2" | tail -1 >>"$keyfile"
 
     if [[ "${2:-}" =~ ^[0-9]+$ ]] && (("$2" > 0)); then
-        tail -"$2" "$key_file" >"$key_file.tmp" && mv "$key_file.tmp" "$key_file"
+        tail -"$2" "$keyfile" >"$keyfile.tmp" && mv "$keyfile.tmp" "$keyfile"
         exit 0
     fi
 }

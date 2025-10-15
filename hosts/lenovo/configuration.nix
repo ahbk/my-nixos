@@ -1,12 +1,4 @@
 {
-  config,
-  ...
-}:
-{
-  imports = [
-    ../../modules/facter.nix
-  ];
-
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/fcd9e077-268d-4561-bc4c-fc97b01511d7";
     fsType = "ext4";
@@ -28,11 +20,7 @@
     }
   ];
 
-  sops.secrets.luks-key = { };
   boot = {
-    initrd = {
-      secrets."/luks-key" = config.sops.secrets.luks-key.path;
-    };
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -54,20 +42,8 @@
 
   my-nixos = {
     sysadm.rescueMode = true;
-    facter.enable = true;
-    sops.enable = true;
-    ssh.enable = true;
-
-    locksmith = {
-      enable = true;
-      luksDevice = "/dev/sda3";
-    };
 
     users = {
-      admin = {
-        class = "user";
-        groups = [ "wheel" ];
-      };
       alex = {
         description = "Alexander Holmbäck";
         class = "user";
@@ -75,7 +51,6 @@
       };
     };
 
-    shell.admin.enable = true;
     shell.alex.enable = true;
 
     ide.alex = {
