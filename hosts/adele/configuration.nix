@@ -43,13 +43,6 @@
     polkit.enable = true;
   };
 
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
   services.xserver = {
     enable = true;
     desktopManager.cinnamon.enable = true;
@@ -69,6 +62,8 @@
       home = {
         stateVersion = "25.11";
         packages = with pkgs; [
+          webcamoid
+          libcamera
           shotwell
           signal-desktop
           libreoffice
