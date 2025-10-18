@@ -35,7 +35,6 @@ keys = [
   "wg1-key",
   "wg2-key",
   "luks-key",
-  "nix-cache-key",
 ]
 
 [class.service]
@@ -46,6 +45,7 @@ keys = [
   "passwd",
   "secret-key",
   "tls-cert",
+  "nix-sign",
 ]
 
 [class.user]
@@ -91,9 +91,6 @@ keys = [
   "verify:tls-cert",
   "verify:passwd",
   "verify:mail",
-]
-"host-stationary" = [
-  "verify:nix-cache-key",
 ]
 
 [user.testuser]

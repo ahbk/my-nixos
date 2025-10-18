@@ -288,12 +288,6 @@ create-secret:ssh-key() {
     cat "$tmp_path"
 }
 
-create-secret:nix-cache-key() {
-    with fqdn tmp_path
-    nix-store --generate-binary-cache-key "$fqdn" "$tmp_path" "$tmp_path.pub"
-    cat "$tmp_path"
-}
-
 create-secret:nix-sign() {
     nix key generate-secret --key-name "nix-sign"
 }
@@ -415,14 +409,6 @@ derive-artifact:wg1-key:() {
 
 derive-artifact:wg2-key:() {
     cat-secret: | try wg pubkey
-}
-
-derive-artifact:nix-cache-key:() {
-    with fqdn secret_file
-    {
-        echo -n "$fqdn:"
-        cut -d: -f2 <"$secret_file" | base64 --decode | tail -c 32 | base64 -w 0
-    }
 }
 
 derive-artifact:nix-sign:() {

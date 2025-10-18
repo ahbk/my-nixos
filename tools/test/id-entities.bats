@@ -369,44 +369,40 @@ setup() {
   expect 1 " > "
 }
 
-@test "host new nix-cache-key" {
-  mock-host "testhost"
-
-  run "$test_cmd" -h testhost init
+@test "service new nix-sign" {
+  run "$test_cmd" -s testservice init
   expect 0 "main"
 
-  run "$test_cmd" -h testhost new nix-cache-key
+  run "$test_cmd" -s testservice new nix-sign
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify nix-cache-key
+  run "$test_cmd" -s testservice verify nix-sign
   expect 0 "main"
 
-  run test -s "$TESTROOT/artifacts/host-testhost-nix-cache-key.pub"
+  run test -s "$TESTROOT/artifacts/service-testservice-nix-sign.pub"
   expect 0
 }
 
-@test "host new nix-cache-key (missing/mismatch)" {
-  mock-host "testhost"
-
-  run "$test_cmd" -h testhost init
+@test "service new nix-sign (missing/mismatch)" {
+  run "$test_cmd" -s testservice init
   expect 0 "main"
 
-  run "$test_cmd" -h testhost new-secret nix-cache-key
+  run "$test_cmd" -s testservice new-secret nix-sign
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify nix-cache-key
-  expect 1 "artifacts/host-testhost-nix-cache-key.pub"
+  run "$test_cmd" -s testservice verify nix-sign
+  expect 1 "artifacts/service-testservice-nix-sign.pub"
 
-  run "$test_cmd" -h testhost align nix-cache-key
+  run "$test_cmd" -s testservice align nix-sign
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify nix-cache-key
+  run "$test_cmd" -s testservice verify nix-sign
   expect 0 "main"
 
-  run "$test_cmd" -h testhost new-secret nix-cache-key
+  run "$test_cmd" -s testservice new-secret nix-sign
   expect 0 "main"
 
-  run "$test_cmd" -h testhost verify nix-cache-key
+  run "$test_cmd" -s testservice verify nix-sign
   expect 1 "\ No newline"
 }
 

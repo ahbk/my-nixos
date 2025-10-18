@@ -71,7 +71,7 @@ ARGUMENTS
         ssh-key         SSH keys for users or hosts.
         wg-key          WireGuard key-pairs for hosts.
         luks-key        Passphrases for LUKS disk encryption.
-        nix-cache-key   Signing keys for a Nix binary cache.
+        nix-sign        Signing keys for a Nix binary cache.
         passwd          User passwords. The artifact is a SHA512 hash.
         mail            Mailbox passwords (behaves identically to 'passwd').
         tls-cert        Key-pairs for X.509 certificates.

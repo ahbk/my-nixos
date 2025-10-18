@@ -14,7 +14,7 @@ build() {
         REPO=$BUILD_HOST "$km_root/remote/nixservice.sh" build "$target"
     else
         local build_host
-        build_host=$(find-route "$BUILD_HOST")
+        build_host=$(org-toml.sh "find-route" "$BUILD_HOST")
         "$km_root/bin/as.sh" nix-build ssh -A "nix-build@$build_host" "build $target refresh"
     fi
 }

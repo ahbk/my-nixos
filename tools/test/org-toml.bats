@@ -31,11 +31,10 @@ setup() {
   expect 1 "null"
 
   run org-toml.sh "class" "host" "keys"
-  expect 0 "nix-cache-key" 7
+  expect 0 "luks-key" 6
 
   run org-toml.sh "class-list"
   expect 0 "user" 4
-
 }
 
 @test "org-toml context" {
@@ -63,7 +62,7 @@ setup() {
   expect 0 "host-lenovo check:ssh-key" 2
 
   run org-toml.sh "ops" "verify"
-  expect 0 "user-testuser verify:mail" 34
+  expect 0 "user-testuser verify:mail" 33
 }
 
 @test "org-toml autocomplete-identity" {
