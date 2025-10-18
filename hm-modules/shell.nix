@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  org,
   pkgs,
   ...
 }:
@@ -8,7 +9,7 @@
 let
   inherit (lib) getExe mkEnableOption mkIf;
 
-  inherit (import ../theme.nix) colors;
+  inherit (org.theme) colors;
   cfg = config.my-nixos-hm.shell;
 in
 

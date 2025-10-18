@@ -5,13 +5,16 @@
     ./hardware-configuration.nix
   ];
 
-  my-nixos.users = {
-    johanna = {
-      class = "user";
-    };
-    admin = {
-      class = "user";
-      groups = [ "wheel" ];
+  my-nixos = {
+    nix.facter = false;
+    users = {
+      johanna = {
+        class = "user";
+      };
+      admin = {
+        class = "user";
+        groups = [ "wheel" ];
+      };
     };
   };
 

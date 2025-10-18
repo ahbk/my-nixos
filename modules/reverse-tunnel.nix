@@ -2,7 +2,7 @@
 {
   config,
   lib,
-  ids,
+  lib',
   ...
 }:
 let
@@ -25,7 +25,7 @@ in
     };
 
     networking.firewall.allowedTCPPorts = [
-      ids.reverse-tunnel.port
+      lib'.ids.reverse-tunnel.port
     ];
 
     services.openssh = {

@@ -25,13 +25,19 @@ in
     inputs.preservation.nixosModules.preservation
   ];
 
-  options.my-nixos.preserve = {
+  options.my-nixos.preserve = rec {
     inherit (preserveAtOptions) files directories;
+    databases = directories;
     enable = mkEnableOption ''ephemeral root on this host'';
     storage = mkOption {
-      description = "Root for permanent storage";
+      description = "permanent storage";
       type = types.str;
       default = "/srv/storage";
+    };
+    database = mkOption {
+      description = "permanent no-cow storage";
+      type = types.str;
+      default = "/srv/database";
     };
   };
 
@@ -52,6 +58,9 @@ in
           }
         ]
         ++ cfg.files;
+      };
+      preserveAt.${cfg.database} = {
+        directories = cfg.databases;
       };
     };
 

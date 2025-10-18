@@ -14,4 +14,6 @@ lib: {
       acc: name: value:
       (lib.recursiveUpdate acc (f name value))
     ) { } attrs;
+  ids = import ./ids.nix;
+  semantic-colors = import ./semantic-colors.nix;
 }

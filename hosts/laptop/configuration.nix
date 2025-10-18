@@ -7,7 +7,6 @@
     ./hardware-configuration.nix
   ];
 
-  #facter.reportPath = ./facter.json;
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
   boot.loader.grub = {
@@ -22,6 +21,7 @@
   };
 
   my-nixos = {
+    nix.facter = false;
     sysadm.rescueMode = true;
   };
 

@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  ids,
+  lib',
   ...
 }:
 
@@ -65,7 +65,7 @@ in
         OnCalendar = "*-*-* 01:00:00";
         Persistent = true;
       };
-      repository = "rest:http://${cfg.km.target}:${toString ids.restic.port}/repository";
+      repository = "rest:http://${cfg.km.target}:${toString lib'.ids.restic.port}/repository";
       passwordFile = config.sops.secrets."backup/secret-key".path;
     };
   };

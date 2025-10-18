@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  subnets,
+  org,
   ...
 }:
 let
@@ -23,7 +23,7 @@ in
       maxretry = 1;
       bantime = "1d";
       bantime-increment.enable = true;
-      ignoreIP = lib.mapAttrsToList (subnet: subnetCfg: subnetCfg.address) subnets;
+      ignoreIP = lib.mapAttrsToList (subnet: subnetCfg: subnetCfg.address) org.subnet;
     };
   };
 }

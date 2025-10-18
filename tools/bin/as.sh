@@ -13,15 +13,17 @@ cleanup() {
 trap cleanup EXIT
 
 as() {
-    local entity=$1
-    local key_file=$tmpdir/age-key
+    local identity
+    identity=$(org-toml.sh "autocomplete-identity" "$1")
+    mkdir -p "$tmpdir/keys"
+    local key_file=$tmpdir/keys/$identity
     shift
 
     eval "$(ssh-agent -s)" > >(log info)
 
-    "$km_root/bin/id-entities.sh" "$entity" cat-secret age-key >"$key_file"
+    "$km_root/bin/id-entities.sh" "$identity" cat-secret age-key >"$key_file"
 
-    SOPS_AGE_KEY_FILE=$key_file "$km_root/bin/id-entities.sh" "$entity" cat-secret ssh-key |
+    SOPS_AGE_KEY_FILE=$key_file "$km_root/bin/id-entities.sh" "$identity" cat-secret ssh-key |
         ssh-add - 2> >(log info)
 
     SOPS_AGE_KEY_FILE=$key_file "$@"

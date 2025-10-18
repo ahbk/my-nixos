@@ -1,20 +1,21 @@
 {
   config,
+  inputs,
+  host,
   lib,
   pkgs,
   ...
 }:
 {
-  imports = [
-    ./disko.nix
-    ../../modules/facter.nix
-  ];
+  my-nixos = {
+    sysadm.rescueMode = true;
 
-  sops.secrets.luks-key = { };
+    users.ami.enable = true;
+    hm.ami.enable = true;
+    shell.ami.enable = true;
+  };
+
   boot = {
-    initrd = {
-      secrets."/luks-key" = config.sops.secrets.luks-key.path;
-    };
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -73,36 +74,4 @@
         ];
       };
     };
-
-  my-nixos = {
-    sysadm.rescueMode = true;
-    facter.enable = true;
-    locksmith = {
-      enable = true;
-      luksDevice = "/dev/sda3";
-    };
-    sops.enable = true;
-    ssh.enable = true;
-
-    preserve = {
-      enable = true;
-      directories = [
-        "/home"
-        "/etc/NetworkManager"
-      ];
-    };
-
-    users = {
-      admin = {
-        class = "user";
-        groups = [ "wheel" ];
-      };
-      ami = {
-        class = "user";
-      };
-    };
-
-    shell.ami.enable = true;
-    hm.ami.enable = true;
-  };
 }

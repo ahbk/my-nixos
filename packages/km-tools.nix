@@ -1,17 +1,16 @@
 {
-  stdenv,
-  makeWrapper,
-  shellcheck,
-  lib,
-  sops,
   age,
-  openssl,
-  openssh,
-  wireguard-tools,
-  jq,
-  yq-go,
-  nix-serve-ng,
   inputs,
+  jq,
+  lib,
+  makeWrapper,
+  openssh,
+  openssl,
+  shellcheck,
+  sops,
+  stdenv,
+  toml2json,
+  wireguard-tools,
   ...
 }:
 
@@ -44,14 +43,13 @@ stdenv.mkDerivation {
         --set REPO_ROOT ${inputs.self} \
         --prefix PATH : ${
           lib.makeBinPath [
-            sops
             age
+            jq
             openssl
             openssh
+            sops
+            toml2json
             wireguard-tools
-            jq
-            yq-go
-            nix-serve-ng
           ]
         }
     done

@@ -1,8 +1,8 @@
 {
   config,
   host,
-  subnets,
   lib,
+  org,
   ...
 }:
 
@@ -10,24 +10,20 @@ let
   inherit (lib)
     mkEnableOption
     mkIf
-    mkOption
     optionalString
-    types
     ;
 
   cfg = config.my-nixos.nginx;
-  subnet = subnets.wg0;
-  hostname = subnet.fqdn host.name;
-  endpoint = subnet.fqdn config.my-nixos.monitor.endpoint;
+  subnet = org.subnet.wg0;
+  hostname = "${host.name}.${subnet.namespace}";
+  endpoint = "${config.my-nixos.monitor.endpoint}.${subnet.namespace}";
 in
 {
-  options.my-nixos.nginx = with types; {
+  options.my-nixos.nginx = {
     enable = mkEnableOption "nginx web server.";
-    email = mkOption {
-      description = "Email for ACME certificate updates";
-      type = str;
-    };
+    monitor = mkEnableOption "nginx web server.";
   };
+
   config = mkIf cfg.enable {
     networking.firewall.allowedTCPPorts = [
       80
@@ -36,7 +32,7 @@ in
 
     security.acme = {
       acceptTerms = true;
-      defaults.email = cfg.email;
+      defaults.email = org.contact;
     };
 
     services.nginx = {

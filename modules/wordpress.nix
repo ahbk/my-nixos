@@ -125,7 +125,7 @@ in
       {
         ${serverNameRedirect} = mkIf (cfg.www != "no") {
           forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificate = mkIf cfg.subnet ../public-keys/service-domain-km-tls-cert.pem;
           sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
           enableACME = cfg.ssl && !cfg.subnet;
           extraConfig = ''
@@ -135,7 +135,7 @@ in
 
         ${serverName} = {
           forceSSL = cfg.ssl;
-          sslCertificate = mkIf cfg.subnet ../public-keys/domain-km-tls-cert.pem;
+          sslCertificate = mkIf cfg.subnet ../public-keys/service-domain-km-tls-cert.pem;
           sslCertificateKey = mkIf cfg.subnet config.sops.secrets."km/tls-cert".path;
           enableACME = cfg.ssl && !cfg.subnet;
 

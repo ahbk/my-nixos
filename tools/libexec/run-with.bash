@@ -19,11 +19,6 @@ callchain() {
     die 1 "callchain for prefix '$prefix' not implemented"
 }
 
-# implement a context
-context() {
-    die 1 "context for prefix '$prefix' not implemented"
-}
-
 # satisfy shellcheck
 declare -g callchain
 
@@ -47,7 +42,6 @@ run() {
         [[ -n $links ]] ||
             die 1 "'$prefix' didn't match any link in the callchain:"$'\n'"$(callchain)"
 
-        with context
         for link in $links; do
             log debug "run $link"
             "$link"
@@ -72,10 +66,13 @@ with() {
 }
 
 tlog() {
+    local rc=$?
     tee >(log "$1")
+    return $rc
 }
 
 log() {
+    local rc=$?
     local label=${1:?"log needs a label"}
 
     local msg="${2:-$(cat)}"
@@ -102,6 +99,8 @@ log() {
 
     printf "%b[%02d]: %b%s -> %b%s%b\n" \
         "$c1" "$depth" "$c2" "$caller" "$c3" "$msg" "$NC" >&2
+
+    return $rc
 }
 
 die() {
@@ -148,6 +147,13 @@ trailing-newline() {
 
 ping-port() {
     nc -z -w2 "$1" "$2" &>/dev/null
+}
+
+declare -g repo_root
+repo_root() {
+    local repo_root=${REPO_ROOT:-$(pwd)}
+    [[ -d $repo_root ]] || die 1 "$repo_root is not a directory"
+    echo "$repo_root"
 }
 
 RN='\033[0;31m'

@@ -1,9 +1,10 @@
 {
   config,
   host,
-  ids,
   inputs,
   lib,
+  lib',
+  org,
 
   ...
 }:
@@ -43,7 +44,7 @@ in
       useGlobalPkgs = true;
       useUserPackages = true;
       extraSpecialArgs = {
-        inherit inputs;
+        inherit inputs lib' org;
       };
       sharedModules = [ ../hm-modules/all.nix ];
       users = mapAttrs (user: cfg: {
@@ -52,7 +53,7 @@ in
         my-nixos-hm.user = {
           enable = config.my-nixos.hm.${user}.enable;
           name = user;
-          uid = ids.${user}.uid;
+          uid = lib'.ids.${user}.uid;
         };
       }) eachUser;
     };

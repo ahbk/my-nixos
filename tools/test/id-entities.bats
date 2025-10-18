@@ -4,22 +4,12 @@
 set -eu
 
 setup() {
-  here="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
-  export testroot=$BATS_TEST_TMPDIR/testroot
+  load helpers.sh
   test_cmd=id-entities.sh
-  export LOG_LEVEL=debug
-  export SOPS_AGE_KEY_FILE="keys/root-1"
 
   echo "=== BEGIN SETUP ===" >&2
-
-  mkdir -p "$testroot"
-  cp -a "$here/../." "$testroot"
-  tree "$testroot"
-
-  cd "$testroot"
-  mkdir "enc" "keys" "artifacts"
-
-  export PATH="$testroot/bin:$testroot/test/bin:$PATH"
+  setup-testenv
+  export SOPS_AGE_KEY_FILE="$TESTROOT/keys/root-1"
 
   # init root 1 (bootstrap)
   SECRET_SEED=<(echo "$test_identity_root_1") "$test_cmd" -r 1 init age-key
@@ -27,54 +17,13 @@ setup() {
   echo "=== END SETUP ===" >&2
 }
 
-setup-testhost() {
-  local hostroot=$BATS_TEST_TMPDIR/testhost.local
-  mkdir -p "$hostroot/keys"
-
-  echo "$test_age_key_1" >"$hostroot/age-key"
-  echo "$test_ssh_key_1" >"$hostroot/ssh-key"
-  chmod 600 "$hostroot/ssh-key"
-  echo "$test_luks_key_1" >"$hostroot/luks-key"
-
-  $test_cmd -s locksmith init
-  $test_cmd -s locksmith new ssh-key
-}
-
-strip-color() {
-  sed 's/\x1B\[[0-9;]*[JKmsu]//g'
-}
-
-expect() {
-  local lastline
-  local expected_status=$1
-  local expected_lastline=${2:-}
-
-  lastline=$(echo "$output" | tail -n 1 | strip-color)
-
-  [[ 
-    "$lastline" == *"$expected_lastline"* &&
-    "$status" == "$expected_status" ]] &&
-    return 0
-
-  cat >&2 <<EOF
-
-  === '$BATS_TEST_NAME' ===
-  $output
-
-  in '$BATS_TEST_NAME'
-  run '$BATS_RUN_COMMAND' failed:
-  expected: $expected_lastline ($expected_status)
-  got:      $lastline ($status)
-
-EOF
-  return 1
-}
-
 @test "setup works" {
   artifact=$(age-keygen -y <"keys/root-1")
-  root_identity=$(yq ".identities.root-1" .sops.yaml)
+  root_identity=$(
+    CONTEXT="root:1:age-key" org-toml.sh "public-artifacts"
+  )
 
-  [[ $artifact == "$root_identity" ]]
+  echo "$artifact" | diff - "$root_identity"
 }
 
 @test "no args" {
@@ -83,25 +32,26 @@ EOF
 }
 
 @test "init host works" {
-  setup-testhost
+  mock-host "testhost"
   local tmpkey testhost_backend="enc/host-testhost.yaml"
 
-  tmpkey=$(mktemp "$testroot/XXXXXX")
+  tmpkey=$(mktemp "$TESTROOT/XXXXXX")
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
 
-  SOPS_AGE_KEY_FILE="keys/root-1" run sops decrypt --extract "['enable']" $testhost_backend
-  expect 0 "true"
+  SOPS_AGE_KEY_FILE="keys/root-1" run sops decrypt --extract "['identity']" $testhost_backend
+  expect 0 "host-testhost"
 
   # test: host secrets can be decrypted with host key
   SOPS_AGE_KEY_FILE="keys/root-1" sops decrypt --extract "['age-key']" $testhost_backend >"$tmpkey"
-  SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['enable']" $testhost_backend
-  expect 0 "true"
+
+  SOPS_AGE_KEY_FILE="$tmpkey" run sops decrypt --extract "['identity']" $testhost_backend
+  expect 0 "host-testhost"
 
   # test: host secrets cant be decrypted with some random key
   age-keygen >"$tmpkey"
-  SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['enable']" $testhost_backend
+  SOPS_AGE_KEY_FILE=$tmpkey run sops decrypt --extract "['identity']" $testhost_backend
   expect 128 "but none were."
 }
 
@@ -113,11 +63,11 @@ EOF
 
   # test: can't do stuff with random age key
   run "$test_cmd" -h testhost new age-key
-  expect 1 "no identity found"
+  expect 128 "but none were"
 }
 
 @test "next slot" {
-  setup-testhost
+  mock-host "testhost"
 
   run "$test_cmd" -h testhost init age-key
   expect 0 "main"
@@ -126,6 +76,9 @@ EOF
   expect 0 "0"
 
   run "$test_cmd" -h testhost new luks-key
+  expect 0 "main"
+
+  run "$test_cmd" -h testhost next-slot luks-key
   expect 0 "main"
 
   run bash -c "$test_cmd -h testhost next-slot luks-key 2>/dev/null"
@@ -156,6 +109,9 @@ EOF
 }
 
 @test "rotate root" {
+  LOG_LEVEL=off run org-toml.sh recipients "user-testuser"
+  expect 0 "age163e67e8t5wrt4ndy9e92z9gxh6nan06793vmasn8tr2vxxm56qlsvm23at"
+
   run "$test_cmd" -u testuser init age-key
   expect 0 "main"
 
@@ -165,18 +121,18 @@ EOF
   run "$test_cmd" -r 1 new age-key
   expect 1 "entities are not allowed to rotate their own identity"
 
-  SOPS_AGE_KEY_FILE=keys/root-2
+  SOPS_AGE_KEY_FILE=$TESTROOT/keys/root-2
   run "$test_cmd" -u testuser verify age-key
-  expect 1 "no identity found in 'keys/root-2'"
+  expect 1 "no identity found in '$TESTROOT/keys/root-2'"
 
-  SOPS_AGE_KEY_FILE=keys/root-1
+  SOPS_AGE_KEY_FILE=$TESTROOT/keys/root-1
   run "$test_cmd" -r 2 init age-key
   expect 0 "main"
 
   run $test_cmd -u testuser rebuild
   expect 0 "main"
 
-  SOPS_AGE_KEY_FILE=keys/root-2
+  SOPS_AGE_KEY_FILE=$TESTROOT/keys/root-2
   run "$test_cmd" -u testuser verify age-key
   expect 0 "main"
 
@@ -191,7 +147,9 @@ EOF
 }
 
 @test "host new age-key" {
-  setup-testhost
+  mock-host "testhost"
+  $test_cmd -s locksmith init
+  $test_cmd -s locksmith new ssh-key
 
   SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -222,7 +180,9 @@ EOF
 }
 
 @test "host push age-key" {
-  setup-testhost
+  mock-host "testhost"
+  $test_cmd -s locksmith init
+  $test_cmd -s locksmith new ssh-key
 
   SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -244,7 +204,9 @@ EOF
 }
 
 @test "host check luks-key" {
-  setup-testhost
+  mock-host "testhost"
+  $test_cmd -s locksmith init
+  $test_cmd -s locksmith new ssh-key
 
   SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -272,7 +234,9 @@ EOF
 }
 
 @test "host push luks-key" {
-  setup-testhost
+  mock-host "testhost"
+  $test_cmd -s locksmith init
+  $test_cmd -s locksmith new ssh-key
 
   SECRET_SEED=<(echo "$test_age_key_1") run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -318,7 +282,7 @@ EOF
 }
 
 @test "host pull ssh-key" {
-  setup-testhost
+  mock-host "testhost"
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -343,7 +307,7 @@ EOF
 }
 
 @test "host new ssh-key (no artifact)" {
-  setup-testhost
+  mock-host "testhost"
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -352,11 +316,11 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify ssh-key
-  expect 1 "no artifact at artifacts/host-testhost-ssh-key.pub"
+  expect 1 "artifacts/host-testhost-ssh-key.pub"
 }
 
 @test "host new wg-key" {
-  setup-testhost
+  mock-host "testhost"
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -379,18 +343,18 @@ EOF
   run "$test_cmd" -h testhost verify wg2-key
   expect 0 "main"
 
-  run test -f "$testroot/artifacts/host-testhost-wg0-key.pub"
+  run test -f "$TESTROOT/artifacts/host-testhost-wg0-key.pub"
   expect 0
 
-  run test -f "$testroot/artifacts/host-testhost-wg1-key.pub"
+  run test -f "$TESTROOT/artifacts/host-testhost-wg1-key.pub"
   expect 0
 
-  run test -f "$testroot/artifacts/host-testhost-wg2-key.pub"
+  run test -f "$TESTROOT/artifacts/host-testhost-wg2-key.pub"
   expect 0
 }
 
 @test "host new wg-key (mismatch)" {
-  setup-testhost
+  mock-host "testhost"
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -406,7 +370,7 @@ EOF
 }
 
 @test "host new nix-cache-key" {
-  setup-testhost
+  mock-host "testhost"
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -417,12 +381,12 @@ EOF
   run "$test_cmd" -h testhost verify nix-cache-key
   expect 0 "main"
 
-  run test -s "$testroot/artifacts/host-testhost-nix-cache-key.pub"
+  run test -s "$TESTROOT/artifacts/host-testhost-nix-cache-key.pub"
   expect 0
 }
 
 @test "host new nix-cache-key (missing/mismatch)" {
-  setup-testhost
+  mock-host "testhost"
 
   run "$test_cmd" -h testhost init
   expect 0 "main"
@@ -431,7 +395,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -h testhost verify nix-cache-key
-  expect 1 "no artifact at artifacts/host-testhost-nix-cache-key.pub"
+  expect 1 "artifacts/host-testhost-nix-cache-key.pub"
 
   run "$test_cmd" -h testhost align nix-cache-key
   expect 0 "main"
@@ -491,7 +455,7 @@ EOF
   run "$test_cmd" -u testuser verify ssh-key
   expect 0 "main"
 
-  run test -f "$testroot/artifacts/user-testuser-ssh-key.pub"
+  run test -f "$TESTROOT/artifacts/user-testuser-ssh-key.pub"
   expect 0
 }
 
@@ -517,7 +481,7 @@ EOF
   expect 0 "main"
 
   run "$test_cmd" -u testuser verify ssh-key
-  expect 1 "no artifact at artifacts/user-testuser-ssh-key.pub"
+  expect 1 "artifacts/user-testuser-ssh-key.pub"
 }
 
 @test "user new passwd" {
@@ -552,30 +516,30 @@ EOF
 }
 
 @test "domain new tls-cert" {
-  run "$test_cmd" -d testdomain init
+  run "$test_cmd" -s domain-local init
   expect 0 "main"
 
-  run "$test_cmd" -d testdomain new tls-cert
+  run "$test_cmd" -s domain-local new tls-cert
   expect 0 "main"
 
-  run "$test_cmd" -d testdomain verify tls-cert
+  run "$test_cmd" -s domain-local verify tls-cert
   expect 0 "main"
 
-  run test -f "$testroot/artifacts/domain-testdomain-tls-cert.pem"
+  run test -f "$TESTROOT/artifacts/service-domain-local-tls-cert.pem"
   expect 0
 }
 
 @test "domain new tls-cert (mismatch)" {
-  run "$test_cmd" -d testdomain init
+  run "$test_cmd" -s domain-local init
   expect 0 "main"
 
-  run "$test_cmd" -d testdomain new tls-cert
+  run "$test_cmd" -s domain-local new tls-cert
   expect 0 "main"
 
-  run "$test_cmd" -d testdomain new-secret tls-cert
+  run "$test_cmd" -s domain-local new-secret tls-cert
   expect 0 "main"
 
-  run "$test_cmd" -d testdomain verify tls-cert
+  run "$test_cmd" -s domain-local verify tls-cert
   expect 1 "> MCow"
 }
 
@@ -586,7 +550,7 @@ EOF
   run "$test_cmd" sysctl-user-portal new ssh-key
   expect 0 "main"
 
-  run test -f "$testroot/artifacts/service-sysctl-user-portal-ssh-key.pub"
+  run test -f "$TESTROOT/artifacts/service-sysctl-user-portal-ssh-key.pub"
   expect 0
 
   run "$test_cmd" sysctl-user-portal new secret-key
@@ -603,26 +567,20 @@ EOF
 }
 
 @test "misc madness" {
-  run "$test_cmd" -d testdomain init
+  run "$test_cmd" -s domain-local init
   expect 0 "main"
 
-  run "$test_cmd" -d testdomain init
+  run "$test_cmd" -s domain-local init
   expect 1 "already exists"
 
-  run "$test_cmd" -d tetsdomain new
-  expect 1 "did you spell 'tetsdomain' correctly?"
+  run "$test_cmd" -s domain-loca new
+  expect 1 "did you spell 'domain-loca' correctly?"
 
   run "$test_cmd" -r 1 new ssh-key
   expect 1 "not allowed"
 
   run "$test_cmd" -u testuser init
   expect 0 "main"
-
-  run "$test_cmd" -s testuser init
-  expect 0 "main"
-
-  run "$test_cmd" testuser cat-secret
-  expect 1 "could not infer a valid context"
 
   run "$test_cmd" -u testuser cat-secret passwd
   expect 1 "component ['passwd'] not found"
@@ -632,16 +590,9 @@ EOF
 }
 
 test_identity_root_1=AGE-SECRET-KEY-1DJDMVRRC7UNF8HSKVSGQCWFNMJ5HTRT6HT2MDML9JZ54GCW8TYNSSWWL8D
+
 test_age_key_1=AGE-SECRET-KEY-1L0EJY3FLSYHDE46Y80F0KLUKUWP6V3J340UR7G2GWNFGXJQ0P6ZQ6X37TN
 test_age_key_2=AGE-SECRET-KEY-1V782VQAQT6QJPARYTCD8CLES04Q83V068FRFDWG02HGLE96U93FSVACDKF
-
-test_ssh_key_1="-----BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACDEE3csx1IE4hhJQOzYQh7xZ8iZY6wj1C1xYp2DjxjmOAAAAKDYIpSm2CKU
-pgAAAAtzc2gtZWQyNTUxOQAAACDEE3csx1IE4hhJQOzYQh7xZ8iZY6wj1C1xYp2DjxjmOA
-AAAEA4YkpxaWCNi2sH27/j3HB+cMO81OHPrAzAeD15B1N9BcQTdyzHUgTiGElA7NhCHvFn
-yJljrCPULXFinYOPGOY4AAAAF3Rlc3R1c2VyQHRlc3Rob3N0LmxvY2FsAQIDBAUG
------END OPENSSH PRIVATE KEY-----"
 
 test_luks_key_1="luks1-Atzc2gtZWQyNTUxO"
 test_luks_key_2="luks2-roGxnLozh/+wBGot"

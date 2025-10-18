@@ -1,7 +1,7 @@
 {
   config,
-  ids,
   lib,
+  lib',
   org,
   pkgs,
   ...
@@ -30,6 +30,7 @@ let
           type = lib.types.enum [
             "user"
             "service"
+            "system"
           ];
         };
         description = lib.mkOption {
@@ -79,7 +80,7 @@ in
       {
         inherit isNormalUser;
         description = userCfg.description;
-        uid = ids.${user}.uid;
+        uid = lib'.ids.${user}.uid;
         isSystemUser = !isNormalUser;
         shell = lib.mkIf (!isNormalUser && userCfg.shell) pkgs.bash;
         home = lib.mkIf (!isNormalUser && userCfg.home) "/var/lib/${user}";
@@ -91,7 +92,7 @@ in
     ) eachUser;
 
     users.groups = lib.mapAttrs (name: _: {
-      gid = ids.${name}.uid;
+      gid = lib'.ids.${name}.uid;
     }) eachUser;
   };
 }

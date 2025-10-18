@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  options,
   ...
 }:
 
@@ -27,29 +28,23 @@ let
   };
 in
 {
-  options.my-nixos.mysql =
-    with types;
-    mkOption {
-      type = attrsOf (submodule userOpts);
-      default = { };
-      description = "Specification of one or more mysql user/database pair to setup";
-    };
+  options.my-nixos.mysql = mkOption {
+    type = with lib.types; attrsOf (submodule userOpts);
+    default = { };
+    description = "Specification of one or more mysql user/database pair to setup";
+  };
 
   config = mkIf (eachCfg != { }) {
-    preservation.preserveAt."/srv/database" = {
-      directories = [
-        {
-          directory = "/var/lib/mysql";
-          user = "mysql";
-          group = "mysql";
-        }
-      ];
-    };
+    my-nixos.preserve.databases = [
+      {
+        directory = "/var/lib/postgresql";
+        user = "postgres";
+        group = "postgres";
+      }
+    ];
     services.mysql = {
       enable = true;
       package = pkgs.mariadb;
-
-      ensureDatabases = mapAttrsToList (user: cfg: user) eachCfg;
       ensureUsers = mapAttrsToList (user: cfg: {
         name = user;
         ensurePermissions = {

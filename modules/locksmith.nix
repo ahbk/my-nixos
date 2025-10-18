@@ -39,6 +39,7 @@ in
     enable = mkEnableOption "user locksmith";
     luksDevice = mkOption {
       type = types.str;
+      default = "/dev/null";
     };
   };
 

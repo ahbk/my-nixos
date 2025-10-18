@@ -1,0 +1,398 @@
+# org.toml
+name = "Kompismoln"
+domain = "kompismoln.se"
+contact = "info@kompismoln.se"
+inboxes = [
+  "info@kompismoln.se",
+  "postmaster@kompismoln.se",
+  "abuse@kompismoln.se",
+]
+timezone = "Europe/Stockholm"
+locale = "en_US.UTF-8"
+build-hosts = [
+  "stationary",
+]
+root-identities = [
+  "root-1",
+]
+namespaces = [
+  "km",
+  "km1",
+  "kompismoln.se",
+]
+
+[site."kompismoln.se"]
+mailbox = true
+
+[site."chatddx.com"]
+mailbox = true
+
+[site."sverigesval.org"]
+mailbox = true
+
+[site."ahbk.se"]
+mailbox = true
+
+[site."esse.nu"]
+mailbox = false
+
+[site."klimatkalendern.nu"]
+mailbox = false
+
+[public-artifacts]
+default = "public-keys/$class-$entity-$key.pub"
+tls-cert = "public-keys/$class-$entity-$key.pem"
+
+[secrets]
+default = "enc/$class-$entity.yaml"
+root = "keys/$class-$entity"
+
+[class.root]
+keys = [
+  "age-key",
+]
+
+[class.host]
+keys = [
+  "age-key",
+  "ssh-key",
+  "wg0-key",
+  "wg1-key",
+  "wg2-key",
+  "luks-key",
+  "nix-cache-key",
+]
+
+[class.service]
+keys = [
+  "age-key",
+  "ssh-key",
+  "mail",
+  "passwd",
+  "secret-key",
+  "tls-cert",
+  "nix-sign",
+]
+
+[class.user]
+keys = [
+  "age-key",
+  "ssh-key",
+  "mail",
+  "passwd",
+]
+
+[ops.rebuild]
+"*" = [
+  "rebuild:age-key",
+]
+
+[ops.align]
+"*" = [
+  "align:age-key",
+]
+
+[ops.check]
+"host:luks+server" = [
+  "check:luks-key",
+]
+"host:server" = [
+  "check:age-key",
+  "check:ssh-key",
+]
+"host-lenovo" = [
+  "check:age-key",
+  "check:ssh-key",
+]
+
+[ops.verify]
+"*" = [
+  "verify:age-key",
+]
+"user-*" = [
+  "verify:ssh-key",
+  "verify:passwd",
+  "verify:mail",
+]
+"host-*" = [
+  "verify:wg-key",
+]
+"service-*" = [
+  "verify:ssh-key",
+  "verify:tls-cert",
+  "verify:passwd",
+  "verify:mail",
+]
+"host-stationary" = [
+  "verify:nix-cache-key",
+]
+
+[root.1]
+
+[service.backup]
+grants = [
+  "host-*",
+]
+
+[service.domain-km]
+grants = [
+  "host-*",
+]
+
+[service.locksmith]
+grants = [
+  "host-*",
+]
+
+[service.egress-proxy]
+grants = [
+  "host:server",
+]
+
+[service.reverse-tunnel]
+grants = [
+  "host:server",
+]
+
+[service.nix-build]
+grants = [
+  "host-*",
+]
+
+[service.nix-push]
+grants = [
+  "host-*",
+]
+
+[service.nix-switch]
+grants = [
+  "host-*",
+]
+
+[service.nix-serve]
+grants = [
+  "host-*",
+]
+
+[service.rescue]
+grants = [
+  "host-*",
+]
+
+[service.chatddx-django]
+grants = [
+  "host-helsinki",
+  "host-stationary",
+]
+
+[service.dmarc-reports]
+grants = [
+  "host:mailserver",
+]
+
+[service.nextcloud-kompismoln]
+grants = [
+  "host-helsinki",
+  "host-stationary",
+]
+
+[host.stationary]
+id = 1
+roles = [
+  "nixos",
+  "peer",
+  "webserver",
+]
+endpoint = "stationary.kompismoln.se"
+subnets = [
+  "wg0",
+  "wg1",
+]
+system = "x86_64-linux"
+stateVersion = "20.03"
+
+[host.laptop]
+id = 2
+roles = [
+  "nixos",
+  "peer",
+]
+subnets = [
+  "wg0",
+  "wg1",
+]
+system = "x86_64-linux"
+stateVersion = "23.11"
+
+[host.phone]
+id = 4
+roles = [
+  "peer",
+]
+subnets = [
+  "wg0",
+]
+system = "aarch64-linux"
+stateVersion = ""
+
+[host.helsinki]
+id = 5
+roles = [
+  "nixos",
+  "peer",
+  "webserver",
+  "mailserver",
+  "disko",
+]
+endpoint = "helsinki.kompismoln.se"
+subnets = [
+  "wg0",
+  "wg1",
+]
+system = "x86_64-linux"
+stateVersion = "25.05"
+
+[host.friday]
+id = 6
+roles = [
+  "nixos",
+  "peer",
+]
+subnets = [
+  "wg0",
+  "wg1",
+]
+system = "x86_64-linux"
+stateVersion = "20.03"
+
+[host.lenovo]
+id = 7
+roles = [
+  "nixos",
+  "peer",
+  "workstation",
+]
+subnets = [
+  "wg0",
+  "wg1",
+]
+system = "x86_64-linux"
+stateVersion = "24.11"
+
+[host.adele]
+id = 8
+roles = [
+  "nixos",
+  "peer",
+  "workstation",
+  "disko",
+]
+subnets = [
+  "wg0",
+  "wg1",
+]
+system = "x86_64-linux"
+stateVersion = "25.11"
+
+[host.bootstrap]
+id = 254
+roles = []
+system = "x86_64-linux"
+stateVersion = "25.11"
+
+[user.admin]
+grants = [
+  "host-*",
+]
+
+[user.ami]
+grants = [
+  "host-adele",
+]
+
+[user.alex]
+inboxes = [
+  "alex@ahbk.se",
+  "alex@klimatkalendern.nu",
+]
+grants = [
+  "host-lenovo",
+  "host-helsinki",
+]
+
+[user.johanna]
+grants = [
+  "host-friday",
+]
+
+[subnet.wg0]
+enable = true
+address = "10.0.0.0/24"
+port = 51820
+keepalive = 25
+gateway = "helsinki"
+namespace = "km"
+dns = ["helsinki"]
+resetOnRebuild = true
+peerAddress = "10.0.0.x"
+allowedTCPPortRanges = [{ from = 0, to = 65535 }]
+
+[subnet.wg1]
+enable = true
+address = "10.0.1.0/24"
+port = 51821
+keepalive = 25
+gateway = "stationary"
+namespace = "km1"
+dns = ["stationary"]
+resetOnRebuild = true
+peerAddress = "10.0.1.x"
+allowedTCPPortRanges = [{ from = 0, to = 65535 }]
+
+[theme.fonts]
+monospace = "Source Code Pro"
+serif = "Merriweather"
+sans-serif = "Roboto"
+
+[theme.colors]
+black-100 = "#717C7C"
+black-200 = "#727169"
+black-300 = "#54546D"
+black-400 = "#363646"
+black-500 = "#2A2A37"
+black-600 = "#1F1F28"
+black-700 = "#1a1a22"
+black-800 = "#181820"
+black-900 = "#16161D"
+red-300 = "#FF5D62"
+red-400 = "#C34043"
+red-500 = "#E82424"
+pink-300 = "#D27E99"
+pink-400 = "#E46876"
+pink-500 = "#43242B"
+green-300 = "#98BB6C"
+green-400 = "#76946A"
+green-500 = "#2B3328"
+yellow-300 = "#E6C384"
+yellow-400 = "#DCA561"
+yellow-500 = "#FF9E3B"
+beige-300 = "#C0A36E"
+beige-400 = "#938056"
+beige-500 = "#49443C"
+orange-400 = "#FFA066"
+blue-200 = "#A3D4D5"
+blue-300 = "#7FB4CA"
+blue-400 = "#7E9CD8"
+blue-500 = "#2D4F67"
+blue-600 = "#223249"
+blue-700 = "#252535"
+purple-200 = "#b8b4d0"
+purple-300 = "#9CABCA"
+purple-400 = "#938AA9"
+purple-500 = "#957FB8"
+cyan-300 = "#7AA89F"
+cyan-400 = "#6A9589"
+cyan-500 = "#658594"
+white-300 = "#ECE7DA"
+white-400 = "#DCD7BA"
+white-500 = "#C8C093"

@@ -1,17 +1,21 @@
 {
   lib,
   host,
-  hosts,
   config,
-  subnets,
+  org,
   ...
 }:
 let
   cfg = config.my-nixos.dns-hints;
-  subnet = subnets.${cfg.subnet};
-  listen = subnet.peerAddress host;
-  hint = hostname: hostconf: "hints['${subnet.fqdn hostname}'] = '${subnet.peerAddress hostconf}'";
-  hints = lib.mapAttrsToList hint hosts;
+  subnet = org.subnet.${cfg.subnet};
+  listen = peerAddress subnet host;
+  hints = lib.mapAttrsToList hint org.host;
+
+  peerAddress =
+    subnet: peer: builtins.replaceStrings [ "x" ] [ (toString peer.id) ] subnet.peerAddress;
+
+  hint =
+    hostname: hostconf: "hints['${hostname}.${subnet.namespace}'] = '${peerAddress subnet hostconf}'";
 in
 {
   options.my-nixos.dns-hints = {

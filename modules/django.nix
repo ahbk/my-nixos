@@ -5,7 +5,6 @@
   lib,
   lib',
   pkgs,
-  ids,
   ...
 }:
 
@@ -97,7 +96,7 @@ let
       STATE_DIR = stateDir cfg.appname;
     }
     // (optionalAttrs cfg.celery.enable {
-      CELERY_BROKER_URL = "redis://127.0.0.1:${toString ids."${cfg.appname}-redis".port}/0";
+      CELERY_BROKER_URL = "redis://127.0.0.1:${toString lib'.ids."${cfg.appname}-redis".port}/0";
       FLOWER_URL_PREFIX = "/flower";
     })
   ) eachSite;
@@ -164,7 +163,7 @@ in
           optionalAttrs (cfg.locationProxy != "") {
             ${cfg.locationProxy} = {
               recommendedProxySettings = true;
-              proxyPass = "http://localhost:${toString ids."${cfg.appname}-django".port}";
+              proxyPass = "http://localhost:${toString lib'.ids."${cfg.appname}-django".port}";
             };
           }
           // optionalAttrs (cfg.locationStatic != "") {
@@ -175,7 +174,7 @@ in
           // optionalAttrs (cfg.celery.enable) {
             "/auth" = {
               recommendedProxySettings = true;
-              proxyPass = "http://localhost:${toString ids."${cfg.appname}-django".port}";
+              proxyPass = "http://localhost:${toString lib'.ids."${cfg.appname}-django".port}";
             };
             "/flower/" = {
               proxyPass = "http://localhost:5555";
@@ -194,7 +193,7 @@ in
           ExecStart = "${
             inputs.${cfg.appname}.packages.${host.system}.django-app
           }/bin/gunicorn ${cfg.packagename}.wsgi:application --bind localhost:${
-            toString ids."${cfg.appname}-django".port
+            toString lib'.ids."${cfg.appname}-django".port
           }";
           User = "${cfg.appname}-django";
           Group = "${cfg.appname}-django";
